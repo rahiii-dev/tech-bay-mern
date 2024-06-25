@@ -3,11 +3,11 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
 import dotenv from 'dotenv';
-if(process.env.NODE_ENV == 'developement'){
+import serverConfig from './config/serverConfig.js';
+import { DbConnect } from './config/dbConfig.js';
+if(process.env.NODE_ENV != 'production'){
     dotenv.config(); 
 }
-
-const PORT = process.env.PORT || 5000;
 
 const app = express();
 
@@ -20,4 +20,7 @@ const __dirname = dirname(__filename);
 
 app.get('/', (req, res) => res.json('Server is ready'));
 
-app.listen(PORT, () => console.log(`Server started on port http://localhost:${PORT}/`));
+// DB
+DbConnect()
+
+app.listen(serverConfig.port, serverConfig.host, () => console.log(`Server started on port http://${serverConfig.hostname()}/`));
