@@ -1,11 +1,39 @@
+import { Navigate, Route, Routes } from "react-router-dom"
+import UserScreen from "./screens/UserScreen"
+import LoginScreen from "./screens/LoginScreen"
+import RegisterScreen from "./screens/RegisterScreen"
+import AdminScreen from "./screens/AdminScreen"
+import DashBoard from "./pages/Admin/DashBoard"
+import HomePage from "./pages/User/HomePage"
+import AdminGuard from "./Router/Guards/AdminGuard"
 
 function App() {
-
   return (
     <>
-      <h1>App</h1>
+      <Routes>
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/register" element={<RegisterScreen />} />
+
+        {/* Public Routes */}
+        <Route path="/" element={<UserScreen />}>
+          <Route index element={<HomePage/>} /> 
+        </Route>
+
+        {/* Admin Routes (requires admin authorization) */}
+        <Route element={<AdminGuard />}>
+          <Route path="/admin" element={<AdminScreen />}>
+            <Route index element={<Navigate to='dashboard'/>}/>
+            <Route path="/admin/dashboard" element={<DashBoard />} />
+          </Route>
+        </Route>
+
+        {/* Catch-all invalid paths */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
-  )
+  );
 }
+
+
 
 export default App
