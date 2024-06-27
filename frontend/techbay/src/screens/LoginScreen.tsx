@@ -1,9 +1,17 @@
-import { Link } from "react-router-dom"
-import LoginForm from "../components/forms/LoginForm"
+import { Link, Navigate, useLocation } from "react-router-dom"
+import LoginForm from "../components/auth/LoginForm"
 import AuthLayout from "../pages/AuthLayout"
 import {LOGIN_PAGE_IMAGE} from '../utils/constants'
+import { useAppSelector } from "../hooks/useSelector"
 
 export default function LoginScreen() {
+    const user = useAppSelector((state) => state.auth.user);
+    const location = useLocation();
+    if(user) {
+        const redirectTo = location.state?.from || '/'
+        return <Navigate to={redirectTo}/>
+    }
+    
     return (
         <AuthLayout image={LOGIN_PAGE_IMAGE}>
             <div className="mx-auto grid w-[350px] gap-6">

@@ -1,9 +1,17 @@
-import { Link } from "react-router-dom";
-import RegisterForm from "../components/forms/RegisterForm";
+import { Link, Navigate, useLocation } from "react-router-dom";
+import RegisterForm from "../components/auth/RegisterForm";
 import AuthLayout from "../pages/AuthLayout";
 import { REGISTER_PAGE_IMAGE } from "../utils/constants";
+import { useAppSelector } from "../hooks/useSelector";
 
 const RegisterScreen = () => {
+    const user = useAppSelector((state) => state.auth.user);
+    const location = useLocation();
+    if(user) {
+        const redirectTo = location.state?.from || '/'
+        return <Navigate to={redirectTo}/>
+    }
+
     return (
         <AuthLayout image={REGISTER_PAGE_IMAGE}>
             <div className="mx-auto grid w-[350px] gap-6">

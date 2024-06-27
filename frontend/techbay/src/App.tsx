@@ -5,7 +5,6 @@ import RegisterScreen from "./screens/RegisterScreen"
 import AdminScreen from "./screens/AdminScreen"
 import DashBoard from "./pages/Admin/DashBoard"
 import HomePage from "./pages/User/HomePage"
-import AdminGuard from "./Router/Guards/AdminGuard"
 
 function App() {
   return (
@@ -16,15 +15,14 @@ function App() {
 
         {/* Public Routes */}
         <Route path="/" element={<UserScreen />}>
-          <Route index element={<HomePage/>} /> 
+          <Route index element={<HomePage />} />
         </Route>
 
+
         {/* Admin Routes (requires admin authorization) */}
-        <Route element={<AdminGuard />}>
-          <Route path="/admin" element={<AdminScreen />}>
-            <Route index element={<Navigate to='dashboard'/>}/>
-            <Route path="/admin/dashboard" element={<DashBoard />} />
-          </Route>
+        <Route path="/admin" element={<AdminScreen />}>
+          <Route index element={<Navigate to='dashboard' />} />
+          <Route path="/admin/dashboard" element={<DashBoard />} />
         </Route>
 
         {/* Catch-all invalid paths */}

@@ -20,6 +20,7 @@ export const authenticateUser = asyncHandler(async (req, res) => {
       phone_no: user.phone_no,
       isAdmin: user.isAdmin,
       isStaff: user.isStaff,
+      isBlocked: user.isBlocked
     });
   } else {
     res.status(401);
@@ -56,6 +57,7 @@ export const createUser = asyncHandler(async (req, res) => {
   });
 
   if (await user.save()) {
+    generateToken(user, res)
     res.status(201).json({
         _id: user._id,
         fullName: user.fullName,
@@ -63,6 +65,7 @@ export const createUser = asyncHandler(async (req, res) => {
         phone_no: user.phone_no,
         isAdmin: user.isAdmin,
         isStaff: user.isStaff,
+        isBlocked: user.isBlocked
       });
   } else {
     res.status(400);

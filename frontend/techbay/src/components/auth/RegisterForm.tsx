@@ -4,6 +4,12 @@ import * as z from 'zod';
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useAxios from "../../hooks/useAxios";
+import { REGISTER_URL } from "../../utils/urls/authUrls";
+import { useNavigate } from "react-router-dom";
+import { setCredential } from "../../features/auth/authSlice";
+import { useAppDispatch } from "../../hooks/useDispatch";
+import { User } from "../../features/auth/authTypes";
 
 // Create a new schema for the registration form
 const RegisterSchema = z.object({
@@ -17,7 +23,7 @@ const RegisterSchema = z.object({
         .trim()
         .min(1, "Email is required")
         .email('Invalid Email address'),
-    phoneNo: z.string()
+    phone_no: z.string()
         .min(1, "Phone number is required"),
     password: z.string()
         .trim()
@@ -31,20 +37,41 @@ const RegisterSchema = z.object({
 });
 
 const RegisterForm = () => {
+    const { loading, error, fetchData } = useAxios<User>({
+        url: REGISTER_URL,
+        method: 'POST',
+        data: {}
+    }, false)
+
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
     const form = useForm<z.infer<typeof RegisterSchema>>({
         resolver: zodResolver(RegisterSchema),
         defaultValues: {
             firstName: "",
             lastName: "",
             email: "",
-            phoneNo: "",
+            phone_no: "",
             password: "",
             confirmPassword: ""
         },
     });
 
-    function onSubmit(data: z.infer<typeof RegisterSchema>) {
-        console.log(data);
+    async function onSubmit(dataToSend: z.infer<typeof RegisterSchema>) {
+        const resData = await fetchData({
+            url: REGISTER_URL,
+            method: 'POST',
+            data: {
+                ...dataToSend,
+                fullName: `${dataToSend.firstName} ${dataToSend.lastName}`
+            }
+        })
+
+        if (resData) {
+            dispatch(setCredential(resData));
+            navigate('/')
+        }
     }
 
     return (
@@ -93,7 +120,7 @@ const RegisterForm = () => {
                 />
                 <FormField
                     control={form.control}
-                    name="phoneNo"
+                    name="phone_no"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Phone Number</FormLabel>
@@ -130,10 +157,11 @@ const RegisterForm = () => {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full">
+                {error && <p className="text-red-500">{error}</p>}
+                <Button type="submit" className="w-full" disabled={loading}>
                     Register
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" disabled={loading}>
                     Continue with Google
                 </Button>
             </form>
