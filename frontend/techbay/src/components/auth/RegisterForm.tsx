@@ -161,9 +161,6 @@ const RegisterForm = () => {
                 <Button type="submit" className="w-full" disabled={loading}>
                     Register
                 </Button>
-                <Button variant="outline" className="w-full" disabled={loading}>
-                    Continue with Google
-                </Button>
             </form>
         </Form>
     );

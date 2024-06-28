@@ -1,17 +1,21 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import UserScreen from "./screens/UserScreen"
-import LoginScreen from "./screens/LoginScreen"
-import RegisterScreen from "./screens/RegisterScreen"
 import AdminScreen from "./screens/AdminScreen"
 import DashBoard from "./pages/Admin/DashBoard"
 import HomePage from "./pages/User/HomePage"
+import AuthScreen from "./screens/AuthScreen"
+import LoginForm from "./components/auth/LoginForm"
+import RegisterForm from "./components/auth/RegisterForm"
 
 function App() {
   return (
     <>
       <Routes>
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/register" element={<RegisterScreen />} />
+
+        <Route element={<AuthScreen/>}>
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
+        </Route>
 
         {/* Public Routes */}
         <Route path="/" element={<UserScreen />}>
