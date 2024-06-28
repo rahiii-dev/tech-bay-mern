@@ -10,6 +10,9 @@ import { useNavigate } from "react-router-dom";
 import { setCredential } from "../../features/auth/authSlice";
 import { useAppDispatch } from "../../hooks/useDispatch";
 import { User } from "../../features/auth/authTypes";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import './PhoneInput.css';
 
 // Create a new schema for the registration form
 const RegisterSchema = z.object({
@@ -23,8 +26,7 @@ const RegisterSchema = z.object({
         .trim()
         .min(1, "Email is required")
         .email('Invalid Email address'),
-    phone_no: z.string()
-        .min(1, "Phone number is required"),
+    phone_no: z.string(),
     password: z.string()
         .trim()
         .min(1, "Password is required"),
@@ -57,6 +59,7 @@ const RegisterForm = () => {
             confirmPassword: ""
         },
     });
+
 
     async function onSubmit(dataToSend: z.infer<typeof RegisterSchema>) {
         const resData = await fetchData({
@@ -125,7 +128,16 @@ const RegisterForm = () => {
                         <FormItem>
                             <FormLabel>Phone Number</FormLabel>
                             <FormControl>
-                                <Input {...field} />
+                                <PhoneInput
+                                    {...field}
+                                    country={'in'}
+                                    inputProps={{
+                                        name: 'phone_no',
+                                        required: true,
+                                    }}
+                                    containerClass="phone-input-container"
+                                    inputClass="phone-input"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

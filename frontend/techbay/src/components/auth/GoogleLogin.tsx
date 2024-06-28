@@ -51,7 +51,7 @@ const GoogleLogin = () => {
 
   return (
     <Button type="button" variant="outline" className="w-full" onClick={googleLogin} disabled={loading}>
-      <img src="/public/google-icon.png" className="w-5 aspect-square" alt="google-icon" />
+      <img src="/google-icon.png" className="w-5 aspect-square" alt="google-icon" />
       <span className="ms-2">Continue with Google</span>
     </Button>
   );
