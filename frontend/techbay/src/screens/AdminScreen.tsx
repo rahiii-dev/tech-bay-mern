@@ -1,6 +1,6 @@
 import {Navigate, Outlet, useLocation} from "react-router-dom";
 import { useAppSelector } from "../hooks/useSelector";
-import Logout from "../components/auth/Logout";
+import AdminLayout from "../pages/Admin/AdminLayout";
 
 const AdminScreen = () => {
     const user = useAppSelector(state => state.auth.user);
@@ -14,11 +14,9 @@ const AdminScreen = () => {
         return <Navigate to='/'/>
     }
     return (
-        <>
-            <h1>Header</h1>
-            <Logout/>
+        <AdminLayout>
             <Outlet/>
-        </>
+        </AdminLayout>
     );
 }
 

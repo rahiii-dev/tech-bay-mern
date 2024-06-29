@@ -1,0 +1,28 @@
+.admin-layout-wrapper {
+    --header-height : 64px;
+}
+
+.admin-layout-wrapper .sidebar-header {
+    height: var(--header-height);
+}
+
+.admin-layout-wrapper header {
+    height: var(--header-height);
+}
+
+.admin-layout-wrapper .nav-container {
+    height: calc(100% - var(--header-height));
+}
+.admin-layout-wrapper main {
+    height: calc(100% - var(--header-height));
+    max-height: 1000px;
+}
+
+
+.admin-layout-wrapper .navlink {
+    @apply text-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-colors duration-300;
+}
+
+.admin-layout-wrapper .navlink.active {
+    @apply bg-gray-100 text-primary;
+}

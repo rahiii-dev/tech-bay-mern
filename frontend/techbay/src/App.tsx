@@ -6,6 +6,8 @@ import HomePage from "./pages/User/HomePage"
 import AuthScreen from "./screens/AuthScreen"
 import LoginForm from "./components/auth/LoginForm"
 import RegisterForm from "./components/auth/RegisterForm"
+import Category from "./pages/Admin/Category"
+import Customers from "./pages/Admin/Customers"
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
         <Route path="/admin" element={<AdminScreen />}>
           <Route index element={<Navigate to='dashboard' />} />
           <Route path="/admin/dashboard" element={<DashBoard />} />
+          <Route path="/admin/customers" element={<Customers />} />
+          <Route path="/admin/categories" element={<Category />} />
         </Route>
 
         {/* Catch-all invalid paths */}

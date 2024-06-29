@@ -3,7 +3,11 @@ import { useAppDispatch } from '../../hooks/useDispatch';
 import { logout } from '../../features/auth/authSlice';
 import { Button } from '../ui/button';
 
-const Logout = () => {
+type LogoutProps = {
+    className?: string,
+    children?: React.ReactNode | string
+}
+const Logout = ({className, children = 'Logout'}: LogoutProps) => {
     const navigate = useNavigate();
     const dipatch = useAppDispatch();
 
@@ -13,7 +17,7 @@ const Logout = () => {
     }
 
     return (
-        <Button variant="destructive" onClick={handleLogout}>Logout</Button>
+        <Button className={className} onClick={handleLogout}>{children}</Button>
     );
 }
 
