@@ -36,11 +36,9 @@ const useAxios = <T = unknown>(initialConfig: AxiosRequestConfig, immediate = tr
 
     useEffect(() => {
         if (immediate) {
-            console.log("Fetching data");
-            
             fetchData();
         }
-    }, [fetchData, immediate]);
+    }, [immediate]);
 
     return { data, loading, error, fetchData };
 };
