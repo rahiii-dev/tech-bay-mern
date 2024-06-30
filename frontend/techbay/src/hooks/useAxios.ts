@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { AxiosError, AxiosRequestConfig } from 'axios';
 import axios from "../utils/axios";
 
-interface UseAxiosResult<T> {
+interface AxiosResult<T> {
     data: T | null;
     loading: boolean;
     error: string | null;
     fetchData: (config?: AxiosRequestConfig) => Promise<T | void>;
 }
 
-const useAxios = <T = unknown>(initialConfig: AxiosRequestConfig, immediate = true): UseAxiosResult<T> => {
+const useAxios = <T = unknown>(initialConfig: AxiosRequestConfig, immediate = true): AxiosResult<T> => {
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState<boolean>(immediate);
     const [error, setError] = useState<string | null>(null);
@@ -20,9 +20,8 @@ const useAxios = <T = unknown>(initialConfig: AxiosRequestConfig, immediate = tr
         try {
             const finalConfig = newConfig || initialConfig;
             const response = await axios<T>(finalConfig);
-            const resData = response.data
-            setData(resData);
-            return resData;
+            setData(response.data);
+            return response.data;
         } catch (error : unknown) {
             if (error instanceof AxiosError) {
                 setError(error.response?.data?.message || 'An error occurred');

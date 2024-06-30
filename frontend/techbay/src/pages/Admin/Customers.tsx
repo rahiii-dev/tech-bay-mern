@@ -75,12 +75,6 @@ const Customers = () => {
                 })
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Uh oh! Something went wrong.",
-                description: "There was a problem with your request.",
-                action: <ToastAction altText="Try again" onClick={() => handleBlock(userId)}>Try again</ToastAction>,
-            })
         }
     };
 
@@ -100,12 +94,7 @@ const Customers = () => {
                 })
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Uh oh! Something went wrong.",
-                description: "There was a problem with your request.",
-                action: <ToastAction altText="Try again" onClick={() => handleUnblock(userId)}>Try again</ToastAction>,
-            })
+            
         }
     };
 
