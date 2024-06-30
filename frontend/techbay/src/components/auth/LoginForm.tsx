@@ -10,7 +10,6 @@ import { User } from "../../features/auth/authTypes";
 import { setCredential } from "../../features/auth/authSlice";
 import { LOGIN_URL } from "../../utils/urls/authUrls";
 import { useAppDispatch } from "../../hooks/useDispatch";
-import GoogleLogin from "./GoogleLogin";
 
 const LoginSchema = z.object({
     email: z.string()
@@ -94,7 +93,6 @@ const LoginForm = () => {
                 </Button>
 
             </form>
-            {/* <GoogleLogin></GoogleLogin> */}
         </Form>
     );
 }

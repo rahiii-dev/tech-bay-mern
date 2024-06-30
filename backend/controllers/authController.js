@@ -3,6 +3,7 @@ import { clearToken, generateToken } from "../utils/jwt.js";
 import User from "../models/User.js";
 import { oauth2Client } from "../config/googleConfig.js";
 import axios from "axios";
+import HandleErrorResponse from "../utils/handleErrorResponse.js";
 
 export const authenticateUser = asyncHandler(async (req, res) => {
   /*  
@@ -14,6 +15,24 @@ export const authenticateUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.comparePassword(password))) {
+    if (user.isBlocked) {
+      HandleErrorResponse(res, 403, "Your account is blocked",
+        {
+          title: "Account blocked",
+          description: "Please contact support for further assistance.",
+        },
+        "Account"
+      );
+      //   return res.status(403).json({
+      //     type: "Account",
+      //     message: "Your account is blocked",
+      //     extraMessage: {
+      //       title: "Account blocked",
+      //       description: "Please contact support for further assistance.",
+      //     },
+      //   });
+    }
+
     generateToken(user, res);
     return res.status(200).json({
       _id: user._id,
@@ -25,8 +44,9 @@ export const authenticateUser = asyncHandler(async (req, res) => {
       isBlocked: user.isBlocked,
     });
   } else {
-    res.status(401);
-    throw new Error("Invalid email or password");
+    // res.status(401);
+    // throw new Error("Invalid email or password");
+    HandleErrorResponse(res, 401, "Invalid email or password");
   }
 });
 
@@ -71,8 +91,9 @@ export const createUser = asyncHandler(async (req, res) => {
       isBlocked: user.isBlocked,
     });
   } else {
-    res.status(400);
-    throw new Error("Invalid user data");
+    // res.status(400);
+    // throw new Error("Invalid user data");
+    HandleErrorResponse(res, 400, "Invalid user data");
   }
 });
 
@@ -98,11 +119,21 @@ export const googleAuth = asyncHandler(async (req, res) => {
 
   let user = await User.findOne({ email: userData.email });
 
+  if (user && user.isBlocked) {
+    HandleErrorResponse(res, 403, "Your account is blocked",
+      {
+        title: "Account blocked",
+        description: "Please contact support for further assistance.",
+      },
+      "Account"
+    );
+  }
+
   if (!user) {
     user = new User({
       email: userData.email,
       fullName: userData.name,
-      password: userData.id
+      password: userData.id,
     });
     await user.save();
     res.status(201);

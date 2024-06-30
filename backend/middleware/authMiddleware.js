@@ -1,18 +1,15 @@
 import User from "../models/User.js";
+import HandleErrorResponse from "../utils/handleErrorResponse.js";
 import { verifyToken } from "../utils/jwt.js";
 
 export const isAuthenticated = async (req, res, next) => {
   const token = req.cookies?.token || req.headers["authorization"];
 
   if (!token) {
-    return res.status(401).json({
-      type: "Authorization",
-      message: "Authentication token is required",
-      extraMessage: {
-        title: "Authorization failed",
-        description: "Please log in again.",
-      },
-    });
+    return HandleErrorResponse(res, 401, "Authentication token is required", {
+      title: "Authorization failed",
+      description: "Please log in again.",
+    }, "Authorization");
   }
 
   try {
@@ -21,28 +18,27 @@ export const isAuthenticated = async (req, res, next) => {
       "fullName email isBlocked isAdmin isStaff"
     );
 
-    if (req.user?.isBlocked) {
-      return res.status(403).json({
-        type: "Authorization",
-        message: "Your account is blocked",
-        extraMessage: {
-          title: "Account blocked",
-          description: "Please contact support for further assistance.",
-        },
-      });
+    if (!req.user) {
+      return HandleErrorResponse(res, 403, "User not found", {
+        title: "Authorization failed",
+        description: "User not found. Please log in again.",
+      }, "Authorization");
+    }
+
+    if (req.user.isBlocked) {
+      return HandleErrorResponse(res, 403, "Your account is blocked", {
+        title: "Account blocked",
+        description: "Please contact support for further assistance.",
+      }, "Account");
     }
 
     next();
   } catch (error) {
-    console.log(error);
-    return res.status(403).json({
-      type: "Authorization",
-      message: "Invalid or expired token",
-      extraMessage: {
-        title: "Token error",
-        description: "Please log in again.",
-      },
-    });
+    console.error(error);
+    return HandleErrorResponse(res, 403, "Invalid or expired token", {
+      title: "Token error",
+      description: "Please log in again.",
+    }, "Authorization");
   }
 };
 
@@ -51,14 +47,10 @@ export const isStaff = (req, res, next) => {
     return next();
   }
 
-  return res.status(403).json({
-    type: "Authorization",
-    message: "Access denied",
-    extraMessage: {
-      title: "Insufficient privileges",
-      description: "Staff privileges are required to perform this action.",
-    },
-  });
+  return HandleErrorResponse(res, 403, "Access denied", {
+    title: "Insufficient privileges",
+    description: "Staff privileges are required to perform this action.",
+  }, "Authorization");
 };
 
 export const isAdmin = (req, res, next) => {
@@ -66,12 +58,8 @@ export const isAdmin = (req, res, next) => {
     return next();
   }
 
-  return res.status(403).json({
-    type: "Authorization",
-    message: "Access denied",
-    extraMessage: {
-      title: "Insufficient privileges",
-      description: "Admin privileges are required to perform this action.",
-    },
-  });
+  return HandleErrorResponse(res, 403, "Access denied", {
+    title: "Insufficient privileges",
+    description: "Admin privileges are required to perform this action.",
+  }, "Authorization");
 };

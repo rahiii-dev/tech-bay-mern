@@ -13,6 +13,7 @@ import { useToast } from "./components/ui/use-toast"
 import { Toaster } from "./components/ui/toaster"
 import { useAppDispatch } from "./hooks/useDispatch"
 import { logout } from './features/auth/authSlice';
+import ProfilePage from "./pages/User/ProfilePage"
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<UserScreen />}>
           <Route index element={<HomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
 

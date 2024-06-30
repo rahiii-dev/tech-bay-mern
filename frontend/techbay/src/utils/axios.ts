@@ -32,7 +32,7 @@ export const setupInterceptor = (toast: any, navigate: any) => {
           })
         }
 
-        if (type === "Authorization") {
+        if (type === "Authorization" || type === "Account") {
           toast({
             variant: "destructive",
             title: extraMessage.title,
