@@ -2,7 +2,6 @@ import React from "react";
 import Sidebar from "../../components/Admin/Sidebar";
 import './AdminLayout.css';
 import Header from "../../components/Admin/Header";
-import { Toaster } from "../../components/ui/toaster";
 
 type AdminLayoutProp = {
     children: React.ReactNode
@@ -14,10 +13,9 @@ const AdminLayout = ({ children }: AdminLayoutProp) => {
             <Sidebar/>
             <div className="flex-grow px-4">
                 <Header/>
-                <main className="py-3">
+                <main className="pt-3">
                     <div className="h-full overflow-x-hidden overflow-y-scroll custom-scrollbar relative">
                         {children}
-                        <Toaster/>
                     </div>
                 </main>
             </div>
