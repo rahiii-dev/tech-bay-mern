@@ -6,6 +6,7 @@ export interface User {
     isAdmin: boolean;
     isStaff: boolean;
     isBlocked: boolean;
+    isVerified: boolean;
     createdAt: string;
     updatedAt: string;
 }

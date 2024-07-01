@@ -3,7 +3,23 @@ import { clearToken, generateToken } from "../utils/jwt.js";
 import User from "../models/User.js";
 import { oauth2Client } from "../config/googleConfig.js";
 import axios from "axios";
-import HandleErrorResponse from "../utils/handleErrorResponse.js";
+import handleErrorResponse from "../utils/handleErrorResponse.js";
+import { sendOtpEmail } from "../utils/sendOtp.js";
+import OTP from "../models/OTP.js";
+import handleResponse from "../utils/handleResponse.js";
+
+function handleUserData(userData){
+  return {
+    _id: userData._id,
+    fullName: userData.fullName,
+    email: userData.email,
+    phone_no: userData.phone_no,
+    isAdmin: userData.isAdmin,
+    isStaff: userData.isStaff,
+    isBlocked: userData.isBlocked,
+    isVerified: userData.isVerified
+  }
+}
 
 export const authenticateUser = asyncHandler(async (req, res) => {
   /*  
@@ -16,58 +32,51 @@ export const authenticateUser = asyncHandler(async (req, res) => {
 
   if (user && (await user.comparePassword(password))) {
     if (user.isBlocked) {
-      HandleErrorResponse(res, 403, "Your account is blocked",
+      return handleErrorResponse(res, 403, "Your account is blocked",
         {
           title: "Account blocked",
           description: "Please contact support for further assistance.",
         },
-        "Account"
+        "Authorization"
       );
-      //   return res.status(403).json({
-      //     type: "Account",
-      //     message: "Your account is blocked",
-      //     extraMessage: {
-      //       title: "Account blocked",
-      //       description: "Please contact support for further assistance.",
-      //     },
-      //   });
+    }
+
+    if(!user.isVerified){
+      await sendOtpEmail(user.email);
+      return handleErrorResponse(res, 403, "Your account is not verified",
+        {
+          title: "Account is not verified",
+          description: "Please verify with otp.",
+        },
+        'Account'
+      );
     }
 
     generateToken(user, res);
-    return res.status(200).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      phone_no: user.phone_no,
-      isAdmin: user.isAdmin,
-      isStaff: user.isStaff,
-      isBlocked: user.isBlocked,
-    });
-  } else {
-    // res.status(401);
-    // throw new Error("Invalid email or password");
-    HandleErrorResponse(res, 401, "Invalid email or password");
-  }
+    return handleResponse(res, "Autheticated succesfully", handleUserData(user))
+  } 
+    
+  return handleErrorResponse(res, 401, "Invalid email or password");
 });
 
 export const createUser = asyncHandler(async (req, res) => {
   /*  
-        Route: POST api/auth/register
-        Purpose: Create user
+      Route: POST api/auth/register
+      Purpose: Create user and send otp for verification
   */
   const { fullName, email, password, phone_no } = req.body;
-  let isAdmin = false,
-    isStaff = false;
-  if (req.user?.isAdmin) {
-    isAdmin = req.body?.isAdmin;
-    isStaff = req.body?.isStaff;
-  }
-
   const userExists = await User.findOne({ email });
 
-  if (userExists) {
-    res.status(400);
-    throw new Error("User already exists");
+  if (userExists && userExists.isVerified) {
+    return handleErrorResponse(res, 400, "User already exists");
+  }
+
+  if (userExists && !userExists.isVerified) {
+    await sendOtpEmail(userExists.email);
+    return handleResponse(res,"OTP has been sent to your email", '', {
+      title: `You have an account`,
+      description: "Please verify your email to continue",
+    })
   }
 
   const user = new User({
@@ -75,26 +84,63 @@ export const createUser = asyncHandler(async (req, res) => {
     email,
     phone_no,
     password,
-    isAdmin,
-    isStaff,
   });
 
-  if (await user.save()) {
-    generateToken(user, res);
-    res.status(201).json({
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      phone_no: user.phone_no,
-      isAdmin: user.isAdmin,
-      isStaff: user.isStaff,
-      isBlocked: user.isBlocked,
-    });
-  } else {
-    // res.status(400);
-    // throw new Error("Invalid user data");
-    HandleErrorResponse(res, 400, "Invalid user data");
+  try {
+    await user.save();
+    await sendOtpEmail(user.email);
+    return handleResponse(res,"OTP has been sent to your email",'', {
+      title: `You account is created`,
+      description: "Please verify your email to continue",
+    }) 
+  } catch (error) {
+    return handleErrorResponse(res, 400, "Registration failed");
   }
+});
+
+export const resendOTP = asyncHandler(async (req, res) => {
+  /*  
+      Route: POST api/auth/otp-resend
+      Purpose: resend otp  to user
+  */
+  const { email } = req.body;
+  const userExist = await User.findOne({ email }).select("-password");
+  if (userExist) {
+    await sendOtpEmail(email);
+    return handleResponse(res, "New OTP has been sent to your email", {}, {
+          title: `New OTP is sent to your email`,
+          description: "Please check your email",
+        })
+  }
+
+  return handleErrorResponse(res, 404, "Failed to resend OTP", {
+        title: `Failed to resend OTP`,
+        description: "Invalid user account",
+      })
+});
+
+export const validateOTP = asyncHandler(async (req, res) => {
+  /*  
+      Route: POST api/auth/otp-validate
+      Purpose: Validaate otp send to user
+  */
+  const { email, otp } = req.body;
+  const otpExist = await OTP.findOne({ email });
+  const userExist = await User.findOne({ email }).select("-password");
+
+  if (otpExist && userExist && otpExist.otp === otp) {
+    userExist.isVerified = true;
+    await userExist.save();
+    generateToken(userExist, res);
+    return handleResponse(res, "OTP has been verified", handleUserData(userExist), {
+          title: `Your email is verified`,
+        })
+  }
+
+  return handleErrorResponse(res, 404, "OTP verification failed", {
+    title: `Inavlid or expired otp`,
+    description: "Please resend otp to verify",
+  })
 });
 
 export const googleAuth = asyncHandler(async (req, res) => {
@@ -120,13 +166,15 @@ export const googleAuth = asyncHandler(async (req, res) => {
   let user = await User.findOne({ email: userData.email });
 
   if (user && user.isBlocked) {
-    HandleErrorResponse(res, 403, "Your account is blocked",
-      {
-        title: "Account blocked",
-        description: "Please contact support for further assistance.",
-      },
-      "Account"
-    );
+    if (user.isBlocked) {
+      return handleErrorResponse(res, 403, "Your account is blocked",
+        {
+          title: "Account blocked",
+          description: "Please contact support for further assistance.",
+        },
+        "Authorization"
+      );
+    }
   }
 
   if (!user) {
@@ -134,22 +182,14 @@ export const googleAuth = asyncHandler(async (req, res) => {
       email: userData.email,
       fullName: userData.name,
       password: userData.id,
+      isVerified: true
     });
     await user.save();
     res.status(201);
   }
 
   generateToken(user, res);
-
-  return res.json({
-    _id: user._id,
-    fullName: user.fullName,
-    email: user.email,
-    phone_no: user.phone_no,
-    isAdmin: user.isAdmin,
-    isStaff: user.isStaff,
-    isBlocked: user.isBlocked,
-  });
+  return handleResponse(res, "Autheticated succesfully", handleUserData(user))
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {

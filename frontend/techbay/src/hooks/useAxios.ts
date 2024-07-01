@@ -1,18 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AxiosError, AxiosRequestConfig } from 'axios';
 import axios from "../utils/axios";
+import { BACKEND_ERROR_RESPONSE } from '../utils/types';
 
 interface AxiosResult<T> {
     data: T | null;
     loading: boolean;
-    error: string | null;
+    error: BACKEND_ERROR_RESPONSE | null;
     fetchData: (config?: AxiosRequestConfig) => Promise<T | void>;
 }
 
 const useAxios = <T = unknown>(initialConfig: AxiosRequestConfig, immediate = true): AxiosResult<T> => {
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState<boolean>(immediate);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<BACKEND_ERROR_RESPONSE | null>(null);
 
     const fetchData = useCallback(async (newConfig?: AxiosRequestConfig) : Promise<T | void> => {
         setLoading(true);
@@ -23,10 +24,11 @@ const useAxios = <T = unknown>(initialConfig: AxiosRequestConfig, immediate = tr
             setData(response.data);
             return response.data;
         } catch (error : unknown) {
-            if (error instanceof AxiosError) {
-                setError(error.response?.data?.message || 'An error occurred');
+            const axiosError = error as AxiosError<BACKEND_ERROR_RESPONSE>;
+            if (axiosError.response) {
+                setError(axiosError.response.data);
             } else {
-                setError('An unknown error occurred');
+                setError({ message: 'An unknown error occurred' });
             }
         } finally {
             setLoading(false);

@@ -12,7 +12,7 @@ export const setupInterceptor = (toast: any, navigate: any) => {
   axiosInstance.interceptors.response.use(
     response => response,
     (error: AxiosError) => {
-      console.log("Error from interceptot", error);
+      // console.log("Error from interceptot", error);
 
       if (error.response) {
         const status = error.response.status;
@@ -32,7 +32,7 @@ export const setupInterceptor = (toast: any, navigate: any) => {
           })
         }
 
-        if (type === "Authorization" || type === "Account") {
+        if (type === "Authorization") {
           toast({
             variant: "destructive",
             title: extraMessage.title,

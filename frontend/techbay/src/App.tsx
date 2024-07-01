@@ -14,6 +14,7 @@ import { Toaster } from "./components/ui/toaster"
 import { useAppDispatch } from "./hooks/useDispatch"
 import { logout } from './features/auth/authSlice';
 import ProfilePage from "./pages/User/ProfilePage"
+import OtpForm from "./components/auth/OtpForm"
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
         <Route element={<AuthScreen/>}>
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
+          <Route path="/otp-validate" element={<OtpForm />} />
         </Route>
 
         {/* Public Routes */}

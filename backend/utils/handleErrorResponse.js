@@ -1,4 +1,4 @@
-const HandleErrorResponse = (res, status, message, extraMessage={}, type="Error") => {
+const handleErrorResponse = (res, status, message, extraMessage={}, type="Error") => {
   return res.status(status).json({
     type : type,
     message: message,
@@ -6,4 +6,4 @@ const HandleErrorResponse = (res, status, message, extraMessage={}, type="Error"
   });
 };
 
-export default HandleErrorResponse;
+export default handleErrorResponse;

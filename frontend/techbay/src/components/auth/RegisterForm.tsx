@@ -6,13 +6,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import useAxios from "../../hooks/useAxios";
 import { REGISTER_URL } from "../../utils/urls/authUrls";
-import { useNavigate } from "react-router-dom";
-import { setCredential } from "../../features/auth/authSlice";
-import { useAppDispatch } from "../../hooks/useDispatch";
-import { User } from "../../features/auth/authTypes";
+import { Link, useNavigate } from "react-router-dom";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import './PhoneInput.css';
+import GoogleLogin from "./GoogleLogin";
+import { toast } from "../ui/use-toast";
+import { useAuthFormContext } from "./AuthFormContext";
+import { useEffect } from "react";
+import { BACKEND_RESPONSE } from "../../utils/types";
 
 // Create a new schema for the registration form
 const RegisterSchema = z.object({
@@ -39,13 +41,14 @@ const RegisterSchema = z.object({
 });
 
 const RegisterForm = () => {
-    const { loading, error, fetchData } = useAxios<User>({
+    const {formData, setFormData, setOtpPageAccessible} = useAuthFormContext();
+
+    const { loading, error, fetchData } = useAxios<BACKEND_RESPONSE>({
         url: REGISTER_URL,
         method: 'POST',
         data: {}
     }, false)
 
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof RegisterSchema>>({
@@ -60,6 +63,13 @@ const RegisterForm = () => {
         },
     });
 
+    useEffect(() => {
+        if(formData){
+            form.reset(formData)
+        }
+        
+    }, [formData]);
+
 
     async function onSubmit(dataToSend: z.infer<typeof RegisterSchema>) {
         const resData = await fetchData({
@@ -72,14 +82,28 @@ const RegisterForm = () => {
         })
 
         if (resData) {
-            dispatch(setCredential(resData));
-            navigate('/')
+            const { password, confirmPassword, ...formData } = dataToSend
+            setFormData(formData);
+            setOtpPageAccessible(true);
+            toast({
+                variant: "default",
+                title: `${resData?.extraMessage?.title || 'OTP sended to your email'}`,
+                description: `${resData?.extraMessage?.description || ''}`,
+                className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+            });
+            navigate('/otp-validate');
         }
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            <div className="grid gap-2 text-center mb-12">
+                <h1 className="text-3xl font-bold">Register</h1>
+                <p className="text-balance text-muted-foreground">
+                    Enter your details below to register an account
+                </p>
+            </div>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full grid gap-4">
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
@@ -169,11 +193,18 @@ const RegisterForm = () => {
                         </FormItem>
                     )}
                 />
-                {error && <p className="text-red-500">{error}</p>}
+                {error && <p className="text-red-500">{error?.message}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                     Register
                 </Button>
+                <GoogleLogin key={'google-login'}></GoogleLogin>
             </form>
+            <div className="mt-4 text-center text-sm pb-10">
+                Already have an account?{" "}
+                <Link to="/login" className="underline">
+                    Sign In
+                </Link>
+            </div>
         </Form>
     );
 }

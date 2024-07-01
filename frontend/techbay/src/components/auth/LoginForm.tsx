@@ -4,12 +4,21 @@ import * as z from 'zod';
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAxios from "../../hooks/useAxios";
 import { User } from "../../features/auth/authTypes";
 import { setCredential } from "../../features/auth/authSlice";
 import { LOGIN_URL } from "../../utils/urls/authUrls";
 import { useAppDispatch } from "../../hooks/useDispatch";
+import GoogleLogin from "./GoogleLogin";
+import { BACKEND_RESPONSE } from "../../utils/types";
+import { toast } from "../ui/use-toast";
+import { useAuthFormContext } from "./AuthFormContext";
+import { useEffect } from "react";
+
+interface LoginResponse extends BACKEND_RESPONSE {
+    data: User
+}
 
 const LoginSchema = z.object({
     email: z.string()
@@ -22,13 +31,14 @@ const LoginSchema = z.object({
 })
 
 const LoginForm = () => {
-    const dispatch = useAppDispatch();
-    const { loading, error, fetchData } = useAxios<User>({
+    const {setOtpPageAccessible, setFormData} = useAuthFormContext();
+    const { loading, error, fetchData } = useAxios<LoginResponse>({
         url: LOGIN_URL,
         method: 'POST',
         data: {}
     }, false);
 
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
     const form = useForm<z.infer<typeof LoginSchema>>({
@@ -39,6 +49,24 @@ const LoginForm = () => {
         },
     })
 
+    useEffect(() => {
+        if(error){
+            if(error.type === 'Account'){
+                setFormData({email : form.getValues('email')})
+                setOtpPageAccessible(true)
+                navigate('/otp-validate')
+                toast({
+                    variant: "destructive",
+                    title: `${error?.extraMessage?.title || 'Authetication failed'}`,
+                    description: `${error?.extraMessage?.description || ''}`,
+                    className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+                })
+    
+            }
+        }
+    }, [error])
+    
+
     async function onSubmit(dataToSend: z.infer<typeof LoginSchema>) {
         const resData = await fetchData({
             url: LOGIN_URL,
@@ -47,8 +75,8 @@ const LoginForm = () => {
         })
 
         if (resData) {
-            dispatch(setCredential(resData));
-            if (resData.isAdmin || resData.isStaff) {
+            dispatch(setCredential(resData.data));
+            if (resData.data.isAdmin || resData.data.isStaff) {
                 navigate('/admin/dashboard')
             }
             else {
@@ -60,7 +88,13 @@ const LoginForm = () => {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            <div className="grid gap-2 text-center mb-12">
+                <h1 className="text-3xl font-bold">Login</h1>
+                <p className="text-balance text-muted-foreground">
+                    Enter your email below to login to your account
+                </p>
+            </div>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full grid gap-4">
                 <FormField
                     control={form.control}
                     name="email"
@@ -87,12 +121,18 @@ const LoginForm = () => {
                         </FormItem>
                     )}
                 />
-                {error && <p className="text-red-500">{error}</p>}
+                {error && <p className="text-red-500">{error.message}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                     Login
                 </Button>
-
+                <GoogleLogin key={'google-login'}></GoogleLogin>
             </form>
+            <div className="mt-4 text-center text-sm pb-10">
+                Don&apos;t have an account?{" "}
+                <Link to="/register" className="underline">
+                    Sign up
+                </Link>
+            </div>
         </Form>
     );
 }
