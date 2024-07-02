@@ -1,15 +1,17 @@
+import handleErrorResponse from '../utils/handleErrorResponse.js';
+
 const notFoundHandler = (req, res, next) => {
-    const error = new Error(`Not Found - ${req.originalUrl}`);
-    res.status(404);
-    next(error);
+    return handleErrorResponse(res, 404,"Requested URL Not Found", {
+        title: "Not Found",
+        description: "Requested URL Not Found"
+    },'Server')
 };
 
 const errorHandler = (err, req, res, next) => {
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-    return res.status(statusCode).json({
-        message: err.message,
-        stack: process.env.NODE_ENV === 'production' ? null : err.stack
-    });
+    return handleErrorResponse(res, statusCode, err.message, {
+        stack : process.env.NODE_ENV === 'production' ? null : err.stack
+    }, 'Server')
 };
 
 export {notFoundHandler, errorHandler};

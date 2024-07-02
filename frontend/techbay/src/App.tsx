@@ -11,23 +11,23 @@ import Customers from "./pages/Admin/Customers"
 import { setupInterceptor } from "./utils/axios"
 import { Toaster } from "./components/ui/toaster"
 import { useAppDispatch } from "./hooks/useDispatch"
-import { logout } from './features/auth/authSlice';
 import ProfilePage from "./pages/User/ProfilePage"
 import OtpForm from "./components/auth/OtpForm"
-import { toast } from "./components/ui/use-toast"
+import { logoutAsync } from "./features/auth/authThunk"
 
 
 function App() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const CustomNavigate = (url='/', ShoudLogout=false) => {
+  const CustomNavigate = (url='/logout', ShoudLogout=false) => {
     if(ShoudLogout){
-      dispatch(logout())
+      dispatch(logoutAsync())
     }
-    navigate('/login', {replace: true})
+    navigate(url, {replace: true})
   }
-  setupInterceptor(toast, CustomNavigate)    
+
+  setupInterceptor(CustomNavigate)    
 
   return (
     <>

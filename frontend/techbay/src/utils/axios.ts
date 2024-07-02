@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { SERVER_URL } from './constants';
+import { toast } from '../components/ui/use-toast';
+import { BACKEND_ERROR_RESPONSE } from './types';
 
 const axiosInstance = axios.create({
   baseURL: `${SERVER_URL}/api`,
@@ -8,39 +10,34 @@ const axiosInstance = axios.create({
 
 
 // Add a response interceptor
-export const setupInterceptor = (toast: any, navigate: any) => {
+export const setupInterceptor = (navigate: any) => {
   axiosInstance.interceptors.response.use(
     response => response,
     (error: AxiosError) => {
-      // console.log("Error from interceptot", error);
 
       if (error.response) {
-        const status = error.response.status;
+        const errordData = error.response.data as BACKEND_ERROR_RESPONSE
 
-        const { type, extraMessage } = error.response.data as {
-          type: string;
-          message: string;
-          extraMessage: { title: string; description: string };
-        }
-
-        if (status >= 500) {
+        if (errordData.type === "Authorization") {
           toast({
             variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: "There was a problem with Server.",
-            className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
-          })
-        }
-
-        if (type === "Authorization") {
-          toast({
-            variant: "destructive",
-            title: extraMessage.title,
-            description: extraMessage.description,
+            title: errordData?.extraMessage?.title || "Autherization Error",
+            description: errordData?.extraMessage?.description || '',
             className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
           })
           navigate('/login', true)
         }
+
+        if(errordData.type === "Server"){
+          console.log("SERVER_ERROR: ",errordData);
+          toast({
+            variant: "destructive",
+            title: errordData?.extraMessage?.title || "Uh oh! Something went wrong.",
+            description: errordData?.extraMessage?.description || "There was a problem with Server.",
+            className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+          })
+        }
+
 
       } else if (error.request) {
         toast({
