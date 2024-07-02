@@ -1,5 +1,5 @@
 import asyncHandler from "express-async-handler";
-import { clearToken, generateToken } from "../utils/jwt.js";
+import { clearToken, generateAccesToken, generateToken, verifyToken } from "../utils/jwt.js";
 import User from "../models/User.js";
 import { oauth2Client } from "../config/googleConfig.js";
 import axios from "axios";
@@ -42,7 +42,7 @@ export const authenticateUser = asyncHandler(async (req, res) => {
     }, "Account");
   }
 
-  generateToken(user, res);
+  generateToken(user.id, res);
   return handleResponse(res, "Authenticated successfully", {}, handleUserData(user));
 });
 
@@ -108,7 +108,7 @@ export const validateOTP = asyncHandler(async (req, res) => {
 
   userExist.isVerified = true;
   await userExist.save();
-  generateToken(userExist, res);
+  generateToken(userExist.id, res);
   return handleResponse(res, "OTP has been verified", {
     title: "Your email is verified",
   }, handleUserData(userExist));
@@ -149,11 +149,35 @@ export const googleAuth = asyncHandler(async (req, res) => {
     res.status(201);
   }
 
-  generateToken(user, res);
+  generateToken(user.id, res);
   return handleResponse(res, "Authenticated successfully", {}, handleUserData(user));
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
   clearToken(res);
   return handleResponse(res, 'Logged out successfully')
+});
+
+export const refreshToken = asyncHandler(async (req, res) => {
+  const refresh_token = req.cookies['refresh_token'];
+
+  if (!refresh_token) {
+    return handleErrorResponse(res, 401, "Authentication token is required", {
+      title: "Authorization failed",
+      description: "Please log in again.",
+    }, "Authorization");
+
+  }
+  try {
+    const decoded = verifyToken(refresh_token);
+    const token = generateAccesToken(decoded?.id, res);
+    res.status(201)
+    return handleResponse(res, "A new token created", {}, {token})
+
+  } catch (error) {
+    return handleErrorResponse(res, 403, "Token error", {
+      title: "Invalid or expired token",
+      description: "Please log in again.",
+    }, "Authorization");
+  }
 });

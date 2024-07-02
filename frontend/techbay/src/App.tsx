@@ -20,11 +20,13 @@ function App() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const CustomNavigate = (url='/logout', ShoudLogout=false) => {
+  const CustomNavigate = (url='', ShoudLogout=false) => {
     if(ShoudLogout){
       dispatch(logoutAsync())
     }
-    navigate(url, {replace: true})
+    if(url){
+      navigate(url, {replace: true})
+    }
   }
 
   setupInterceptor(CustomNavigate)    
