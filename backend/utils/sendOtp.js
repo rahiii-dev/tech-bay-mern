@@ -9,16 +9,18 @@ export const sendOtpEmail = async (email) => {
       upperCaseAlphabets: false,
       specialChars: false,
     });
+
+    // console.log(email);
     console.log(otp);
-    const otpExist = await OTP.findOne({email});
-    if(otpExist){   
-        otpExist.otp = otp;
-        otpExist.createdAt = Date.now();
-        await otpExist.save();
-    }
-    else{
-        const newOtp = new OTP({ email, otp });
-        await newOtp.save();
+
+    const otpExist = await OTP.findOne({ email });
+    if (otpExist) {
+      otpExist.otp = otp;
+      otpExist.createdAt = Date.now();
+      await otpExist.save();
+    } else {
+      const newOtp = new OTP({ email, otp });
+      await newOtp.save();
     }
 
     const mailOptions = {

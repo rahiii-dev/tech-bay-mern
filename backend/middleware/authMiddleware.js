@@ -29,7 +29,7 @@ export const isAuthenticated = async (req, res, next) => {
       return HandleErrorResponse(res, 403, "Your account is blocked", {
         title: "Account blocked",
         description: "Please contact support for further assistance.",
-      }, "Account");
+      }, "Authorization");
     }
 
     next();

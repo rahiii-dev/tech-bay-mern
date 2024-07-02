@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Button } from "../ui/button";
 import { formatDate } from "../../utils/formatDate";
 import { User } from "../../features/auth/authTypes";
+import { Badge } from "../ui/badge";
 
 interface CustomerTableProps {
     customers: User[];
@@ -16,6 +17,7 @@ const CustomerTable = ({ customers, handleBlockStatusChange }: CustomerTableProp
                     <TableHead className="font-bold">Name</TableHead>
                     <TableHead className="font-bold">Email</TableHead>
                     <TableHead className="font-bold">Created</TableHead>
+                    <TableHead className="font-bold">Status</TableHead>
                     <TableHead className="font-bold">Actions</TableHead>
                 </TableRow>
             </TableHeader>
@@ -25,6 +27,7 @@ const CustomerTable = ({ customers, handleBlockStatusChange }: CustomerTableProp
                         <TableCell>{user.fullName}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{formatDate(user.createdAt)}</TableCell>
+                        <TableCell>{user.isVerified ? <Badge variant="sucess">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</TableCell>
                         <TableCell>
                             <Button
                                 variant={user.isBlocked ? "default" : "destructive"}

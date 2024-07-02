@@ -7,6 +7,7 @@ import { filterUsers } from "../../utils/filterUser";
 import { useToast } from "../../components/ui/use-toast";
 import CustomerTable from "../../components/Admin/CustomerTable";
 import TableSkeleton from "../../components/ui/TableSkeleton";
+import { CUSTOMER_LIST_URL } from "../../utils/urls/adminUrls";
 
 interface CustomerListResponse {
     totalCustomerCount: number;
@@ -21,9 +22,10 @@ const Customers = () => {
     const { toast } = useToast();
 
     const { data, error, loading } = useAxios<CustomerListResponse>({
-        url: '/admin/customer/list',
+        url: CUSTOMER_LIST_URL,
         method: 'GET'
     });
+
 
     useEffect(() => {
         if (data) {

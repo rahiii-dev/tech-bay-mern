@@ -26,7 +26,6 @@ export const AuthFormContextProvider = ({ children }: { children: React.ReactNod
 
     useEffect(() => {
         return () => {
-            console.log("Auth Provider unmounred");
             setOtpPageAccessible(false)
             sessionStorage.removeItem('formData');
             sessionStorage.removeItem('otpPageAccessible');

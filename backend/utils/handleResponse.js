@@ -1,4 +1,4 @@
-const handleResponse = (res, message, data={}, extraMessage={}, ) => {
+const handleResponse = (res, message, extraMessage={}, data={} ) => {
     return res.json({
       type : 'Success',
       message: message,

@@ -15,10 +15,7 @@ import { BACKEND_RESPONSE } from "../../utils/types";
 import { toast } from "../ui/use-toast";
 import { useAuthFormContext } from "./AuthFormContext";
 import { useEffect } from "react";
-
-interface LoginResponse extends BACKEND_RESPONSE {
-    data: User
-}
+import PasswordInput from "../ui/PasswordInput";
 
 const LoginSchema = z.object({
     email: z.string()
@@ -32,7 +29,7 @@ const LoginSchema = z.object({
 
 const LoginForm = () => {
     const {setOtpPageAccessible, setFormData} = useAuthFormContext();
-    const { loading, error, fetchData } = useAxios<LoginResponse>({
+    const { loading, error, fetchData } = useAxios<BACKEND_RESPONSE<User>>({
         url: LOGIN_URL,
         method: 'POST',
         data: {}
@@ -76,7 +73,7 @@ const LoginForm = () => {
 
         if (resData) {
             dispatch(setCredential(resData.data));
-            if (resData.data.isAdmin || resData.data.isStaff) {
+            if (resData.data?.isAdmin || resData.data?.isStaff) {
                 navigate('/admin/dashboard')
             }
             else {
@@ -115,13 +112,13 @@ const LoginForm = () => {
                         <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                                <Input type="password" {...field} />
+                                <PasswordInput {...field}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                {error && <p className="text-red-500">{error.message}</p>}
+                {error && <p className="text-red-500">{error.type === 'Error' ? error.message : ''}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                     Login
                 </Button>

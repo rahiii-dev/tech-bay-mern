@@ -9,20 +9,19 @@ import RegisterForm from "./components/auth/RegisterForm"
 import Category from "./pages/Admin/Category"
 import Customers from "./pages/Admin/Customers"
 import { setupInterceptor } from "./utils/axios"
-import { useToast } from "./components/ui/use-toast"
 import { Toaster } from "./components/ui/toaster"
 import { useAppDispatch } from "./hooks/useDispatch"
 import { logout } from './features/auth/authSlice';
 import ProfilePage from "./pages/User/ProfilePage"
 import OtpForm from "./components/auth/OtpForm"
+import { toast } from "./components/ui/use-toast"
 
 
 function App() {
-  const {toast} = useToast();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const CustomNavigate = (url:string, ShoudLogout=false) => {
+  const CustomNavigate = (url='/', ShoudLogout=false) => {
     if(ShoudLogout){
       dispatch(logout())
     }

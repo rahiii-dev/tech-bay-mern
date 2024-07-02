@@ -9,6 +9,7 @@ export const customerList = asyncHandler(async (req, res) => {
   const customers = await User.find({ _id: { $ne: req.user?._id } }).select(
     "-password"
   );
+
   return res.json({
     totalCustomerCount: customers.length,
     customers: customers,

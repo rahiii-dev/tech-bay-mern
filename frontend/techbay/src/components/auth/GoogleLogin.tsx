@@ -6,6 +6,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { setCredential } from "../../features/auth/authSlice";
 import { User } from "../../features/auth/authTypes";
 import { useState } from "react";
+import { BACKEND_RESPONSE } from "../../utils/types";
+import { toast } from "../ui/use-toast";
 
 interface AuthResult {
   code?: string;
@@ -20,17 +22,23 @@ const GoogleLogin = () => {
   const responseGoogle = async (authResult: AuthResult) => {
     setLoading(true);
     if (authResult.error) {
+      toast({
+        variant: "destructive",
+        title: `${authResult.error.toUpperCase()}`,
+        className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+      });
+      setLoading(false);
       return;
     }
 
     try {
       if (authResult.code) {
-        const response = await axios.get<User>(`/auth/google?code=${authResult.code}`);
-        const result = response.data;
+        const response = await axios.get<BACKEND_RESPONSE<User>>(`/auth/google?code=${authResult.code}`);
+        const result = response.data.data;
 
         dispatch(setCredential(result));
 
-        if (result.isAdmin || result.isStaff) {
+        if (result?.isAdmin || result?.isStaff) {
           navigate('/admin/dashboard');
         } else {
           navigate('/');
