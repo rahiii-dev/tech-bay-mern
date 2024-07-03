@@ -11,7 +11,7 @@ interface CustomerTableProps {
 
 const CustomerTable = ({ customers, handleBlockStatusChange }: CustomerTableProps) => {
     return (
-        <Table>
+        <Table className="w-full overflow-x-scroll">
             <TableHeader>
                 <TableRow>
                     <TableHead className="font-bold">Name</TableHead>

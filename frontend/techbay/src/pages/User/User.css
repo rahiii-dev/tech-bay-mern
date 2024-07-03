@@ -1,0 +1,11 @@
+* {
+    --user-header-height: 65px;
+}
+
+header {
+    height: var(--user-header-height);
+}
+
+main {
+    min-height: calc(100vh - var(--user-header-height));
+}

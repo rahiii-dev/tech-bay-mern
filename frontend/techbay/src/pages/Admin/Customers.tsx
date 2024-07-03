@@ -59,7 +59,7 @@ const Customers = () => {
     };
 
     return (
-        <div className="h-full w-full flex flex-col gap-2 overflow-hidden">
+        <div className="h-full w-full flex flex-col gap-2 overflow-y-hidden">
             <div className="w-full flex justify-between items-center gap-2">
                 <Tabs defaultValue="all" className="w-[250px] shadow-sm" onValueChange={setFilter}>
                     <TabsList className="flex items-center justify-between gap-2 bg-primary-foreground rounded-sm">
@@ -74,7 +74,7 @@ const Customers = () => {
                 </div>
             </div>
 
-            <div className="w-full custom-scrollbar flex-grow overflow-x-hidden overflow-y-scroll bg-primary-foreground rounded-md shadow-lg">
+            <div className="w-full max-h-[800px] custom-scrollbar overflow-x-hidden overflow-y-scroll flex-grow bg-primary-foreground rounded-md shadow-lg">
             {loading && <TableSkeleton />}
                 {!loading && !error && filteredCustomers.length === 0 && (
                     <div className="p-4 text-center text-foreground">No customers found.</div>

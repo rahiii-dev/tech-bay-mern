@@ -20,9 +20,49 @@
 
 
 .admin-layout-wrapper .navlink {
-    @apply text-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-colors duration-300;
+    @apply text-gray-400 hover:text-gray-800 hover:bg-gray-50;
 }
 
 .admin-layout-wrapper .navlink.active {
-    @apply bg-gray-100 text-primary;
+    @apply bg-gray-100 text-primary dark:text-gray-800;
+}
+
+#sidebar {
+    @apply w-full max-w-[70px] transition-all duration-300
+}
+
+#sidebar.active {
+    @apply max-w-[260px]
+}
+
+#sidebar .sidebar-header {
+    @apply justify-center
+}
+
+#sidebar.active .sidebar-header {
+    @apply justify-between
+}
+
+#sidebar .sidebar-header img{
+    @apply hidden
+}
+
+#sidebar.active .sidebar-header img{
+    @apply block
+}
+
+#sidebar .nav-container .navlink span{
+    @apply hidden
+}
+
+#sidebar.active .nav-container .navlink span{
+    @apply block
+}
+
+#sidebar .nav-container .nav-section > h1{
+    @apply opacity-0 transition-opacity duration-300
+}
+
+#sidebar.active .nav-container .nav-section > h1{
+    @apply opacity-100
 }

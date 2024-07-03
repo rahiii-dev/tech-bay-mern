@@ -61,7 +61,7 @@ export const setupInterceptor = (navigate: any) => {
           variant: "destructive",
           title: "Network Error",
           description: "No response received from the server. Please try again later.",
-          className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+          className: 'w-auto max-w-[100px] py-6 px-12 fixed bottom-2 right-2'
         })
         
       } else {

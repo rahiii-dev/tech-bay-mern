@@ -14,6 +14,7 @@ import { useAppDispatch } from "./hooks/useDispatch"
 import ProfilePage from "./pages/User/ProfilePage"
 import OtpForm from "./components/auth/OtpForm"
 import { logoutAsync } from "./features/auth/authThunk"
+import { ThemeProvider } from "./components/ui/ThemeProvider"
 
 
 function App() {
@@ -32,7 +33,7 @@ function App() {
   setupInterceptor(CustomNavigate)    
 
   return (
-    <>
+    <ThemeProvider defaultTheme="light">
       <Routes>
         <Route element={<AuthScreen/>}>
           <Route path="/login" element={<LoginForm />} />
@@ -59,8 +60,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster/>
-    </>
-
+    </ThemeProvider>
   );
 }
 
