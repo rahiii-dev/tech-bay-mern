@@ -11,7 +11,7 @@ export const sendOtpEmail = async (email) => {
     });
 
     // console.log(email);
-    console.log(otp);
+    // console.log(otp);
 
     const otpExist = await OTP.findOne({ email });
     if (otpExist) {
@@ -27,10 +27,16 @@ export const sendOtpEmail = async (email) => {
       from: process.env.MAIL_ID,
       to: email,
       subject: "Your OTP Code",
-      text: `Your OTP code is ${otp}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; text-align: center;">
+          <h1>Your OTP Code</h1>
+          <p>Your OTP code is <strong>${otp}</strong></p>
+        </div>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
+    
     return "OTP sent successfully";
   } catch (error) {
     throw new Error("Failed to send OTP");
