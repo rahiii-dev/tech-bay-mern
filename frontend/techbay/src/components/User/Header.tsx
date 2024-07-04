@@ -3,16 +3,13 @@ import Logout from "../auth/Logout";
 import { useTheme } from "../ui/ThemeProvider";
 import { LOGO_BLACK, LOGO_WHITE } from "../../utils/constants";
 import { Input } from "../ui/input";
-import { AlignJustify, Heart, LogOut, Search, ShoppingCart, User, X } from "lucide-react";
+import { AlignJustify, Heart, LogOut, Search, ShoppingCart, User } from "lucide-react";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
 import { useAppSelector } from "../../hooks/useSelector";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
-import { useState } from "react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 
 const Header = () => {
-    const [sidebarActive, setSidebarActive] = useState(false);
-
     const user = useAppSelector((state) => state.auth.user);
     const { theme } = useTheme();
 
@@ -61,7 +58,7 @@ const Header = () => {
                                                     <Link className="w-full h-full" to={'/login'}>Sign In</Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem className="hover:bg-secondary">
-                                                    <Link className="w-full h-full" to={'/login'}>Sign Up</Link>
+                                                    <Link className="w-full h-full" to={'/register'}>Sign Up</Link>
                                                 </DropdownMenuItem>
                                             </>
                                         )}
