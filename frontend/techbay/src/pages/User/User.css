@@ -1,11 +1,20 @@
 * {
     --user-header-height: 65px;
+    box-sizing: border-box
 }
 
-header {
+body {
+    @apply w-screen overflow-x-hidden;
+}
+
+.user-header {
     height: var(--user-header-height);
 }
 
-main {
+.user-header .navlink {
+    @apply transition-all duration-500
+}
+
+.user-hero-section {
     min-height: calc(100vh - var(--user-header-height));
 }

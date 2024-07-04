@@ -33,7 +33,7 @@ function App() {
   setupInterceptor(CustomNavigate)    
 
   return (
-    <ThemeProvider defaultTheme="light">
+    <ThemeProvider defaultTheme="light" storageKey="techbay-theme">
       <Routes>
         <Route element={<AuthScreen/>}>
           <Route path="/login" element={<LoginForm />} />

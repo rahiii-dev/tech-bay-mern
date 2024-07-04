@@ -7,13 +7,13 @@ const Footer = () => {
 
     return (
         <footer className="bg-gray-200 w-screen overflow-hidden">
-            <div className="container py-16">
+            <div className="container py-10 sm:py-16">
                 <div className="sm:flex gap-8 pb-6">
                     <div className="text-center w-full sm:w-auto sm:text-left">
                         <div className="wid-full max-w-[120px] mb-2 mx-auto sm:mx-0">
                             <img className="w-full h-auto object-contain" src={theme === 'light' ? LOGO_BLACK : LOGO_WHITE} alt="logo" />
                         </div>
-                        <p className="text-sm mb-3 max-w-[400px] sm:max-w-[250px]">Empower Your Electronics Experience. Plug into the future of electronics shopping with AmpCart today.</p>
+                        <p className="text-sm mb-6 mx-auto sm:mx-0 max-w-[400px] sm:max-w-[250px]">Empower Your Electronics Experience. Plug into the future of electronics shopping with AmpCart today.</p>
                     </div>
 
                     <div className="flex-grow w-full flex justify-between">
@@ -40,8 +40,8 @@ const Footer = () => {
                     </div>
 
                 </div>
-                <hr className="bg-gray-300 h-[1px]"/>
-                <div className="pt-4 text-center">
+                <hr className="bg-gray-300 h-[2px]"/>
+                <div className="pt-4 text-center text-sm text-gray-400">
                     <p>TechBay ©2024, All Rights Reserved</p>
                 </div>
             </div>
