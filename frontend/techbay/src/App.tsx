@@ -15,6 +15,7 @@ import ProfilePage from "./pages/User/ProfilePage"
 import OtpForm from "./components/auth/OtpForm"
 import { logoutAsync } from "./features/auth/authThunk"
 import { ThemeProvider } from "./components/ui/ThemeProvider"
+import Brands from "./pages/Admin/Brands"
 
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
           <Route path="/admin/dashboard" element={<DashBoard />} />
           <Route path="/admin/customers" element={<Customers />} />
           <Route path="/admin/categories" element={<Category />} />
+          <Route path="/admin/brands" element={<Brands />} />
         </Route>
 
         {/* Catch-all invalid paths */}

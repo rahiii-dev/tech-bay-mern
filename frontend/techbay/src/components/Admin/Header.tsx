@@ -5,6 +5,7 @@ const ADMIN_URL_MAP = new Map([
     ['/admin/dashboard', 'Dashboard'],
     ['/admin/customers', 'Customers'],
     ['/admin/categories', 'Categories'],
+    ['/admin/brands', 'Brands'],
 ]);
 
 const Header = () => {

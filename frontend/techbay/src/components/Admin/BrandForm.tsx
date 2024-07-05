@@ -1,38 +1,33 @@
-import { useForm } from "react-hook-form";
-import { Button } from "../ui/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Input } from "../ui/input";
-import * as z from 'zod';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { Textarea } from "../ui/textarea";
-import axios from "../../utils/axios";
-import { CATEGORY_CREATE_URL, CATEGORY_EDIT_URL } from "../../utils/urls/adminUrls";
-import { BACKEND_RESPONSE, isBackendError } from "../../utils/types";
-import { CategoryResponse } from "../../pages/Admin/Category";
 import { useEffect, useState } from "react";
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
+import axios from "../../utils/axios";
+import { BRAND_CREATE_URL, BRAND_EDIT_URL } from "../../utils/urls/adminUrls";
+import { BrandResponse } from "../../pages/Admin/Brands";
 import { toast } from "../ui/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { isBackendError } from "../../utils/types";
 
+const brandSchema = z.object({
+    name: z.string().min(1, { message: "Brand name is required" }),
+    description: z.string().trim()
+});
 
-const categorySchema = z.object({
-    name: z.string()
-        .trim()
-        .min(1, "Name is required"),
-    description: z.string()
-        .trim()
-})
-
-type CategoryFormProp = {
-    succesFormSubmit : () => void;
-    category?: CategoryResponse | null;
+type BrandFormProps = {
+    brand?: BrandResponse;
+    succesFormSubmit: () => void;
 }
 
-const CategoryForm = ({succesFormSubmit, category}: CategoryFormProp) => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
+const BrandForm = ({ brand, succesFormSubmit }: BrandFormProps) => {
     const [error, setError] = useState('')
 
-    const form = useForm<z.infer<typeof categorySchema>>({
-        resolver: zodResolver(categorySchema),
+    const form = useForm<z.infer<typeof brandSchema>>({
+        resolver: zodResolver(brandSchema),
         defaultValues: {
             name: "",
             description: ""
@@ -40,52 +35,47 @@ const CategoryForm = ({succesFormSubmit, category}: CategoryFormProp) => {
     })
 
     useEffect(() => {
-        if(category){
-            form.reset({name: category.name, description: category.description})
+        if (brand) {
+            form.reset({ name: brand.name, description: brand.description })
         }
-    }, [category])
+    }, [brand]);
 
-    async function onSubmit(dataToSend: z.infer<typeof categorySchema>) {
-        setIsSubmitting(true)
-        setError('')
+    const onSubmit = async (values: z.infer<typeof brandSchema>) => {
         try {
-            let response;
-            if(category){
-                response = await axios.put<BACKEND_RESPONSE<CategoryResponse>>(CATEGORY_EDIT_URL(category._id), dataToSend);
-            }
-            else {
-                response = await axios.post<BACKEND_RESPONSE<CategoryResponse>>(CATEGORY_CREATE_URL, dataToSend);
-            }
-            if(response.data){
-                if(!category){
-                    form.reset({name: '', description: ''})
-                }
+            if (brand) {
+                await axios.put(BRAND_EDIT_URL(brand._id), values);
                 toast({
                     variant: "default",
-                    title: `Category ${category ? 'Updated' : 'Added'} succesfully`,
+                    title: "Brand updated successfully.",
+                    description: "",
                     className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
                 });
-                succesFormSubmit();
+            } else {
+                await axios.post(BRAND_CREATE_URL, values);
+                toast({
+                    variant: "default",
+                    title: "Brand created successfully.",
+                    description: "",
+                    className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                });
             }
+            succesFormSubmit();
         } catch (error: any) {
-            if(isBackendError(error.response?.data)){
-                const {type, message} = error?.response?.data;
-                if(type === 'Error'){
+            if (isBackendError(error.response?.data)) {
+                const { type, message } = error?.response?.data;
+                if (type === 'Error') {
                     setError(message)
                 }
             }
         }
-        finally{
-            setIsSubmitting(false)
-        }
-    }
+    };
 
     return (
         <Form {...form}>
             <DialogContent className="sm:max-w-[425px]">
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <DialogHeader>
-                        <DialogTitle>{category ? 'Edit Category' : 'Add Category'}</DialogTitle>
+                        <DialogTitle>{brand ? 'Edit Brand' : 'Add Brand'}</DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <FormField
@@ -93,7 +83,7 @@ const CategoryForm = ({succesFormSubmit, category}: CategoryFormProp) => {
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Category</FormLabel>
+                                    <FormLabel>Brand</FormLabel>
                                     <FormControl>
                                         <Input {...field} />
                                     </FormControl>
@@ -117,12 +107,12 @@ const CategoryForm = ({succesFormSubmit, category}: CategoryFormProp) => {
                         {error && <p className="text-red-500">{error}</p>}
                     </div>
                     <DialogFooter>
-                        <Button type="submit" disabled={isSubmitting}>{category ? 'Save Changes' : 'Submit'}</Button>
+                        <Button type="submit" disabled={form.formState.isSubmitting}>{brand ? 'Save Changes' : 'Submit'}</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
         </Form>
     );
-}
+};
 
-export default CategoryForm;
+export default BrandForm;
