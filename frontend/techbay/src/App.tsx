@@ -16,6 +16,9 @@ import OtpForm from "./components/auth/OtpForm"
 import { logoutAsync } from "./features/auth/authThunk"
 import { ThemeProvider } from "./components/ui/ThemeProvider"
 import Brands from "./pages/Admin/Brands"
+import ProductList from "./pages/Admin/ProductList"
+import ProductEdit from "./pages/Admin/productEdit"
+import ProductAdd from "./pages/Admin/ProductAdd"
 
 
 function App() {
@@ -56,6 +59,9 @@ function App() {
           <Route path="/admin/customers" element={<Customers />} />
           <Route path="/admin/categories" element={<Category />} />
           <Route path="/admin/brands" element={<Brands />} />
+          <Route path="/admin/products" element={<ProductList />} />
+          <Route path="/admin/product/add" element={<ProductAdd />} />
+          <Route path="/admin/product/edit" element={<ProductEdit />} />
         </Route>
 
         {/* Catch-all invalid paths */}

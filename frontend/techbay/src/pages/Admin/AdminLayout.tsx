@@ -13,7 +13,7 @@ const AdminLayout = ({ children }: AdminLayoutProp) => {
             <Sidebar/>
             <div className="flex-grow px-4 overflow-x-hidden">
                 <Header/>
-                <main className="pt-3">
+                <main className="pt-3 overflow-x-hidden custom-scrollbar">
                     <div className="h-full overflow-x-hidden overflow-y-scroll custom-scrollbar relative">
                         {children}
                     </div>

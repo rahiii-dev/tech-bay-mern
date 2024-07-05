@@ -116,7 +116,7 @@ const Sidebar = () => {
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <NavLink to={'products/add'} className="navlink py-2 px-2 flex items-center gap-2 rounded-sm">
+                                <NavLink to={'product/add'} className="navlink py-2 px-2 flex items-center gap-2 rounded-sm">
                                     <PackagePlus size={20} /> <span className="font-medium">Add Product</span>
                                 </NavLink>
                             </TooltipTrigger>
