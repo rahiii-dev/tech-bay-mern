@@ -9,9 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import ImageInput from "../ui/ImageInput";
 import { CategoryListResponse, CategoryResponse } from "../../pages/Admin/Category";
 import { BrandListResponse, BrandResponse } from "../../pages/Admin/Brands";
-import { BRAND_LIST_URL, CATEGORY_LIST_URL } from "../../utils/urls/adminUrls";
-import axios from "../../utils/axios";
+import { BRAND_LIST_URL, CATEGORY_LIST_URL, PRODUCT_CREATE_URL, PRODUCT_EDIT_URL, SINGLE_PRODUCT_URL } from "../../utils/urls/adminUrls";
 import { BACKEND_RESPONSE } from "../../utils/types";
+import axios from "../../utils/axios";
+import { toast } from "../ui/use-toast";
+import { Product } from "../../pages/Admin/ProductList";
+import useAxios from "../../hooks/useAxios";
+import { SERVER_URL } from "../../utils/constants";
 
 const MIN_IMAGE = 3;
 const MAX_IMAGE = 6;
@@ -20,14 +24,14 @@ const ProductFormSchema = z.object({
     name: z.string()
         .trim()
         .min(1, "Product name is required"),
-    details: z.string()
+    description: z.string()
         .trim()
         .min(1, "Product details are required"),
     price: z.preprocess(
         value => value === "" ? -1 : parseFloat(value as string),
         z.number().min(0, "Price must be a positive number")
     ),
-    quantity: z.preprocess(
+    stock: z.preprocess(
         value => value === "" ? -1 : parseInt(value as string),
         z.number().min(0, "Quantity must be a positive number")
     ),
@@ -44,8 +48,30 @@ const ProductFormSchema = z.object({
 });
 
 
+type ProductFormProps = {
+    prdID?: string;
+}
 
-const ProductForm = forwardRef((_, ref) => {
+const urlToFile = async (url: string): Promise<File> => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const fileName = url.split('/').pop() || 'file';
+    return new File([blob], fileName, { type: blob.type });
+};
+
+
+const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
+    const { data, error, loading, fetchData } = useAxios<BACKEND_RESPONSE<Product>>({}, false);
+
+    useEffect(() => {
+        if (prdID) {
+            fetchData({
+                url: SINGLE_PRODUCT_URL(prdID),
+                method: 'GET'
+            })
+        }
+    }, [prdID])
+
     const [categories, setCategories] = useState<CategoryResponse[]>([]);
     const [brands, setBrands] = useState<BrandResponse[]>([]);
 
@@ -53,9 +79,9 @@ const ProductForm = forwardRef((_, ref) => {
         resolver: zodResolver(ProductFormSchema),
         defaultValues: {
             name: "",
-            details: "",
+            description: "",
             price: 0,
-            quantity: 0,
+            stock: 0,
             isActive: true,
             category: "",
             brand: "",
@@ -80,6 +106,42 @@ const ProductForm = forwardRef((_, ref) => {
 
         fetchCategoriesAndBrands();
     }, []);
+
+    useEffect(() => {
+        const fetchProductDetails = async () => {
+            if (data) {
+                const product = data.data;
+
+                let thumbnailFile: File | undefined;
+                if (product?.thumbnail) {
+                    thumbnailFile = await urlToFile(`${SERVER_URL}${product.thumbnail}`);
+                }
+
+                let imageFiles: File[] = [];
+                if (product?.images) {
+                    imageFiles = await Promise.all(product.images.map(imageUrl => urlToFile(`${SERVER_URL}${imageUrl}`)));
+                }
+
+
+                // Set form values with converted files
+                form.reset({
+                    name: product?.name,
+                    description: product?.description,
+                    price: product?.price,
+                    stock: product?.stock,
+                    isActive: product?.isActive,
+                    category: product?.category,
+                    brand: product?.brand,
+                    thumbnail: thumbnailFile,
+                    images: imageFiles
+                });
+            }
+        };
+
+        fetchProductDetails();
+    }, [data]);
+
+
 
     const handleImageChange = (index: number, file: File) => {
         const newImages = [...form.getValues('images')];
@@ -112,13 +174,74 @@ const ProductForm = forwardRef((_, ref) => {
         submitForm: form.handleSubmit(onSubmit)
     }));
 
-    const onSubmit = (data: z.infer<typeof ProductFormSchema>) => {
+    const onSubmit = async (data: z.infer<typeof ProductFormSchema>) => {
         if (data.thumbnail === null) {
             form.setError("thumbnail", { message: "Thumbnail is required" });
             return;
         }
-        console.log("Form Data:", data);
-        // Handle form submission here
+
+
+        try {
+            const formData = new FormData();
+
+            formData.append('name', data.name);
+            formData.append('description', data.description);
+            formData.append('price', data.price.toString());
+            formData.append('stock', data.stock.toString());
+            formData.append('isActive', data.isActive.toString());
+            formData.append('category', data.category);
+            formData.append('brand', data.brand);
+
+            formData.append('thumbnail', data.thumbnail);
+
+            data.images.forEach((image, _) => {
+                formData.append(`images`, image);
+            });
+
+            if (prdID) {
+                await axios.put<BACKEND_RESPONSE>(PRODUCT_EDIT_URL(prdID), formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                toast({
+                    variant: "default",
+                    title: `Product Updated successfully`,
+                    className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                });
+            } else {
+                await axios.post<BACKEND_RESPONSE>(PRODUCT_CREATE_URL, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                form.reset({
+                    name: "",
+                    description: "",
+                    price: 0,
+                    stock: 0,
+                    isActive: true,
+                    category: "",
+                    brand: "",
+                    thumbnail: null,
+                    images: [],
+                })
+                toast({
+                    variant: "default",
+                    title: `Product added successfully`,
+                    className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                });
+            }
+
+
+
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Failed to add product",
+                className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+            })
+        }
     };
 
     return (
@@ -129,13 +252,14 @@ const ProductForm = forwardRef((_, ref) => {
                         <FormField
                             control={form.control}
                             name="thumbnail"
-                            render={() => (
+                            render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-lg font-bold mb-2">Thumbnail</FormLabel>
                                     <p className="mb-2 text-sm text-gray-400">Add thumbnail for your product</p>
                                     <FormControl>
                                         <ImageInput
                                             index={-1}
+                                            defaultImage={field.value ? URL.createObjectURL(field.value) : undefined}
                                             onImageChange={(_, file) => handleThumbnailInput(file)}
                                             onRemoveImage={(_) => handleRemoveThumbnail()}
                                             onImageError={handleThumbnailError}
@@ -245,7 +369,7 @@ const ProductForm = forwardRef((_, ref) => {
                         />
                         <FormField
                             control={form.control}
-                            name="details"
+                            name="description"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Product Details</FormLabel>
@@ -275,7 +399,7 @@ const ProductForm = forwardRef((_, ref) => {
                             <div>
                                 <FormField
                                     control={form.control}
-                                    name="quantity"
+                                    name="stock"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Quantity</FormLabel>

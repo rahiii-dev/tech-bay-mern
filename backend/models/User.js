@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { capitalize } from '../utils/capitalize.js';
 
 const userSchema = new mongoose.Schema({
     fullName: {
@@ -42,11 +43,6 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
-function capitalize(val) {
-    if (typeof val !== 'string') return '';
-    return val.split(' ').map(word => word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()).join(' ');
-}
 
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {

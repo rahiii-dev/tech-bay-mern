@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/
 import { Pencil, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
+import { SERVER_URL } from "../../utils/constants";
 
 type ProductListTableProps = {
     products: Product[]
@@ -31,18 +32,18 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
             </TableHeader>
             <TableBody>
                 {products.map(product => (
-                    <TableRow key={product.id}>
+                    <TableRow key={product._id}>
                         <TableCell>
-                            <div className="flex gap-3 items-center max-w-[220px] overflow-hidden">
-                                <div className="size-14 overflow-hidden rounded-sm">
-                                    <img src={product.thumbnail} alt="product-image" />
+                            <div className="flex gap-3 items-center overflow-hidden">
+                                <div className="w-[50px] h-[50px] overflow-hidden rounded-sm shadow-lg">
+                                    <img src={`${SERVER_URL}${product.thumbnail}`} className="w-full h-full object-cover object-center" alt="product-image" />
                                 </div>
                                 <div>
                                     <h1>{product.name}</h1>
                                 </div>
                             </div>
                         </TableCell>
-                        <TableCell><span className={`${product.quantity < 10 && 'text-destructive font-bold'}`}>{product.quantity}</span></TableCell>
+                        <TableCell><span className={`${product.stock < 10 && 'text-destructive font-bold'}`}>{product.stock}</span></TableCell>
                         <TableCell>₹ {product.price}</TableCell>
                         <TableCell>
                             <Rating name="read-only" value={product.rating} size="small" readOnly />
@@ -55,7 +56,7 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Pencil className='text-yellow-600 cursor-pointer' onClick={() => handleEdit(product.id)} />
+                                            <Pencil className='text-yellow-600 cursor-pointer' onClick={() => handleEdit(product._id)} />
                                         </TooltipTrigger>
                                         <TooltipContent side='top'>
                                             <p>Edit Product</p>
