@@ -4,6 +4,7 @@ import { Rating } from '@mui/material';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { Pencil, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "../ui/badge";
 
 type ProductListTableProps = {
     products: Product[]
@@ -46,7 +47,9 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                         <TableCell>
                             <Rating name="read-only" value={product.rating} size="small" readOnly />
                         </TableCell>
-                        <TableCell>{product.isActive}</TableCell>
+                        <TableCell>
+                            <Badge variant={`${product.isActive ? 'sucess' : 'destructive'}`}>{product.isActive ? 'Active' : 'Inactive'}</Badge>
+                        </TableCell>
                         <TableCell>
                             <div className="flex gap-2">
                                 <TooltipProvider>

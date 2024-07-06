@@ -85,7 +85,7 @@ const products = [
         quantity: 60,
         price: 499.99,
         rating: 4.4,
-        isActive: true
+        isActive: false
     },
     {
         id: "9",

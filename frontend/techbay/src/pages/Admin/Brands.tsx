@@ -21,7 +21,7 @@ export interface BrandResponse {
     updatedAt: string;
 }
 
-interface BrandListResponse {
+export interface BrandListResponse {
     brandCount: number;
     brands: BrandResponse[];
 }

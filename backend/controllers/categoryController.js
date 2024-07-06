@@ -45,7 +45,7 @@ export const editCategory = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Category not found");
   }
 
-  const categoryExist = await Category.findOne({ _id : {$ne : id} , name });
+  const categoryExist = await Category.findOne({ _id: { $ne: id }, name });
   if (categoryExist) {
     return handleErrorResponse(res, 401, "Category already exists");
   }
@@ -59,11 +59,20 @@ export const editCategory = asyncHandler(async (req, res) => {
 });
 
 /*  
-    Route: GET api/admin/categories
+    Route: GET api/admin/categories?filter=active
     Purpose: Get all categories 
 */
 export const getCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find();
+  const filter = req.query?.filter;
+
+  let categories;
+
+  if (filter === "active") {
+    categories = await Category.find({ isDeleted: false });
+  } else {
+    categories = await Category.find();
+  }
+
   return handleResponse(
     res,
     "Category Created",

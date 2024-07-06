@@ -63,7 +63,15 @@ export const editBrand = asyncHandler(async (req, res) => {
     Purpose: Get all brands 
 */
 export const getBrands = asyncHandler(async (req, res) => {
-  const brands = await Brand.find();
+  const filter = req.query?.filter;
+  let brands;
+
+  if (filter === "active") {
+    brands = await Brand.find({ isDeleted: false });
+  } else {
+    brands = await Brand.find();
+  }
+  
   return handleResponse(
     res,
     "Brands retrieved",

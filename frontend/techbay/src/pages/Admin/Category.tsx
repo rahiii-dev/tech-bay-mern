@@ -21,7 +21,7 @@ export interface CategoryResponse {
     updatedAt: string;
 }
 
-interface CategoryListResponse {
+export interface CategoryListResponse {
     categoryCount: number;
     categories: CategoryResponse[]
 }

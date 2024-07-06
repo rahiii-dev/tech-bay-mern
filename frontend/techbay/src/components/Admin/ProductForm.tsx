@@ -1,122 +1,333 @@
-import { useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import ImageInput from "../ui/ImageInput";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import ImageInput from "../ui/ImageInput";
+import { CategoryListResponse, CategoryResponse } from "../../pages/Admin/Category";
+import { BrandListResponse, BrandResponse } from "../../pages/Admin/Brands";
+import { BRAND_LIST_URL, CATEGORY_LIST_URL } from "../../utils/urls/adminUrls";
+import axios from "../../utils/axios";
+import { BACKEND_RESPONSE } from "../../utils/types";
 
+const MIN_IMAGE = 3;
 const MAX_IMAGE = 6;
 
+const ProductFormSchema = z.object({
+    name: z.string()
+        .trim()
+        .min(1, "Product name is required"),
+    details: z.string()
+        .trim()
+        .min(1, "Product details are required"),
+    price: z.preprocess(
+        value => value === "" ? -1 : parseFloat(value as string),
+        z.number().min(0, "Price must be a positive number")
+    ),
+    quantity: z.preprocess(
+        value => value === "" ? -1 : parseInt(value as string),
+        z.number().min(0, "Quantity must be a positive number")
+    ),
+    isActive: z.preprocess(
+        value => value === "true",
+        z.boolean()
+    ).refine(val => typeof val === "boolean", { message: "Status is required" }),
+    category: z.string().min(1, "Category is required"),
+    brand: z.string().min(1, "Brand is required"),
+    thumbnail: z.instanceof(File, { message: "Thumbnail is required" }).nullable(),
+    images: z.array(z.instanceof(File))
+        .min(MIN_IMAGE, `At least ${MIN_IMAGE} images are required`)
+        .max(MAX_IMAGE, `No more than ${MAX_IMAGE} images are allowed`)
+});
 
-const ProductForm = () => {
-    const [images, setImages] = useState<File[]>([]);
-    const [imagesError, setImagesError] = useState('');
 
-    const [thumbNail, setThumbNail] = useState<File | null>(null);
-    const [thumbNailError, setThumbNailError] = useState('');
+
+const ProductForm = forwardRef((_, ref) => {
+    const [categories, setCategories] = useState<CategoryResponse[]>([]);
+    const [brands, setBrands] = useState<BrandResponse[]>([]);
+
+    const form = useForm<z.infer<typeof ProductFormSchema>>({
+        resolver: zodResolver(ProductFormSchema),
+        defaultValues: {
+            name: "",
+            details: "",
+            price: 0,
+            quantity: 0,
+            isActive: true,
+            category: "",
+            brand: "",
+            thumbnail: null,
+            images: [],
+        },
+    });
+
+    useEffect(() => {
+        const fetchCategoriesAndBrands = async () => {
+            const categoriesResponse = await axios.get<BACKEND_RESPONSE<CategoryListResponse>>(`${CATEGORY_LIST_URL}?filter=active`);
+            const brandsResponse = await axios.get<BACKEND_RESPONSE<BrandListResponse>>(`${BRAND_LIST_URL}?filter=active`);
+
+            if (categoriesResponse.data.data) {
+                setCategories(categoriesResponse.data.data?.categories);
+            }
+
+            if (brandsResponse.data.data) {
+                setBrands(brandsResponse.data.data?.brands);
+            }
+        };
+
+        fetchCategoriesAndBrands();
+    }, []);
 
     const handleImageChange = (index: number, file: File) => {
-        const newImages = [...images];
+        const newImages = [...form.getValues('images')];
         newImages[index] = file;
-        setImages(newImages);
+        form.setValue("images", newImages);
     };
 
     const handleRemoveImage = (index: number) => {
-        const newImages = images.filter((_, i) => i !== index);
-        setImages(newImages);
+        const newImages = form.getValues('images').filter((_, i) => i !== index);
+        form.setValue("images", newImages);
     };
 
     const handleThumbnailInput = (file: File) => {
-        setThumbNail(file);
+        form.setValue("thumbnail", file);
+    };
+
+    const handleRemoveThumbnail = () => {
+        form.setValue("thumbnail", null);
     };
 
     const handleImagesError = (error: string) => {
-        setImagesError(error);
+        form.setError('images', { message: error });
     };
 
     const handleThumbnailError = (error: string) => {
-        setThumbNailError(error);
+        form.setError("thumbnail", { message: error });
+    };
+
+    useImperativeHandle(ref, () => ({
+        submitForm: form.handleSubmit(onSubmit)
+    }));
+
+    const onSubmit = (data: z.infer<typeof ProductFormSchema>) => {
+        if (data.thumbnail === null) {
+            form.setError("thumbnail", { message: "Thumbnail is required" });
+            return;
+        }
+        console.log("Form Data:", data);
+        // Handle form submission here
     };
 
     return (
-        <div className="pt-2 pb-10">
-            <form className="flex flex-col-reverse md:flex-row justify-between gap-3">
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col-reverse md:flex-row justify-between gap-3 pb-8">
                 <div className="w-full md:w-max flex md:flex-col gap-3">
                     <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
-                        <h1 className="text-lg font-bold mb-2">Thumbnail</h1>
-                        <p className="mb-2 text-sm text-gray-400">Add thumbnail for your product</p>
-                        {thumbNailError && <p className="mb-2 text-sm text-red-500">{thumbNailError}</p>}
-                        <ImageInput key={'thumbnail-input'} index={-1} onImageChange={(_, file) => handleThumbnailInput(file)} onImageError={handleThumbnailError} />
+                        <FormField
+                            control={form.control}
+                            name="thumbnail"
+                            render={() => (
+                                <FormItem>
+                                    <FormLabel className="text-lg font-bold mb-2">Thumbnail</FormLabel>
+                                    <p className="mb-2 text-sm text-gray-400">Add thumbnail for your product</p>
+                                    <FormControl>
+                                        <ImageInput
+                                            index={-1}
+                                            onImageChange={(_, file) => handleThumbnailInput(file)}
+                                            onRemoveImage={(_) => handleRemoveThumbnail()}
+                                            onImageError={handleThumbnailError}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
+
+                    <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
+                        <div className="mb-2">
+                            <FormField
+                                control={form.control}
+                                name="isActive"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-lg font-bold mb-2">Status</FormLabel>
+                                        <FormControl>
+                                            <Select value={field.value ? "true" : "false"} onValueChange={field.onChange}>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select a product status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="true">Active</SelectItem>
+                                                    <SelectItem value="false">Inactive</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+
                     <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
                         <h1 className="text-lg font-bold mb-2">Details</h1>
                         <div className="mb-2">
-                            <h4 className="font-semibold mb-1">Categories</h4>
-                            <Select>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select a Category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="laptop">Laptop</SelectItem>
-                                    <SelectItem value="headphone">Headphone</SelectItem>
-                                    <SelectItem value="smartphone">SmartPhone</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <FormField
+                                control={form.control}
+                                name="category"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="font-semibold mb-1">Category</FormLabel>
+                                        <FormControl>
+                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select a Category" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {categories.map(category => (
+                                                        <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
+
                         <div className="mb-2">
-                            <h4 className="font-semibold mb-1">Brand</h4>
-                            <Select>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select a brand" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="apple">Apple</SelectItem>
-                                    <SelectItem value="samsung">Samsung</SelectItem>
-                                    <SelectItem value="sony">Sony</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <FormField
+                                control={form.control}
+                                name="brand"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="font-semibold mb-1">Brand</FormLabel>
+                                        <FormControl>
+                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Select a brand" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {brands.map(brand => (
+                                                        <SelectItem key={brand._id} value={brand._id}>{brand.name}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </div>
                 </div>
+
                 <div className="flex-grow flex flex-col gap-3">
                     <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6">
                         <h1 className="text-lg font-bold mb-2">General</h1>
-                        <Label className="mb-4">Product Name: </Label>
-                        <Input />
-                        <Label className="mb-4">Product Details: </Label>
-                        <Textarea />
-                        <Label className="mb-4">Product Price: </Label>
-                        <Input />
-                    </div>
-                    <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6">
-                        <h1 className="text-lg font-bold mb-2">Media</h1>
-                        <p className="mb-2 text-sm text-gray-400">Add up to {MAX_IMAGE} images</p>
-                        {imagesError && <p className="mb-2 text-sm text-red-500">{imagesError}</p>}
-                        <div className="flex flex-wrap gap-3">
-                            {images.map((img, index) => (
-                                <ImageInput
-                                    key={index}
-                                    index={index}
-                                    defaultImage={URL.createObjectURL(img)}
-                                    onImageChange={handleImageChange}
-                                    onRemoveImage={handleRemoveImage}
-                                    onImageError={handleImagesError}
-                                />
-                            ))}
-                            {images.length < MAX_IMAGE && (
-                                <ImageInput
-                                    key={images.length}
-                                    index={images.length}
-                                    onImageChange={handleImageChange}
-                                    onImageError={handleImagesError}
-                                />
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Product Name</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                             )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="details"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Product Details</FormLabel>
+                                    <FormControl>
+                                        <Textarea {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <FormField
+                                    control={form.control}
+                                    name="price"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Price</FormLabel>
+                                            <FormControl>
+                                                <Input min={0} type="number" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div>
+                                <FormField
+                                    control={form.control}
+                                    name="quantity"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Quantity</FormLabel>
+                                            <FormControl>
+                                                <Input min={0} type="number" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                         </div>
+                    </div>
+
+                    <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6">
+                        <FormField
+                            control={form.control}
+                            name="images"
+                            render={() => (
+                                <FormItem>
+                                    <FormLabel className="text-lg font-bold mb-2">Media</FormLabel>
+                                    <p className="mb-2 text-sm text-gray-400">Minimum {MIN_IMAGE} and maximum {MAX_IMAGE} images</p>
+
+                                    <div className="flex flex-wrap gap-3">
+                                        {form.getValues('images').map((img, index) => (
+                                            <ImageInput
+                                                key={index}
+                                                index={index}
+                                                defaultImage={URL.createObjectURL(img)}
+                                                onImageChange={handleImageChange}
+                                                onRemoveImage={handleRemoveImage}
+                                                onImageError={handleImagesError}
+                                            />
+                                        ))}
+                                        {form.getValues('images').length < MAX_IMAGE && (
+                                            <ImageInput
+                                                key={form.getValues('images').length}
+                                                index={form.getValues('images').length}
+                                                onImageChange={handleImageChange}
+                                                onImageError={handleImagesError}
+                                            />
+                                        )}
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
                 </div>
             </form>
-        </div>
+        </Form >
     );
-};
+});
 
 export default ProductForm;
