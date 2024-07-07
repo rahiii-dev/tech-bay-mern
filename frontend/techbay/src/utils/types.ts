@@ -22,3 +22,7 @@ export function isBackendError(error: any): error is BACKEND_ERROR_RESPONSE {
     return error && typeof error === 'object' &&
         ('type' in error || 'message' in error || 'extraMessage' in error);
 }
+
+export type AsyncThunkConfig = {
+    rejectValue: BACKEND_ERROR_RESPONSE;
+};
