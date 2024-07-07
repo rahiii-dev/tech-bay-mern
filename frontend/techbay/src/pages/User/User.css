@@ -18,3 +18,7 @@ body {
 .user-hero-section {
     min-height: calc(100vh - var(--user-header-height));
 }
+
+.product-card-image {
+    object-position: center -20px !important;
+}

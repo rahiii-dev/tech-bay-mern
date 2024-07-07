@@ -15,7 +15,7 @@ const Header = () => {
 
     return (
         <>
-            <header className="user-header shadow w-screen">
+            <header className="user-header w-screen">
                 <div className="container py-3 flex items-center gap-3">
                     <div className="min-w-[80px] sm:min-w-[100px]">
                         <img className="w-full h-auto object-contain" src={theme === 'light' ? LOGO_BLACK : LOGO_WHITE} alt="logo" />
