@@ -36,7 +36,7 @@ const ProductList = () => {
 
     const [products, setProducts] = useState<Product[]>([])
 
-    console.log(data);
+    // console.log(data);
     useEffect(() => {
         if (data?.data) {
             setProducts(data.data?.products);

@@ -3,6 +3,7 @@ import Product from "../models/Product.js";
 import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 import { generateFileURL } from "../utils/generateFileUrl.js";
+import { deleteFiles } from "../utils/deleteFiles.js";
 
 function handleProduct(product) {
   return {
@@ -57,11 +58,13 @@ export const editProduct = asyncHandler(async (req, res) => {
     description,
     price,
     stock,
-    images,
-    thumbnail,
     category,
     brand,
+    isActive
   } = req.body;
+
+  
+
   const { id } = req.params;
 
   const product = await Product.findById(id);
@@ -69,14 +72,29 @@ export const editProduct = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Product not found");
   }
 
+  let thumbnail = product.thumbnail;
+  let images = product.images;
+
+  if(req.files.thumbnail){
+    deleteFiles([product.thumbnail])
+    thumbnail =  req.files.thumbnail[0].path;
+  }
+
+  if(req.files.images){
+    deleteFiles(product.images);
+    images = req.files.images.map((file) => file.path);
+  }
+
   product.name = name || product.name;
   product.description = description || product.description;
   product.price = price || product.price;
   product.stock = stock || product.stock;
-  product.images = images || product.images;
-  product.thumbnail = thumbnail || product.thumbnail;
   product.category = category || product.category;
   product.brand = brand || product.brand;
+  product.isActive = isActive || product.isActive;
+
+  product.thumbnail = thumbnail;
+  product.images = images;
 
   await product.save();
 

@@ -61,7 +61,7 @@ const urlToFile = async (url: string): Promise<File> => {
 
 
 const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
-    const { data, error, loading, fetchData } = useAxios<BACKEND_RESPONSE<Product>>({}, false);
+    const { data: productRes, error, fetchData } = useAxios<BACKEND_RESPONSE<Product>>({}, false);
 
     useEffect(() => {
         if (prdID) {
@@ -109,8 +109,8 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
 
     useEffect(() => {
         const fetchProductDetails = async () => {
-            if (data) {
-                const product = data.data;
+            if (productRes) {
+                const product = productRes.data;
 
                 let thumbnailFile: File | undefined;
                 if (product?.thumbnail) {
@@ -123,7 +123,6 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                 }
 
 
-                // Set form values with converted files
                 form.reset({
                     name: product?.name,
                     description: product?.description,
@@ -139,7 +138,17 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
         };
 
         fetchProductDetails();
-    }, [data]);
+    }, [productRes]);
+
+    useEffect(() => {
+        if(error){
+            toast({
+                variant: "destructive",
+                title: `Failed to fetch product`,
+                className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+            })
+        }
+    }, [error])
 
 
 
@@ -191,12 +200,12 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
             formData.append('isActive', data.isActive.toString());
             formData.append('category', data.category);
             formData.append('brand', data.brand);
-
             formData.append('thumbnail', data.thumbnail);
 
             data.images.forEach((image, _) => {
                 formData.append(`images`, image);
             });
+
 
             if (prdID) {
                 await axios.put<BACKEND_RESPONSE>(PRODUCT_EDIT_URL(prdID), formData, {
@@ -226,19 +235,18 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                     thumbnail: null,
                     images: [],
                 })
-                toast({
-                    variant: "default",
-                    title: `Product added successfully`,
-                    className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
-                });
             }
 
-
+            toast({
+                variant: "default",
+                title: `Product ${prdID ? 'Updated' : 'Added'} successfully`,
+                className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+            });
 
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: "Failed to add product",
+                title: `Failed to ${prdID ? 'Update' : 'Add'} product`,
                 className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
             })
         }
@@ -280,7 +288,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                                     <FormItem>
                                         <FormLabel className="text-lg font-bold mb-2">Status</FormLabel>
                                         <FormControl>
-                                            <Select value={field.value ? "true" : "false"} onValueChange={field.onChange}>
+                                            <Select  value={field.value.toString()} onValueChange={field.onChange}>
                                                 <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="Select a product status" />
                                                 </SelectTrigger>

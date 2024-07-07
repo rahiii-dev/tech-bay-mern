@@ -17,9 +17,8 @@ const ImageInput = ({ index, onImageChange, onRemoveImage, onImageError, default
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
-        if (defaultImage) {
-            setImage(defaultImage);
-        }
+        setImage(defaultImage || null);
+        
     }, [defaultImage]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
