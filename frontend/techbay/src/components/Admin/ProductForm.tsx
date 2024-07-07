@@ -13,9 +13,12 @@ import { BRAND_LIST_URL, CATEGORY_LIST_URL, PRODUCT_CREATE_URL, PRODUCT_EDIT_URL
 import { BACKEND_RESPONSE } from "../../utils/types";
 import axios from "../../utils/axios";
 import { toast } from "../ui/use-toast";
-import { Product } from "../../pages/Admin/ProductList";
 import useAxios from "../../hooks/useAxios";
 import { SERVER_URL } from "../../utils/constants";
+import { Product } from "../../features/product/productTypes";
+import { useAppDispatch } from "../../hooks/useDispatch";
+import { getProductsList } from "../../features/product/productThunk";
+import { urlToFile } from "../../utils/urlToFIle";
 
 const MIN_IMAGE = 3;
 const MAX_IMAGE = 6;
@@ -52,16 +55,10 @@ type ProductFormProps = {
     prdID?: string;
 }
 
-const urlToFile = async (url: string): Promise<File> => {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const fileName = url.split('/').pop() || 'file';
-    return new File([blob], fileName, { type: blob.type });
-};
-
-
 const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
     const { data: productRes, error, fetchData } = useAxios<BACKEND_RESPONSE<Product>>({}, false);
+
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         if (prdID) {
@@ -237,6 +234,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                 })
             }
 
+            dispatch(getProductsList());
             toast({
                 variant: "default",
                 title: `Product ${prdID ? 'Updated' : 'Added'} successfully`,

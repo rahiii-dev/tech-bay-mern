@@ -1,4 +1,3 @@
-import { Product } from "../../pages/Admin/ProductList";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Rating } from '@mui/material';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
@@ -6,6 +5,10 @@ import { Pencil, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { SERVER_URL } from "../../utils/constants";
+import { Product } from "../../features/product/productTypes";
+import { useAppDispatch } from "../../hooks/useDispatch";
+import { deleteProduct, restoreProduct } from "../../features/product/productThunk";
+import { Button } from "../ui/button";
 
 type ProductListTableProps = {
     products: Product[]
@@ -13,9 +16,18 @@ type ProductListTableProps = {
 
 const ProductListTable = ({ products }: ProductListTableProps) => {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
 
-    const handleEdit = (productId:string) => {
-        navigate('/admin/product/edit', {state: {productId}})
+    const handleEdit = (productId: string) => {
+        navigate('/admin/product/edit', { state: { productId } })
+    }
+
+    const handleDeleteProduct = (id: string) => {
+        dispatch(deleteProduct(id))
+    }
+
+    const handleRestoreProduct = (id: string) => {
+        dispatch(restoreProduct(id))
     }
 
     return (
@@ -52,11 +64,14 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                             <Badge variant={`${product.isActive ? 'sucess' : 'destructive'}`}>{product.isActive ? 'Active' : 'Inactive'}</Badge>
                         </TableCell>
                         <TableCell>
-                            <div className="flex gap-2">
+                            {!product.isActive ? (
+                                <Button className="min-w-[80px]" onClick={() => handleRestoreProduct(product._id)}>Restore</Button>
+                            ) : (
+                                <div className="flex gap-2">
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Pencil className='text-yellow-600 cursor-pointer' onClick={() => handleEdit(product._id)} />
+                                            <Pencil size={20} className='text-yellow-600 cursor-pointer' onClick={() => handleEdit(product._id)} />
                                         </TooltipTrigger>
                                         <TooltipContent side='top'>
                                             <p>Edit Product</p>
@@ -66,7 +81,7 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Trash onClick={() => ''} className='text-red-500 cursor-pointer' />
+                                            <Trash size={20} onClick={() => handleDeleteProduct(product._id)} className='text-red-500 cursor-pointer' />
                                         </TooltipTrigger>
                                         <TooltipContent side='top'>
                                             <p>Delete Product</p>
@@ -74,6 +89,7 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                                     </Tooltip>
                                 </TooltipProvider>
                             </div>
+                            )}
                         </TableCell>
                     </TableRow>
                 ))}
