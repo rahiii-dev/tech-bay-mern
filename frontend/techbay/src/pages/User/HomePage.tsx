@@ -22,10 +22,10 @@ const HomePage = () => {
 
     const brandSliderSettings = {
         dots: false,
-        infinite: false,
+        infinite: true,
         speed: 500,
-        slidesToShow: 5,
-        slidesToScroll: 3,
+        slidesToShow: 4,
+        slidesToScroll: 2,
         arrows: false,
     };
 
@@ -96,7 +96,7 @@ const HomePage = () => {
                         </div>
                     </div>
                 </div>
-                <div className="container py-20">
+                <div className="container pb-20">
                     <div className="pb-16">
                         <h1 className="text-5xl text-center font-extrabold uppercase mb-16">Top Selling</h1>
                         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">

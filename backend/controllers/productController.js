@@ -5,7 +5,7 @@ import handleErrorResponse from "../utils/handleErrorResponse.js";
 import { generateFileURL } from "../utils/generateFileUrl.js";
 import { deleteFiles } from "../utils/deleteFiles.js";
 
-function handleProduct(product) {
+export function handleProduct(product) {
   return {
     _id: product._id,
     name: product.name,

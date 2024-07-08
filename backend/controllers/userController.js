@@ -3,10 +3,9 @@ import User from "../models/User.js";
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
 import { ACTIVE_PRODUCT_PIPELINE } from "../utils/pipelines/product.js";
-import handleErrorResponse from "../utils/handleErrorResponse.js";
-import handleResponse from "../utils/handleResponse.js";
 import { generateFileURL } from "../utils/generateFileUrl.js";
 import mongoose from "mongoose";
+import { handleProduct } from "./productController.js";
 
 /*  
         Route: GET api/profile
@@ -94,6 +93,33 @@ export const userProducts = asyncHandler(async (req, res) => {
     productsCount: products.length,
     products,
   });
+});
+
+/*  
+    Route: GET api/user/product/:id
+    Purpose: get product using product id
+*/
+export const userGetProductDetail = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+
+  if (id) {
+    const product = await Product.findOne({ _id: id });
+
+    if (product) {
+      const related_products = await Product.find({
+        _id: { $ne : product.id},
+        category: product.category,
+        isActive: true
+      });
+      related_products.forEach((product) => {
+        product.thumbnail = generateFileURL(product.thumbnail);
+        product.images = product.images.map((image) => generateFileURL(image));
+      });
+      return res.json({ product: handleProduct(product), related_products });
+    }
+  }
+  return res.json({ product: {}, related_products: [] });
 });
 
 /*  

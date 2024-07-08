@@ -1,11 +1,12 @@
 import express from "express";
-import { userCategories, userHome, userProducts, userProfile } from "../controllers/userController.js";
+import { userCategories, userGetProductDetail, userHome, userProducts, userProfile } from "../controllers/userController.js";
 import { isAuthenticated } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.get('/home', userHome);
 router.get('/products', userProducts);
+router.get('/product/:id', userGetProductDetail);
 router.get('/categories', userCategories);
 
 // protected

@@ -20,6 +20,7 @@ import ProductList from "./pages/Admin/ProductList"
 import ProductEdit from "./pages/Admin/productEdit"
 import ProductAdd from "./pages/Admin/ProductAdd"
 import ShopPage from "./pages/User/ShopPage"
+import ProductDetails from "./pages/User/ProductDetails"
 
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
         <Route path="/" element={<UserScreen />}>
           <Route index element={<HomePage />} />
           <Route path="/shop" element={<ShopPage/>}/>
+          <Route path="/product/:productId" element={<ProductDetails />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
