@@ -15,6 +15,10 @@ body {
     @apply transition-all duration-500
 }
 
+.user-header .navlink.active {
+    @apply font-bold
+}
+
 .user-hero-section {
     min-height: calc(100vh - var(--user-header-height));
 }

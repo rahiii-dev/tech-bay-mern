@@ -6,6 +6,7 @@ import { ACTIVE_PRODUCT_PIPELINE } from "../utils/pipelines/product.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 import handleResponse from "../utils/handleResponse.js";
 import { generateFileURL } from "../utils/generateFileUrl.js";
+import mongoose from "mongoose";
 
 /*  
         Route: GET api/profile
@@ -72,31 +73,27 @@ export const userHome = asyncHandler(async (req, res) => {
 */
 export const userProducts = asyncHandler(async (req, res) => {
   const { category } = req.query;
+
   const pipeline = [...ACTIVE_PRODUCT_PIPELINE];
   if (category) {
     pipeline.push({
       $match: {
-        "category._id": category,
+        "category._id": new mongoose.Types.ObjectId(category),
       },
     });
   }
 
-  const products = await Product.aggregate(category);
+  const products = await Product.aggregate(pipeline);
 
   products.forEach((product) => {
     product.thumbnail = generateFileURL(product.thumbnail);
     product.images = product.images.map((image) => generateFileURL(image));
   });
 
-  return handleResponse(
-    res,
-    "Products Fetched Succesfully",
-    {},
-    {
-      productsCount: products.length,
-      products,
-    }
-  );
+  return res.json({
+    productsCount: products.length,
+    products,
+  });
 });
 
 /*  
@@ -104,14 +101,9 @@ export const userProducts = asyncHandler(async (req, res) => {
     Purpose: list categories for user
 */
 export const userCategories = asyncHandler(async (req, res) => {
-  const categories = Category.find({ isDeleted: false });
-  return handleResponse(
-    res,
-    "Products Fetched Succesfully",
-    {},
-    {
-      categoriesCount: categories.length,
-      categories,
-    }
-  );
+  const categories = await Category.find({ isDeleted: false });
+  return res.json({
+    categoriesCount: categories.length,
+    categories,
+  });
 });

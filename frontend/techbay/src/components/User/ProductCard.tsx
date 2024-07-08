@@ -2,6 +2,7 @@ import { Rating } from "@mui/material";
 import { Product } from "../../features/product/productTypes";
 import { SERVER_URL } from "../../utils/constants";
 import { Link } from "react-router-dom";
+import { Skeleton } from "../ui/skeleton";
 
 type ProductCardProps = {
     product: Product
@@ -27,6 +28,25 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 </div>
             </div>
         </Link>
+    );
+}
+
+export const ProductCardSkeleton = () => {
+
+    return (
+        <div className="w-full max-w-[300px] mx-auto overflow-hidden">
+            <div className="w-full aspect-square overflow-hidden rounded-2xl">
+                <Skeleton className="h-full" />
+            </div>
+            <div className="px-3 py-4">
+                <h4 className="text-medium font-medium mb-2">
+                    <Skeleton className="h-6 w-[80%]" />
+                </h4>
+                <div className="flex items-center gap-1 mb-1">
+                    <Skeleton className="h-6 w-[70%]" />
+                </div>
+            </div>
+        </div>
     );
 }
 

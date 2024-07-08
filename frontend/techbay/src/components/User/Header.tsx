@@ -17,9 +17,9 @@ const Header = () => {
         <>
             <header className="user-header w-screen">
                 <div className="container py-3 flex items-center gap-3">
-                    <div className="min-w-[80px] sm:min-w-[100px]">
+                    <Link to={'/'} className="min-w-[80px] sm:min-w-[100px]">
                         <img className="w-full h-auto object-contain" src={theme === 'light' ? LOGO_BLACK : LOGO_WHITE} alt="logo" />
-                    </div>
+                    </Link>
 
                     <nav className="h-full hidden sm:flex transition-all duration-300">
                         <NavLink to={'shop'} className="navlink px-2 block text-sm font-medium hover:font-bold">Shop</NavLink>
