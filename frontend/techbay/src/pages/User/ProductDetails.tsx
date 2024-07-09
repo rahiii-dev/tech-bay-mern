@@ -9,7 +9,7 @@ import { Product } from '../../features/product/productTypes';
 import useAxios from '../../hooks/useAxios';
 import ProductCard, { ProductCardSkeleton } from '../../components/User/ProductCard';
 import { SERVER_URL } from '../../utils/constants';
-import { formatPrice } from '../../utils/formatPrice';
+import { formatPrice } from '../../utils/appHelpers';
 
 interface ProductDetailResponse {
     product: Product,

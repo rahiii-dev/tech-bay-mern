@@ -2,7 +2,7 @@
 export interface BACKEND_RESPONSE<T = any> {
     type: string;
     message: string;
-    extraMessage?: {
+    extraMessage: {
         title?: string;
         description?: string;
     };
@@ -10,11 +10,12 @@ export interface BACKEND_RESPONSE<T = any> {
 }
 
 export interface BACKEND_ERROR_RESPONSE  {
-    type?: string;
-    message?: string;
-    extraMessage?: {
+    type: string;
+    message: string;
+    extraMessage: {
         title?: string;
         description?: string;
+        stack?:string;
     }
 }
 

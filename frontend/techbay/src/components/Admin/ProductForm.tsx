@@ -18,7 +18,7 @@ import { SERVER_URL } from "../../utils/constants";
 import { Product } from "../../features/product/productTypes";
 import { useAppDispatch } from "../../hooks/useDispatch";
 import { getProductsList } from "../../features/product/productThunk";
-import { urlToFile } from "../../utils/urlToFIle";
+import { urlToFile } from "../../utils/appHelpers";
 
 const MIN_IMAGE = 3;
 const MAX_IMAGE = 6;

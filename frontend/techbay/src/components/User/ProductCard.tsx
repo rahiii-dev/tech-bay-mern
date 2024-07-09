@@ -3,7 +3,7 @@ import { Product } from "../../features/product/productTypes";
 import { SERVER_URL } from "../../utils/constants";
 import { Link } from "react-router-dom";
 import { Skeleton } from "../ui/skeleton";
-import { formatPrice } from "../../utils/formatPrice";
+import { formatPrice } from "../../utils/appHelpers";
 
 type ProductCardProps = {
     product: Product

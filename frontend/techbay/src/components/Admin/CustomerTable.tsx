@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Button } from "../ui/button";
-import { formatDate } from "../../utils/formatDate";
+import { formatDate } from '../../utils/appHelpers';
 import { User } from "../../features/auth/authTypes";
 import { Badge } from "../ui/badge";
 

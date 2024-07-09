@@ -14,7 +14,7 @@ import { useAppDispatch } from "../../hooks/useDispatch";
 import { setCredential } from "../../features/auth/authSlice";
 import { AxiosError } from "axios";
 import { RESEND_OTP_URL, VALIDATE_OTP_URL } from "../../utils/urls/authUrls";
-import formatTime from "../../utils/formatTime";
+import { formatTime } from "../../utils/appHelpers";
 
 const OtpFormSchema = z.object({
     pin: z.string().min(6, {

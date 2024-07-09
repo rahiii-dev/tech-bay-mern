@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Eye, Pencil, Trash } from 'lucide-react';
 import { CategoryResponse } from '../../pages/Admin/Category';
-import { formatDate } from '../../utils/formatDate';
+import { formatDate } from '../../utils/appHelpers';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
