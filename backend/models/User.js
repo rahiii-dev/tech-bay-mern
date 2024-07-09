@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { capitalize } from '../utils/capitalize.js';
+import { capitalize } from "../utils/helpers/appHelpers.js";
 
 const userSchema = new mongoose.Schema({
     fullName: {

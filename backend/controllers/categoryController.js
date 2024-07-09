@@ -21,7 +21,7 @@ export function handleCategory(category) {
 export const createCategory = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
 
-  const categoryExist = await Category.findOne({ name });
+  const categoryExist = await Category.findOne({ name: { $regex: new RegExp(name, "i") } });
   if (categoryExist) {
     return handleErrorResponse(res, 401, "Category already exists");
   }

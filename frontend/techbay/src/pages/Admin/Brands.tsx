@@ -79,7 +79,7 @@ const Brands = () => {
                 });
             }
         } catch (error) {
-            console.log(error);
+            // console.log(error);
         }
     };
 

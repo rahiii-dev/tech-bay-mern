@@ -21,7 +21,7 @@ export function handleBrand(brand) {
 export const createBrand = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
 
-  const brandExist = await Brand.findOne({ name });
+  const brandExist = await Brand.findOne({ name: { $regex: new RegExp(name, "i") } });
   if (brandExist) {
     return handleErrorResponse(res, 401, "Brand already exists");
   }

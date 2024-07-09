@@ -101,7 +101,6 @@ export const userProducts = asyncHandler(async (req, res) => {
 */
 export const userGetProductDetail = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  console.log(id);
 
   if (id) {
     const product = await Product.findOne({ _id: id });
