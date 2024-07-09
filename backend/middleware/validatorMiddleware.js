@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
-import { deleteFiles } from "../utils/deleteFiles.js";
+import { deleteFiles } from "../utils/helpers/fileHelper.js";
 
 export default (req, res, next) => {
   const errors_ = validationResult(req);

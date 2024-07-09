@@ -6,8 +6,6 @@ const ProfilePage = () => {
         method: 'GET'
     });
 
-    console.log(data);
-    
     return (
         <div>
             <h1>Profile Page</h1>

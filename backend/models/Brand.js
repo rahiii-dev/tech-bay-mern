@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { capitalize } from '../utils/helpers/appHelpers.js';
 
 const { Schema, model } = mongoose;
 
@@ -9,6 +10,7 @@ const brandSchema = new Schema(
       required: true,
       trim: true,
       unique: true,
+      set: capitalize
     },
     description: {
       type: String,

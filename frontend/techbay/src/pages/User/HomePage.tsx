@@ -83,7 +83,7 @@ const HomePage = () => {
                                 :
                                 <>
                                     {new_products.map(product => (
-                                        <ProductCard product={product} />
+                                        <ProductCard key={product._id} product={product} />
                                     ))}
                                 </>
                             }
@@ -111,7 +111,7 @@ const HomePage = () => {
                                 :
                                 <>
                                     {top_products.map(product => (
-                                        <ProductCard product={product} />
+                                        <ProductCard  key={product._id} product={product} />
                                     ))}
                                 </>
                             }

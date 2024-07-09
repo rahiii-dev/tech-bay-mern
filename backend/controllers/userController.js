@@ -3,9 +3,9 @@ import User from "../models/User.js";
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
 import { ACTIVE_PRODUCT_PIPELINE } from "../utils/pipelines/product.js";
-import { generateFileURL } from "../utils/generateFileUrl.js";
-import mongoose from "mongoose";
 import { handleProduct } from "./productController.js";
+import { generateFileURL } from "../utils/helpers/fileHelper.js";
+import mongoose from "mongoose";
 
 /*  
         Route: GET api/profile

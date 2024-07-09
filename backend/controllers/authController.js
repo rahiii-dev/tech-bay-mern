@@ -8,7 +8,7 @@ import { sendOtpEmail } from "../utils/sendOtp.js";
 import OTP from "../models/OTP.js";
 import handleResponse from "../utils/handleResponse.js";
 
-const handleUserData = (userData) => ({
+export const handleUserData = (userData) => ({
   _id: userData._id,
   fullName: userData.fullName,
   email: userData.email,

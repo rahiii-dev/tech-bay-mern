@@ -3,7 +3,7 @@ import Category from "../models/Category.js";
 import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 
-function handleCategory(category) {
+export function handleCategory(category) {
   return {
     _id: category._id,
     name: category.name,

@@ -3,7 +3,7 @@ import Brand from "../models/Brand.js";
 import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 
-function handleBrand(brand) {
+export function handleBrand(brand) {
   return {
     _id: brand._id,
     name: brand.name,

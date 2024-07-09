@@ -2,8 +2,8 @@ import asyncHandler from "express-async-handler";
 import Product from "../models/Product.js";
 import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
-import { generateFileURL } from "../utils/generateFileUrl.js";
-import { deleteFiles } from "../utils/deleteFiles.js";
+import { generateFileURL } from "../utils/helpers/fileHelper.js";
+import { deleteFiles } from "../utils/helpers/fileHelper.js";
 
 export function handleProduct(product) {
   return {

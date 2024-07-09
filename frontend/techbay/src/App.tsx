@@ -27,7 +27,7 @@ function App() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const CustomNavigate = (url='', ShoudLogout=false) => {
+  const CustomNavigate = (url:string, ShoudLogout=false) => {
     if(ShoudLogout){
       dispatch(logoutAsync())
     }

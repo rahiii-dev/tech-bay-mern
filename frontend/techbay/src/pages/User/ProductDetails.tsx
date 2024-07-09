@@ -32,10 +32,10 @@ const ProductDetails = () => {
     }, [productId]);
 
     useEffect(() => {
-        if(data){
+        if (data) {
             setSeletedImage(data.product.images[0])
         }
-        
+
     }, [data]);
 
     const ProductSliderSettings = {
@@ -59,7 +59,7 @@ const ProductDetails = () => {
         verticalSwiping: true,
     }
 
-    const handleImageSelection = (img:string) => {
+    const handleImageSelection = (img: string) => {
         setSeletedImage(img)
     }
 
@@ -75,7 +75,7 @@ const ProductDetails = () => {
                                     {data.product.images.map((img, index) => (
                                         <div key={index} className='rounded-2xl overflow-hidden'>
                                             <div className='max-w-[400px] mx-auto'>
-                                                <img src={`${SERVER_URL}${img}`} alt="product image"/>
+                                                <img src={`${SERVER_URL}${img}`} alt="product image" />
                                             </div>
                                         </div>
                                     ))}
@@ -131,7 +131,7 @@ const ProductDetails = () => {
                                 :
                                 <>
                                     {data && data.related_products.map(product => (
-                                        <ProductCard product={product} />
+                                        <ProductCard key={product._id} product={product} />
                                     ))}
                                 </>
                             }
