@@ -8,10 +8,10 @@ import { Textarea } from "../ui/textarea";
 import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import axios from "../../utils/axios";
 import { BRAND_CREATE_URL, BRAND_EDIT_URL } from "../../utils/urls/adminUrls";
-import { BrandResponse } from "../../pages/Admin/Brands";
 import { toast } from "../ui/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { isBackendError } from "../../utils/types/backendResponseTypes";
+import { Brand } from "../../utils/types/brandTypes";
 
 const brandSchema = z.object({
     name: z.string().min(1, { message: "Brand name is required" }),
@@ -19,7 +19,7 @@ const brandSchema = z.object({
 });
 
 type BrandFormProps = {
-    brand?: BrandResponse;
+    brand?: Brand;
     succesFormSubmit: () => void;
 }
 

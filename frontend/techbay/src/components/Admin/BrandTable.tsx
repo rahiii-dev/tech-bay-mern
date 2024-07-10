@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Eye, Pencil, Trash } from 'lucide-react';
-import { BrandResponse } from '../../pages/Admin/Brands';
 import { formatDate } from '../../utils/appHelpers';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -9,18 +8,19 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { Dialog } from '@radix-ui/react-dialog';
 import { DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import BrandForm from './BrandForm';
+import { Brand } from '../../utils/types/brandTypes';
 
 type BrandTableProps = {
-    brands: BrandResponse[];
+    brands: Brand[];
     handleBrandDeleteandRestore: (brandId: string, isDeleted: boolean) => void;
     refetData: () => void;
 }
 
 const BrandTable = ({ brands, handleBrandDeleteandRestore, refetData }: BrandTableProps) => {
-    const [viewBrand, setViewBrand] = useState<BrandResponse | null>(null);
-    const [editBrand, setEditBrand] = useState<BrandResponse | null>(null);
+    const [viewBrand, setViewBrand] = useState<Brand | null>(null);
+    const [editBrand, setEditBrand] = useState<Brand | null>(null);
 
-    const handleEditClick = (brand: BrandResponse) => {
+    const handleEditClick = (brand: Brand) => {
         setEditBrand(brand);
     };
 
@@ -28,7 +28,7 @@ const BrandTable = ({ brands, handleBrandDeleteandRestore, refetData }: BrandTab
         setEditBrand(null);
     };
 
-    const handleViewClick = (brand: BrandResponse) => {
+    const handleViewClick = (brand: Brand) => {
         setViewBrand(brand);
     };
 

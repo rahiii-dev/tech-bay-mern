@@ -5,19 +5,15 @@ import Slider from 'react-slick';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { USER_GET_SINGLE_PRODUCT } from '../../utils/urls/userUrls';
-import { Product } from '../../features/product/productTypes';
 import useAxios from '../../hooks/useAxios';
 import ProductCard, { ProductCardSkeleton } from '../../components/User/ProductCard';
 import { SERVER_URL } from '../../utils/constants';
 import { formatPrice } from '../../utils/appHelpers';
+import { ProductDetail } from '../../utils/types/productTypes';
 
-interface ProductDetailResponse {
-    product: Product,
-    related_products: Product[]
-}
 
 const ProductDetails = () => {
-    const { data, loading, error, fetchData } = useAxios<ProductDetailResponse>({}, false);
+    const { data, loading, error, fetchData } = useAxios<ProductDetail>({}, false);
     const [seletedImage, setSeletedImage] = useState("");
 
     const { productId } = useParams();
@@ -33,7 +29,7 @@ const ProductDetails = () => {
 
     useEffect(() => {
         if (data) {
-            setSeletedImage(data.product.images[0])
+            setSeletedImage(data.product.imageUrls[0])
         }
 
     }, [data]);
@@ -72,7 +68,7 @@ const ProductDetails = () => {
                         <div className='md:flex md:flex-row md:h-[500px] gap-4 overflow-hidden md:py-5'>
                             <div className='md:hidden'>
                                 <Slider {...ProductSliderSettings}>
-                                    {data.product.images.map((img, index) => (
+                                    {data.product.imageUrls.map((img, index) => (
                                         <div key={index} className='rounded-2xl overflow-hidden'>
                                             <div className='max-w-[400px] mx-auto'>
                                                 <img src={`${SERVER_URL}${img}`} alt="product image" />
@@ -85,7 +81,7 @@ const ProductDetails = () => {
                             <div className='hidden md:block w-[150px] h-full overflow-hidden'>
                                 <div className='w-full h-full'>
                                     <Slider {...ProductSliderSettingsVertical}>
-                                        {data.product.images.map((img, index) => (
+                                        {data.product.imageUrls.map((img, index) => (
                                             <div key={index} onClick={() => handleImageSelection(img)} className='w-full aspect-square shadow-lg rounded-2xl overflow-hidden'>
                                                 <img className='cursor-pointer mx-auto h-full w-full object-contain filter brightness-95 bg-primary-foreground mix-blend-multiply' src={`${SERVER_URL}${img}`} alt="product image" />
                                             </div>

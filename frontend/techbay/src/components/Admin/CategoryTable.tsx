@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Eye, Pencil, Trash } from 'lucide-react';
-import { CategoryResponse } from '../../pages/Admin/Category';
 import { formatDate } from '../../utils/appHelpers';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -9,18 +8,19 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { Dialog } from '@radix-ui/react-dialog';
 import { DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import CategoryForm from './CategoryForm';
+import { Category } from '../../utils/types/categoryTypes';
 
 type CategoryTableProps = {
-    categories: CategoryResponse[];
+    categories: Category[];
     handleCategoryDeleteandRestore: (categoryId: string, isDeleted: boolean) => void;
     refetData: () => void;
 }
 
 const CategoryTable = ({ categories, handleCategoryDeleteandRestore, refetData }: CategoryTableProps) => {
-    const [viewCategory, setViewCategory] = useState<CategoryResponse | null>(null);
-    const [editCategory, setEditCategory] = useState<CategoryResponse | null>(null);
+    const [viewCategory, setViewCategory] = useState<Category | null>(null);
+    const [editCategory, setEditCategory] = useState<Category | null>(null);
 
-    const handleEditClick = (category: CategoryResponse) => {
+    const handleEditClick = (category: Category) => {
         setEditCategory(category);
     };
 
@@ -28,7 +28,7 @@ const CategoryTable = ({ categories, handleCategoryDeleteandRestore, refetData }
         setEditCategory(null);
     };
 
-    const handleViewClick = (category: CategoryResponse) => {
+    const handleViewClick = (category: Category) => {
         setViewCategory(category);
     };
 

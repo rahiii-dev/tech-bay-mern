@@ -9,9 +9,9 @@ import { Textarea } from "../ui/textarea";
 import axios from "../../utils/axios";
 import { CATEGORY_CREATE_URL, CATEGORY_EDIT_URL } from "../../utils/urls/adminUrls";
 import { BACKEND_RESPONSE, isBackendError } from "../../utils/types/backendResponseTypes";
-import { CategoryResponse } from "../../pages/Admin/Category";
 import { useEffect, useState } from "react";
 import { toast } from "../ui/use-toast";
+import { Category } from "../../utils/types/categoryTypes";
 
 
 const categorySchema = z.object({
@@ -24,7 +24,7 @@ const categorySchema = z.object({
 
 type CategoryFormProp = {
     succesFormSubmit : () => void;
-    category?: CategoryResponse | null;
+    category?: Category | null;
 }
 
 const CategoryForm = ({succesFormSubmit, category}: CategoryFormProp) => {
@@ -51,10 +51,10 @@ const CategoryForm = ({succesFormSubmit, category}: CategoryFormProp) => {
         try {
             let response;
             if(category){
-                response = await axios.put<BACKEND_RESPONSE<CategoryResponse>>(CATEGORY_EDIT_URL(category._id), dataToSend);
+                response = await axios.put<BACKEND_RESPONSE<Category>>(CATEGORY_EDIT_URL(category._id), dataToSend);
             }
             else {
-                response = await axios.post<BACKEND_RESPONSE<CategoryResponse>>(CATEGORY_CREATE_URL, dataToSend);
+                response = await axios.post<BACKEND_RESPONSE<Category>>(CATEGORY_CREATE_URL, dataToSend);
             }
             if(response.data){
                 if(!category){

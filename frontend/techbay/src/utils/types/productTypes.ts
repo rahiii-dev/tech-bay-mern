@@ -17,4 +17,9 @@ export interface Product {
 export interface ProductListResponse extends PaginationResponse {
     products: Product[];
     totalProducts: number;
-  }
+}
+
+export interface ProductDetail {
+    product: Product,
+    related_products: Product[]
+}

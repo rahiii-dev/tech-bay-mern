@@ -11,30 +11,8 @@ import { Dialog, DialogTrigger } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
 import { PlusCircle } from "lucide-react";
 import CategoryForm from "../../components/Admin/CategoryForm";
-
-export interface CategoryResponse {
-    _id: string;
-    name: string;
-    description: string;
-    isDeleted: boolean;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface CategoryListResponse {
-    categoryCount: number;
-    categories: CategoryResponse[]
-}
-
-const filterCategory = (categories: CategoryResponse[], filter: string): CategoryResponse[] => {
-    switch (filter) {
-        case 'inactive':
-            return categories.filter((category) => category.isDeleted);
-        default:
-            return categories;
-    }
-};
-
+import { Category as CategoryResponse, CategoryList as CategoryListResponse } from "../../utils/types/categoryTypes";
+import { filterCategory } from "../../utils/filters/categoryFilter";
 
 const Category = () => {
     const { data, error, loading, fetchData } = useAxios<BACKEND_RESPONSE<CategoryListResponse>>({

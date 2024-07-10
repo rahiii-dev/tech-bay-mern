@@ -1,20 +1,16 @@
-import { setActiveCategory } from "../../features/shop/shopSlice";
-import { filterProductsUsingCategory } from "../../features/shop/shopThunk";
-import { useAppDispatch } from "../../hooks/useDispatch";
-import { useAppSelector } from "../../hooks/useSelector";
+// import { setActiveCategory } from "../../features/shop/shopSlice";
+// import { filterProductsUsingCategory } from "../../features/shop/shopThunk";
+// import { useAppDispatch } from "../../hooks/useDispatch";
+// import { useAppSelector } from "../../hooks/useSelector";
 import { Button } from "../ui/button";
+import { useShop } from "./ShopProvider";
 
 
 const ShopPageHeader = () => {
-    const categories = useAppSelector((state) => state.shop.categories)
-    const activeCategory = useAppSelector((state) => state.shop.activeCategory);
-    
-    const dispatch = useAppDispatch();
-    
+    const { categories, activeCategory ,setActiveCategory } = useShop()
 
     const handleCategory = (category: string) => {
-        dispatch(filterProductsUsingCategory(category))
-        dispatch(setActiveCategory(category))
+        setActiveCategory(category)
     };
 
     return (

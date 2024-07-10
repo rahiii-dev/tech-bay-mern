@@ -5,6 +5,7 @@ import { useAppSelector } from "../hooks/useSelector";
 import '../pages/User/User.css';
 import { useEffect } from "react";
 import { useTheme } from "../components/ui/ThemeProvider";
+import ShopProvider from "../components/User/ShopProvider";
 
 const UserScreen = () => {
     const user = useAppSelector((state) => state.auth.user);
@@ -19,13 +20,15 @@ const UserScreen = () => {
     })
 
     return (
-        <div>
-            <Header />
-            <main>
-                <Outlet />
-            </main>
-            <Footer />
-        </div>
+        <ShopProvider>
+            <div>
+                <Header />
+                <main>
+                    <Outlet />
+                </main>
+                <Footer />
+            </div>
+        </ShopProvider>
     );
 }
 

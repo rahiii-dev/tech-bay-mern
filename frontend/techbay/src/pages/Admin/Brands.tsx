@@ -11,39 +11,18 @@ import { Button } from "../../components/ui/button";
 import { PlusCircle } from "lucide-react";
 import BrandForm from "../../components/Admin/BrandForm";
 import BrandTable from "../../components/Admin/BrandTable";
-
-export interface BrandResponse {
-    _id: string;
-    name: string;
-    description: string;
-    isDeleted: boolean;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface BrandListResponse {
-    brandCount: number;
-    brands: BrandResponse[];
-}
-
-const filterBrand = (brands: BrandResponse[], filter: string): BrandResponse[] => {
-    switch (filter) {
-        case 'inactive':
-            return brands.filter((brand) => brand.isDeleted);
-        default:
-            return brands;
-    }
-};
+import { Brand, BrandList } from "../../utils/types/brandTypes";
+import { filterBrand } from "../../utils/filters/brandFilter";
 
 const Brands = () => {
-    const { data, error, loading, fetchData } = useAxios<BACKEND_RESPONSE<BrandListResponse>>({
+    const { data, error, loading, fetchData } = useAxios<BACKEND_RESPONSE<BrandList>>({
         url: BRAND_LIST_URL,
         method: 'GET'
     });
 
     const [filter, setFilter] = useState("all");
-    const [brands, setBrands] = useState<BrandResponse[]>([]);
-    const [filteredBrands, setFilteredBrands] = useState<BrandResponse[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
 
     useEffect(() => {
         if (data?.data) {
