@@ -181,3 +181,14 @@ export const refreshToken = asyncHandler(async (req, res) => {
     }, "Authorization");
   }
 });
+
+export const verifyAuth = asyncHandler((req, res) => {
+  if(!req.user.isVerified){
+    return handleErrorResponse(res, 403, "Your account is not verified", {
+      title: "Account is not verified",
+      description: "Please verify with OTP.",
+    }, "Account");
+  }
+
+  return handleResponse(res, "User is verified");
+});

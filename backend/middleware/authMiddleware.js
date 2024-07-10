@@ -15,7 +15,7 @@ export const isAuthenticated = async (req, res, next) => {
   try {
     const decoded = verifyToken(token);
     req.user = await User.findById(decoded?.id).select(
-      "fullName email isBlocked isAdmin isStaff"
+      "fullName email isBlocked isAdmin isStaff isVerified"
     );
 
     if (!req.user) {

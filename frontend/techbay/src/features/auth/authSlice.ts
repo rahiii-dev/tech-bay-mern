@@ -5,10 +5,12 @@ import { logoutAsync } from './authThunk';
 
 export interface AuthState {
   user: User | null;
+  status: "idle" | "success";
 }
 
 const initialState: AuthState = {
   user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) as User : null,
+  status: "idle"
 };
 
 const authSlice = createSlice({
@@ -17,6 +19,7 @@ const authSlice = createSlice({
   reducers: {
     setCredential: (state, action) => {
       state.user = action.payload;
+      state.status = "success";
       localStorage.setItem('user', JSON.stringify(state.user));
     }
   },
