@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import useAxios from "../../hooks/useAxios";
-import { BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { BRAND_DELETE_URL, BRAND_LIST_URL, BRAND_RESTORE_URL } from "../../utils/urls/adminUrls";
 import { toast } from "../../components/ui/use-toast";
 import axios from "../../utils/axios";

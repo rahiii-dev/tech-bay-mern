@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { CategoryResponse } from "../../pages/Admin/Category";
 import { Product } from "../product/productTypes";
-import { BACKEND_ERROR_RESPONSE } from "../../utils/types";
+import { BACKEND_ERROR_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { filterProductsUsingCategory, loadShopPage } from "./shopThunk";
 
 export interface shopState {

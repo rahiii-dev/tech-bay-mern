@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { Product } from "../product/productTypes";
-import { BACKEND_ERROR_RESPONSE } from "../../utils/types";
+import { BACKEND_ERROR_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { loadPage } from "./homeThunk";
 
 export interface HomeState {

@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "../ui/textarea";
 import axios from "../../utils/axios";
 import { CATEGORY_CREATE_URL, CATEGORY_EDIT_URL } from "../../utils/urls/adminUrls";
-import { BACKEND_RESPONSE, isBackendError } from "../../utils/types";
+import { BACKEND_RESPONSE, isBackendError } from "../../utils/types/backendResponseTypes";
 import { CategoryResponse } from "../../pages/Admin/Category";
 import { useEffect, useState } from "react";
 import { toast } from "../ui/use-toast";

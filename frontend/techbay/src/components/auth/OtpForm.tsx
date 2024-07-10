@@ -8,7 +8,7 @@ import { useAuthFormContext } from "./AuthFormContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axios";
-import { BACKEND_ERROR_RESPONSE, BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_ERROR_RESPONSE, BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { toast } from "../ui/use-toast";
 import { useAppDispatch } from "../../hooks/useDispatch";
 import { setCredential } from "../../features/auth/authSlice";

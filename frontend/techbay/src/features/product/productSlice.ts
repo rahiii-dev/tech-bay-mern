@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { BACKEND_ERROR_RESPONSE } from "../../utils/types";
+import { BACKEND_ERROR_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { Product } from "./productTypes";
 import { deleteProduct, getProductsList, restoreProduct } from "./productThunk";
 

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import { capitalize } from "../utils/helpers/appHelpers.js";
+import mongoosePaginate from "mongoose-paginate-v2";
+import { generateFileURL } from "../utils/helpers/fileHelper.js";
 
 const { Schema, model } = mongoose;
 
@@ -17,6 +19,8 @@ const ProductSchema = new Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
 
@@ -29,5 +33,15 @@ ProductSchema.methods.restore = function () {
   this.isActive = true;
   return this.save();
 };
+
+ProductSchema.virtual('imageUrls').get(function() {
+  return this.images.map((img) => generateFileURL(img));
+});
+
+ProductSchema.virtual('thumbnailUrl').get(function() {
+  return generateFileURL(this.thumbnail)
+});
+
+ProductSchema.plugin(mongoosePaginate)
 
 export default model("Product", ProductSchema);

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { BACKEND_ERROR_RESPONSE, BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_ERROR_RESPONSE, BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import axios from "../../utils/axios";
 import { PRODUCT_DELETE_URL, PRODUCT_LIST_URL, PRODUCT_RESTORE_URL } from "../../utils/urls/adminUrls";
 import { Product, ProductList } from "./productTypes";

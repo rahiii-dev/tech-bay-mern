@@ -1,7 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '../../utils/axios';
 import { LOGOUT_URL } from '../../utils/urls/authUrls';
-import { BACKEND_ERROR_RESPONSE } from '../../utils/types';
+import { BACKEND_ERROR_RESPONSE } from '../../utils/types/backendResponseTypes';
 import { AxiosError } from 'axios';
 
 type AsyncThunkConfig = {

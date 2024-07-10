@@ -5,29 +5,19 @@ import { Pencil, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "../ui/badge";
 import { SERVER_URL } from "../../utils/constants";
-import { Product } from "../../features/product/productTypes";
-import { useAppDispatch } from "../../hooks/useDispatch";
-import { deleteProduct, restoreProduct } from "../../features/product/productThunk";
 import { Button } from "../ui/button";
+import { Product } from "../../utils/types/productTypes";
 
 type ProductListTableProps = {
-    products: Product[]
+    products: Product[];
+    handleDeleteAndRestore: (prodId: string, deleteProd: boolean) => void;
 }
 
-const ProductListTable = ({ products }: ProductListTableProps) => {
+const ProductListTable = ({ products, handleDeleteAndRestore }: ProductListTableProps) => {
     const navigate = useNavigate();
-    const dispatch = useAppDispatch();
 
     const handleEdit = (productId: string) => {
         navigate('/admin/product/edit', { state: { productId } })
-    }
-
-    const handleDeleteProduct = (id: string) => {
-        dispatch(deleteProduct(id))
-    }
-
-    const handleRestoreProduct = (id: string) => {
-        dispatch(restoreProduct(id))
     }
 
     return (
@@ -48,7 +38,7 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                         <TableCell>
                             <div className="flex gap-3 items-center overflow-hidden">
                                 <div className="w-[50px] h-[50px] overflow-hidden rounded-sm shadow-lg">
-                                    <img src={`${SERVER_URL}${product.thumbnail}`} className="w-full h-full object-cover object-center" alt="product-image" />
+                                    <img src={`${SERVER_URL}${product.thumbnailUrl}`} className="w-full h-full object-cover object-center" alt="product-image" />
                                 </div>
                                 <div>
                                     <h1>{product.name}</h1>
@@ -65,7 +55,7 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                         </TableCell>
                         <TableCell>
                             {!product.isActive ? (
-                                <Button className="min-w-[80px]" onClick={() => handleRestoreProduct(product._id)}>Restore</Button>
+                                <Button className="min-w-[80px]" onClick={() => handleDeleteAndRestore(product._id, false)}>Restore</Button>
                             ) : (
                                 <div className="flex gap-2">
                                 <TooltipProvider>
@@ -81,7 +71,7 @@ const ProductListTable = ({ products }: ProductListTableProps) => {
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Trash size={20} onClick={() => handleDeleteProduct(product._id)} className='text-red-500 cursor-pointer' />
+                                            <Trash size={20} onClick={() => handleDeleteAndRestore(product._id, true)} className='text-red-500 cursor-pointer' />
                                         </TooltipTrigger>
                                         <TooltipContent side='top'>
                                             <p>Delete Product</p>

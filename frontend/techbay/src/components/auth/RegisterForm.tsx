@@ -14,7 +14,7 @@ import GoogleLogin from "./GoogleLogin";
 import { toast } from "../ui/use-toast";
 import { useAuthFormContext } from "./AuthFormContext";
 import { useEffect } from "react";
-import { BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import PasswordInput from "../ui/PasswordInput";
 
 // Create a new schema for the registration form

@@ -7,17 +7,15 @@ import { Textarea } from "../ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import ImageInput from "../ui/ImageInput";
-import { CategoryListResponse, CategoryResponse } from "../../pages/Admin/Category";
-import { BrandListResponse, BrandResponse } from "../../pages/Admin/Brands";
+import { Category, CategoryList } from "../../utils/types/categoryTypes";
+import { Brand, BrandList } from "../../utils/types/brandTypes";
 import { BRAND_LIST_URL, CATEGORY_LIST_URL, PRODUCT_CREATE_URL, PRODUCT_EDIT_URL, SINGLE_PRODUCT_URL } from "../../utils/urls/adminUrls";
-import { BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import axios from "../../utils/axios";
 import { toast } from "../ui/use-toast";
 import useAxios from "../../hooks/useAxios";
 import { SERVER_URL } from "../../utils/constants";
-import { Product } from "../../features/product/productTypes";
-import { useAppDispatch } from "../../hooks/useDispatch";
-import { getProductsList } from "../../features/product/productThunk";
+import { Product } from "../../utils/types/productTypes";
 import { urlToFile } from "../../utils/appHelpers";
 
 const MIN_IMAGE = 3;
@@ -58,8 +56,6 @@ type ProductFormProps = {
 const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
     const { data: productRes, error, fetchData } = useAxios<BACKEND_RESPONSE<Product>>({}, false);
 
-    const dispatch = useAppDispatch();
-
     useEffect(() => {
         if (prdID) {
             fetchData({
@@ -69,8 +65,8 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
         }
     }, [prdID])
 
-    const [categories, setCategories] = useState<CategoryResponse[]>([]);
-    const [brands, setBrands] = useState<BrandResponse[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
 
     const form = useForm<z.infer<typeof ProductFormSchema>>({
         resolver: zodResolver(ProductFormSchema),
@@ -89,8 +85,8 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
 
     useEffect(() => {
         const fetchCategoriesAndBrands = async () => {
-            const categoriesResponse = await axios.get<BACKEND_RESPONSE<CategoryListResponse>>(`${CATEGORY_LIST_URL}?filter=active`);
-            const brandsResponse = await axios.get<BACKEND_RESPONSE<BrandListResponse>>(`${BRAND_LIST_URL}?filter=active`);
+            const categoriesResponse = await axios.get<BACKEND_RESPONSE<CategoryList>>(`${CATEGORY_LIST_URL}?filter=active`);
+            const brandsResponse = await axios.get<BACKEND_RESPONSE<BrandList>>(`${BRAND_LIST_URL}?filter=active`);
 
             if (categoriesResponse.data.data) {
                 setCategories(categoriesResponse.data.data?.categories);
@@ -110,13 +106,13 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                 const product = productRes.data;
 
                 let thumbnailFile: File | undefined;
-                if (product?.thumbnail) {
-                    thumbnailFile = await urlToFile(`${SERVER_URL}${product.thumbnail}`);
+                if (product?.thumbnailUrl) {
+                    thumbnailFile = await urlToFile(`${SERVER_URL}${product.thumbnailUrl}`);
                 }
 
                 let imageFiles: File[] = [];
-                if (product?.images) {
-                    imageFiles = await Promise.all(product.images.map(imageUrl => urlToFile(`${SERVER_URL}${imageUrl}`)));
+                if (product?.imageUrls) {
+                    imageFiles = await Promise.all(product.imageUrls.map(imageUrl => urlToFile(`${SERVER_URL}${imageUrl}`)));
                 }
 
 
@@ -234,7 +230,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                 })
             }
 
-            dispatch(getProductsList());
+            // dispatch(getProductsList());
             toast({
                 variant: "default",
                 title: `Product ${prdID ? 'Updated' : 'Added'} successfully`,

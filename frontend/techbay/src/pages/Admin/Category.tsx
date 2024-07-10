@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import useAxios from "../../hooks/useAxios";
-import { BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { CATEGORY_DELETE_URL, CATEGORY_LIST_URL, CATEGORY_RESTORE_URL } from "../../utils/urls/adminUrls";
 import CategoryTable from "../../components/Admin/CategoryTable";
 import { toast } from "../../components/ui/use-toast";

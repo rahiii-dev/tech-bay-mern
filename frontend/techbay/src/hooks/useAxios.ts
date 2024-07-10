@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AxiosError, AxiosRequestConfig } from 'axios';
 import axios from "../utils/axios";
-import { BACKEND_ERROR_RESPONSE } from '../utils/types';
+import { BACKEND_ERROR_RESPONSE } from '../utils/types/backendResponseTypes';
 
 interface AxiosResult<T> {
     data: T | null;

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { BACKEND_ERROR_RESPONSE } from "../../utils/types";
+import { BACKEND_ERROR_RESPONSE } from "../../utils/types/backendResponseTypes";
 import axios from "../../utils/axios";
 import { USER_CATEGORY_LIST_URL, USER_PRODUCT_LIST_URL } from "../../utils/urls/userUrls";
 import { ShopPageResponse } from "./shopTypes";

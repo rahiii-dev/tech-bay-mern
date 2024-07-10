@@ -1,7 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { SERVER_URL } from './constants';
 import { toast } from '../components/ui/use-toast';
-import { BACKEND_ERROR_RESPONSE } from './types';
+import { BACKEND_ERROR_RESPONSE } from './types/backendResponseTypes';
 import { REFRESH_TOKEN_URL } from './urls/authUrls';
 
 const axiosInstance = axios.create({

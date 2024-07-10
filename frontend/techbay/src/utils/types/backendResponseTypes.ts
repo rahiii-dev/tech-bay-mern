@@ -9,6 +9,16 @@ export interface BACKEND_RESPONSE<T = any> {
     data: T;
 }
 
+export interface PaginationResponse {
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    limit: number;
+    nextPage: number | null;
+    page: number;
+    prevPage: number | null;
+    totalPages: number;
+}
+
 export interface BACKEND_ERROR_RESPONSE  {
     type: string;
     message: string;

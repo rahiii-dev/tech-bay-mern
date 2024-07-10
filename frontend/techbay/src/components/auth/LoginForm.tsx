@@ -11,7 +11,7 @@ import { setCredential } from "../../features/auth/authSlice";
 import { LOGIN_URL } from "../../utils/urls/authUrls";
 import { useAppDispatch } from "../../hooks/useDispatch";
 import GoogleLogin from "./GoogleLogin";
-import { BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { toast } from "../ui/use-toast";
 import { useAuthFormContext } from "./AuthFormContext";
 import { useEffect } from "react";

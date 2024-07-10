@@ -11,7 +11,7 @@ import { BRAND_CREATE_URL, BRAND_EDIT_URL } from "../../utils/urls/adminUrls";
 import { BrandResponse } from "../../pages/Admin/Brands";
 import { toast } from "../ui/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { isBackendError } from "../../utils/types";
+import { isBackendError } from "../../utils/types/backendResponseTypes";
 
 const brandSchema = z.object({
     name: z.string().min(1, { message: "Brand name is required" }),

@@ -1,4 +1,6 @@
-import { Product } from "../../features/product/productTypes";
+// import { Product } from "../../features/product/productTypes";
+
+import { Product } from "../types/productTypes";
 
 
 export const filterProducts = (products: Product[], filter: string): Product[] => {

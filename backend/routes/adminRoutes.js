@@ -7,8 +7,8 @@ import productRoutes from './Admin/productRoutes.js'
 
 const router = express.Router();
 
-router.use(isAuthenticated);
-router.use(isAdmin);
+// router.use(isAuthenticated);
+// router.use(isAdmin);
 
 router.get("/customer/list", customerList);
 router.put("/customer/:id/block", customerBlock);

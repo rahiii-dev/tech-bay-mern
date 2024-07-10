@@ -6,7 +6,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { setCredential } from "../../features/auth/authSlice";
 import { User } from "../../features/auth/authTypes";
 import { useState } from "react";
-import { BACKEND_RESPONSE } from "../../utils/types";
+import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { toast } from "../ui/use-toast";
 
 interface AuthResult {

@@ -4,6 +4,7 @@ import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 import { generateFileURL } from "../utils/helpers/fileHelper.js";
 import { deleteFiles } from "../utils/helpers/fileHelper.js";
+import { escapeRegex } from "../utils/helpers/appHelpers.js";
 
 export function handleProduct(product) {
   return {
@@ -12,8 +13,8 @@ export function handleProduct(product) {
     description: product.description,
     price: product.price,
     stock: product.stock,
-    thumbnail: product.thumbnail ? generateFileURL(product.thumbnail) : null,
-    images: product.images.map(image => generateFileURL(image)),
+    thumbnailUrl: product.thumbnailUrl,
+    imageUrls: product.imageUrls,
     isActive: product.isActive,
     category: product.category,
     brand: product.brand,
@@ -41,6 +42,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     thumbnail,
     category,
     brand,
+    isActive
   });
 
     await product.save();
@@ -106,21 +108,28 @@ export const editProduct = asyncHandler(async (req, res) => {
     Purpose: Get all products 
 */
 export const getProducts = asyncHandler(async (req, res) => {
-  const filter = req.query?.filter;
-  let products;
+  const { page = 1, limit = 10, search } = req.query;
 
-  if (filter === "active") {
-    products = await Product.find({ isActive: true });
-  } else {
-    products = await Product.find();
+  const myCustomLabels = {
+    totalDocs: 'totalProducts',
+    docs: 'products',
+  };
+
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    customLabels: myCustomLabels,
+  };
+
+  const query = {};
+  if (search) {
+    const regTerm = escapeRegex(search.trim());
+    query.name = { $regex: regTerm, $options: 'i' }
   }
 
-  return handleResponse(
-    res,
-    "Products retrieved",
-    {},
-    { productCount: products.length, products: products.map(handleProduct) }
-  );
+  const products = await Product.paginate(query, options);
+
+  return res.json({ ...products });
 });
 
 /*  
