@@ -6,3 +6,7 @@ export const HOME_PAGE_URL = generateUrl('/home');
 export const USER_PRODUCT_LIST_URL = generateUrl('/products');
 export const USER_GET_SINGLE_PRODUCT = (id:string) => generateUrl(`/product/${id}`);
 export const USER_CATEGORY_LIST_URL = generateUrl('/categories');
+
+export const USER_CART = generateUrl('/cart');
+export const USER_ADD_TO_CART = generateUrl('/cart')
+export const USER_DELETE_CART_ITEM = (id:string) => generateUrl(`/cart/${id}`)

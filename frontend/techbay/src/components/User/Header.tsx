@@ -13,15 +13,31 @@ import { debounce } from "@mui/material";
 import { USER_PRODUCT_LIST_URL } from "../../utils/urls/userUrls";
 import axios from "../../utils/axios";
 import { Product, ProductListResponse } from "../../utils/types/productTypes";
+import { useAppDispatch } from "../../hooks/useDispatch";
+import { loadCart } from "../../features/cart/cartThunk";
 
 const Header = () => {
     const user = useAppSelector((state) => state.auth.user);
+    const {cart, status:CartStatus} = useAppSelector((state) => state.cart)
+
     const { theme } = useTheme();
     const [serchValue, setSerchValue] = useState("")
     const [serchModelActive, setSerchModelActive] = useState(false)
     const [serchedProducts, setSerchedProducts] = useState<Product[]>([]);
+    const [cartTotal, setCartTotal] = useState(0);
 
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        if(user && CartStatus === "idle"){
+            dispatch(loadCart())
+        }
+
+        if(cart){
+            setCartTotal(cart.items.length)
+        }
+    }, [cart, CartStatus])
 
     useEffect(() => {
         if (serchModelActive) {
@@ -85,7 +101,10 @@ const Header = () => {
 
                         <nav className="h-full flex items-center gap-2">
                             <NavLink to={'wishlist'} className="navlink px-2 block text-sm text-gray-400 hover:text-primary transition-colors duration-200"><Heart /></NavLink>
-                            <NavLink to={'cart'} className="navlink px-2 block text-sm text-gray-400 hover:text-primary transition-colors duration-200"><ShoppingCart /></NavLink>
+                            <div className="relative">
+                                {cartTotal > 0 && <div className="absolute top-[-14px] right-0 font-medium bg-primary text-primary-foreground size-5 rounded-full text-[12px] flex justify-center items-center">{cartTotal}</div>}
+                                <NavLink to={'cart'} className="navlink px-2 block text-sm text-gray-400 hover:text-primary transition-colors duration-200"><ShoppingCart /></NavLink>
+                            </div>
                             <div>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger className="border-none focus:text-primary focus:outline-none text-gray-400 duration-300 hover:text-primary"><User /></DropdownMenuTrigger>

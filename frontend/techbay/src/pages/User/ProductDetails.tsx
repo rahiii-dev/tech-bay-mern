@@ -10,6 +10,8 @@ import ProductCard, { ProductCardSkeleton } from '../../components/User/ProductC
 import { SERVER_URL } from '../../utils/constants';
 import { formatPrice } from '../../utils/appHelpers';
 import { ProductDetail } from '../../utils/types/productTypes';
+import { useAppDispatch } from '../../hooks/useDispatch';
+import { addItemToCart } from '../../features/cart/cartThunk';
 
 
 const ProductDetails = () => {
@@ -17,6 +19,8 @@ const ProductDetails = () => {
     const [seletedImage, setSeletedImage] = useState("");
 
     const { productId } = useParams();
+
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         if (productId) {
@@ -57,6 +61,10 @@ const ProductDetails = () => {
 
     const handleImageSelection = (img: string) => {
         setSeletedImage(img)
+    }
+
+    const handleAddToCart = (id: string, quantity: number) => {
+        dispatch(addItemToCart({productId: id, quantity: quantity}))
     }
 
     return (
@@ -104,7 +112,7 @@ const ProductDetails = () => {
                             <h2 className='font-semibold text-gray-500 text-3xl mb-2'>{formatPrice(data.product.price)}</h2>
                             <p className='text-sm text-gray-400 mb-8 min-h-[100px]'>{data.product.description}</p>
                             <div className='flex items-center gap-5'>
-                                <Button disabled={!data.product.isActive} className='rounded-full w-full max-w-[200px]'>Add to Cart</Button>
+                                <Button onClick={() => handleAddToCart(data.product._id, 1)} disabled={!data.product.isActive} className='rounded-full w-full max-w-[200px]'>Add to Cart</Button>
                                 <Button disabled={!data.product.isActive} variant={"secondary"} className='rounded-full bg-gray-200 w-full max-w-[200px]'>Add to WishList</Button>
                             </div>
                         </div>

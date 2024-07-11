@@ -21,6 +21,8 @@ import ProductEdit from "./pages/Admin/productEdit"
 import ProductAdd from "./pages/Admin/ProductAdd"
 import ShopPage from "./pages/User/ShopPage"
 import ProductDetails from "./pages/User/ProductDetails"
+import CartPage from "./pages/User/CartPage"
+import UserScreenProtected from "./screens/UserScreenProtected"
 
 
 function App() {
@@ -52,7 +54,10 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="/shop" element={<ShopPage/>}/>
           <Route path="/product/:productId" element={<ProductDetails />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route element={<UserScreenProtected/>}>
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/cart" element={<CartPage />} />
+          </Route>
         </Route>
 
 
