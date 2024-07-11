@@ -1,25 +1,27 @@
-import { Product, ProductListResponse } from '../../utils/types/productTypes';
+import { ProductListResponse } from '../../utils/types/productTypes';
 import { Category, CategoryList } from '../../utils/types/categoryTypes';
 import { createContext, useContext, useEffect, useState } from 'react';
 import useAxios from '../../hooks/useAxios';
 import { USER_PRODUCT_LIST_URL, USER_CATEGORY_LIST_URL } from '../../utils/urls/userUrls';
 
 type ShopProviderState = {
-    products: Product[];
+    productsData: ProductListResponse | null;
     categories: Category[];
     activeCategory: string;
     status: "loading" | "success" | "error";
     setActiveCategory: (category: string) => void;
+    setActivePage: (page: number) => void;
     fetchProducts: () => void;
     fetchCategories: () => void;
 }
 
 const initialState: ShopProviderState = {
-    products: [],
+    productsData: null,
     categories: [],
     activeCategory: "all",
     status: "loading",
     setActiveCategory: () => {},
+    setActivePage: () => {},
     fetchProducts: () => {},
     fetchCategories: () => {},
 }
@@ -31,10 +33,11 @@ type ShopProviderProps = {
 }
 
 const ShopProvider = ({children}: ShopProviderProps) => {
-    const [products, setProducts] = useState<Product[]>([]);
+    const [productsData, setProductData] = useState<ProductListResponse | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [activeCategory, setActiveCategory] = useState<string>("all");
+    const [activePage, setActivePage] = useState<number>(1);
 
     const { data: productData, fetchData: fetchProducts } = useAxios<ProductListResponse>({}, false);
 
@@ -45,7 +48,7 @@ const ShopProvider = ({children}: ShopProviderProps) => {
 
     useEffect(() => {
         setStatus("loading")
-        const url = activeCategory === "all" ? USER_PRODUCT_LIST_URL : `${USER_PRODUCT_LIST_URL}?category=${activeCategory}`;
+        const url = activeCategory === "all" ? `${USER_PRODUCT_LIST_URL}?page=${activePage}` : `${USER_PRODUCT_LIST_URL}?page=${activePage}&category=${activeCategory}`;
         fetchProducts({
             url,
             method: 'GET'
@@ -55,11 +58,11 @@ const ShopProvider = ({children}: ShopProviderProps) => {
             setStatus("error")
         })
         
-    }, [activeCategory])
+    }, [activeCategory, activePage])
 
     useEffect(() => {
         if(productData){
-            setProducts(productData.products)
+            setProductData(productData)
             setStatus("success")
         }
     }, [productData])
@@ -71,10 +74,11 @@ const ShopProvider = ({children}: ShopProviderProps) => {
     }, [categoryData])
 
     const value: ShopProviderState = {
-        products,
+        productsData,
         categories,
         status: status,
         activeCategory,
+        setActivePage,
         setActiveCategory,
         fetchProducts,
         fetchCategories,

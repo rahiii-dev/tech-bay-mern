@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { capitalize } from "../utils/helpers/appHelpers.js";
 import mongoosePaginate from "mongoose-paginate-v2";
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 import { generateFileURL } from "../utils/helpers/fileHelper.js";
 
 const { Schema, model } = mongoose;
@@ -43,5 +44,6 @@ ProductSchema.virtual('thumbnailUrl').get(function() {
 });
 
 ProductSchema.plugin(mongoosePaginate)
+ProductSchema.plugin(aggregatePaginate)
 
 export default model("Product", ProductSchema);

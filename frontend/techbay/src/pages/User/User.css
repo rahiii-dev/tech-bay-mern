@@ -7,6 +7,10 @@ body {
     @apply w-screen overflow-x-hidden;
 }
 
+body.no-scroll{
+    @apply overflow-hidden
+}
+
 .user-header {
     height: var(--user-header-height);
 }

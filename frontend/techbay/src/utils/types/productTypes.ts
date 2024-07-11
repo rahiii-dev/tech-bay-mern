@@ -6,6 +6,7 @@ export interface Product {
     description: string;
     category: string;
     brand: string;
+    thumbnail: string;
     thumbnailUrl: string;
     imageUrls: string[];
     stock: number;

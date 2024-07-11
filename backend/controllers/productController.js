@@ -2,7 +2,6 @@ import asyncHandler from "express-async-handler";
 import Product from "../models/Product.js";
 import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
-import { generateFileURL } from "../utils/helpers/fileHelper.js";
 import { deleteFiles } from "../utils/helpers/fileHelper.js";
 import { escapeRegex } from "../utils/helpers/appHelpers.js";
 

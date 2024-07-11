@@ -5,7 +5,6 @@ import { useAppSelector } from "../hooks/useSelector";
 import '../pages/User/User.css';
 import { useEffect } from "react";
 import { useTheme } from "../components/ui/ThemeProvider";
-import ShopProvider from "../components/User/ShopProvider";
 import axios from "../utils/axios";
 import { VERIFY_AUTH_URL } from "../utils/urls/authUrls";
 
@@ -17,26 +16,25 @@ const UserScreen = () => {
         return <Navigate to='/admin' replace={true} />
     }
 
-    const {setTheme} = useTheme();
+    const { setTheme } = useTheme();
 
     useEffect(() => {
-     
+
         setTheme('light')
-        if(user && userStatus === "idle"){
+        if (user && userStatus === "idle") {
             axios.get(VERIFY_AUTH_URL)
         }
     })
 
     return (
-        <ShopProvider>
-            <div>
-                <Header />
-                <main>
-                    <Outlet />
-                </main>
-                <Footer />
-            </div>
-        </ShopProvider>
+
+        <div>
+            <Header />
+            <main>
+                <Outlet />
+            </main>
+            <Footer />
+        </div>
     );
 }
 

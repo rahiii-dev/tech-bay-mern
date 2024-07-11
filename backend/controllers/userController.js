@@ -6,6 +6,8 @@ import { ACTIVE_PRODUCT_PIPELINE } from "../utils/pipelines/product.js";
 import { handleProduct } from "./productController.js";
 import { generateFileURL } from "../utils/helpers/fileHelper.js";
 import mongoose from "mongoose";
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
+import { escapeRegex } from "../utils/helpers/appHelpers.js";
 
 /*  
         Route: GET api/profile
@@ -71,9 +73,17 @@ export const userHome = asyncHandler(async (req, res) => {
     Purpose: list products for user and filter according to query
 */
 export const userProducts = asyncHandler(async (req, res) => {
-  const { category } = req.query;
+  const { page = 1, limit = 8, search, category } = req.query;
 
   const pipeline = [...ACTIVE_PRODUCT_PIPELINE];
+
+  if (search) {
+    const regTerm = escapeRegex(search.trim());
+    pipeline.push({
+      $match: { name: { $regex: regTerm, $options: "i" } },
+    });
+  }
+
   if (category) {
     pipeline.push({
       $match: {
@@ -82,17 +92,36 @@ export const userProducts = asyncHandler(async (req, res) => {
     });
   }
 
-  const products = await Product.aggregate(pipeline);
+  pipeline.push({
+    $project: {
+      name: 1,
+      description: 1,
+      price: 1,
+      thumbnail: 1,
+      "category.name": 1,
+    },
+  });
 
-  products.forEach((product) => {
+  const myCustomLabels = {
+    totalDocs: "totalProducts",
+    docs: "products",
+  };
+
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    customLabels: myCustomLabels,
+    lean: true,
+  };
+
+  const aggregate = Product.aggregate(pipeline);
+  const result = await Product.aggregatePaginate(aggregate, options);
+
+  result.products.forEach((product) => {
     product.thumbnail = generateFileURL(product.thumbnail);
-    product.images = product.images.map((image) => generateFileURL(image));
   });
 
-  return res.json({
-    productsCount: products.length,
-    products,
-  });
+  return res.json(result);
 });
 
 /*  
@@ -107,9 +136,9 @@ export const userGetProductDetail = asyncHandler(async (req, res) => {
 
     if (product) {
       const related_products = await Product.find({
-        _id: { $ne : product.id},
+        _id: { $ne: product.id },
         category: product.category,
-        isActive: true
+        isActive: true,
       });
       related_products.forEach((product) => {
         product.thumbnail = generateFileURL(product.thumbnail);
