@@ -36,10 +36,7 @@ const ProductFormSchema = z.object({
         value => value === "" ? -1 : parseInt(value as string),
         z.number().min(0, "Quantity must be a positive number")
     ),
-    isActive: z.preprocess(
-        value => value === "true",
-        z.boolean()
-    ).refine(val => typeof val === "boolean", { message: "Status is required" }),
+    isActive: z.boolean().refine(val => typeof val === "boolean", { message: "Status is required" }),
     category: z.string().min(1, "Category is required"),
     brand: z.string().min(1, "Brand is required"),
     thumbnail: z.instanceof(File, { message: "Thumbnail is required" }).nullable(),
@@ -85,16 +82,11 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
 
     useEffect(() => {
         const fetchCategoriesAndBrands = async () => {
-            const categoriesResponse = await axios.get<BACKEND_RESPONSE<CategoryList>>(`${CATEGORY_LIST_URL}?filter=active`);
-            const brandsResponse = await axios.get<BACKEND_RESPONSE<BrandList>>(`${BRAND_LIST_URL}?filter=active`);
+            const categoriesResponse = await axios.get<CategoryList>(`${CATEGORY_LIST_URL}?filter=active`);
+            const brandsResponse = await axios.get<BrandList>(`${BRAND_LIST_URL}?filter=active`);
 
-            if (categoriesResponse.data.data) {
-                setCategories(categoriesResponse.data.data?.categories);
-            }
-
-            if (brandsResponse.data.data) {
-                setBrands(brandsResponse.data.data?.brands);
-            }
+            setCategories(categoriesResponse.data.categories);
+            setBrands(brandsResponse.data.brands);
         };
 
         fetchCategoriesAndBrands();
@@ -134,7 +126,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
     }, [productRes]);
 
     useEffect(() => {
-        if(error){
+        if (error) {
             toast({
                 variant: "destructive",
                 title: `Failed to fetch product`,
@@ -282,7 +274,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                                     <FormItem>
                                         <FormLabel className="text-lg font-bold mb-2">Status</FormLabel>
                                         <FormControl>
-                                            <Select  value={field.value.toString()} onValueChange={field.onChange}>
+                                            <Select value={field.value.toString()} onValueChange={(value) => field.onChange(value === "true")}>
                                                 <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="Select a product status" />
                                                 </SelectTrigger>

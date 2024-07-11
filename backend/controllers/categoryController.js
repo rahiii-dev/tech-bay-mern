@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Category from "../models/Category.js";
 import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
+import { escapeRegex } from "../utils/helpers/appHelpers.js";
 
 export function handleCategory(category) {
   return {
@@ -63,22 +64,33 @@ export const editCategory = asyncHandler(async (req, res) => {
     Purpose: Get all categories 
 */
 export const getCategories = asyncHandler(async (req, res) => {
-  const filter = req.query?.filter;
+  const { page = 1, limit = 10, search, filter } = req.query;
 
-  let categories;
+  const myCustomLabels = {
+    totalDocs: 'totalCategories',
+    docs: 'categories',
+  };
 
-  if (filter === "active") {
-    categories = await Category.find({ isDeleted: false });
-  } else {
-    categories = await Category.find();
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    customLabels: myCustomLabels,
+  };
+
+  const query = {};
+
+  if (filter === 'active') {
+    query.isDeleted = false
   }
 
-  return handleResponse(
-    res,
-    "Category Created",
-    {},
-    { categoryCount: categories.length, categories }
-  );
+  if (search) {
+    const regTerm = escapeRegex(search.trim());
+    query.name = { $regex: regTerm, $options: 'i' }
+  }
+
+  const categories = await Category.paginate(query, options);
+
+  return res.json({ ...categories });
 });
 
 /*  

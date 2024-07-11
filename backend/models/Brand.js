@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { capitalize } from '../utils/helpers/appHelpers.js';
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const { Schema, model } = mongoose;
 
@@ -35,6 +36,8 @@ brandSchema.methods.restore = function () {
   this.isDeleted = false;
   return this.save();
 };
+
+brandSchema.plugin(mongoosePaginate)
 
 const Brand = model("Brand", brandSchema);
 

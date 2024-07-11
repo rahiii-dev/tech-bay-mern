@@ -61,7 +61,7 @@ const CategoryTable = ({ categories, handleCategoryDeleteandRestore, refetData }
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Eye className='cursor-pointer' onClick={() => handleViewClick(category)} />
+                                                    <Eye size={20} className='cursor-pointer' onClick={() => handleViewClick(category)} />
                                                 </TooltipTrigger>
                                                 <TooltipContent side='top'>
                                                     <p>View Category</p>
@@ -71,7 +71,7 @@ const CategoryTable = ({ categories, handleCategoryDeleteandRestore, refetData }
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Pencil className='text-yellow-600 cursor-pointer' onClick={() => handleEditClick(category)} />
+                                                    <Pencil size={20} className='text-yellow-600 cursor-pointer' onClick={() => handleEditClick(category)} />
                                                 </TooltipTrigger>
                                                 <TooltipContent side='top'>
                                                     <p>Edit Category</p>
@@ -81,7 +81,7 @@ const CategoryTable = ({ categories, handleCategoryDeleteandRestore, refetData }
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Trash onClick={() => handleCategoryDeleteandRestore(category._id, category.isDeleted)} className='text-red-500 cursor-pointer' />
+                                                    <Trash size={20} onClick={() => handleCategoryDeleteandRestore(category._id, category.isDeleted)} className='text-red-500 cursor-pointer' />
                                                 </TooltipTrigger>
                                                 <TooltipContent side='top'>
                                                     <p>Delete Category</p>

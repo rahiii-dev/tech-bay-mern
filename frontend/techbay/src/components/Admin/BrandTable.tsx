@@ -61,7 +61,7 @@ const BrandTable = ({ brands, handleBrandDeleteandRestore, refetData }: BrandTab
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Eye className='cursor-pointer' onClick={() => handleViewClick(brand)} />
+                                                    <Eye size={20} className='cursor-pointer' onClick={() => handleViewClick(brand)} />
                                                 </TooltipTrigger>
                                                 <TooltipContent side='top'>
                                                     <p>View Brand</p>
@@ -71,7 +71,7 @@ const BrandTable = ({ brands, handleBrandDeleteandRestore, refetData }: BrandTab
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Pencil className='text-yellow-600 cursor-pointer' onClick={() => handleEditClick(brand)} />
+                                                    <Pencil size={20} className='text-yellow-600 cursor-pointer' onClick={() => handleEditClick(brand)} />
                                                 </TooltipTrigger>
                                                 <TooltipContent side='top'>
                                                     <p>Edit Brand</p>
@@ -81,7 +81,7 @@ const BrandTable = ({ brands, handleBrandDeleteandRestore, refetData }: BrandTab
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Trash onClick={() => handleBrandDeleteandRestore(brand._id, brand.isDeleted)} className='text-red-500 cursor-pointer' />
+                                                    <Trash size={20} onClick={() => handleBrandDeleteandRestore(brand._id, brand.isDeleted)} className='text-red-500 cursor-pointer' />
                                                 </TooltipTrigger>
                                                 <TooltipContent side='top'>
                                                     <p>Delete Brand</p>

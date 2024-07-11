@@ -18,8 +18,8 @@ import { debounce } from "@mui/material";
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [searchProducts, setSearchProducts] = useState("");
   const [filter, setFilter] = useState("all");
+  const [searchProducts, setSearchProducts] = useState("");
   const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();

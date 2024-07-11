@@ -1,3 +1,5 @@
+import { PaginationResponse } from "./backendResponseTypes";
+
 export interface Brand {
     _id: string;
     name: string;
@@ -7,7 +9,7 @@ export interface Brand {
     updatedAt: string;
 }
 
-export interface BrandList {
-    brandCount: number;
+export interface BrandList extends PaginationResponse{
+    totalBrands: number;
     brands: Brand[];
 }

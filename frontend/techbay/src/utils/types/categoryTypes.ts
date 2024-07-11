@@ -1,3 +1,5 @@
+import { PaginationResponse } from "./backendResponseTypes";
+
 export interface Category {
     _id: string;
     name: string;
@@ -7,7 +9,7 @@ export interface Category {
     updatedAt: string;
 }
 
-export interface CategoryList {
-    categoryCount: number;
+export interface CategoryList extends PaginationResponse {
+    totalCategories: number;
     categories: Category[]
 }

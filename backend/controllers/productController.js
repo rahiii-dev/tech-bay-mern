@@ -65,8 +65,6 @@ export const editProduct = asyncHandler(async (req, res) => {
     isActive
   } = req.body;
 
-  
-
   const { id } = req.params;
 
   const product = await Product.findById(id);
@@ -93,7 +91,7 @@ export const editProduct = asyncHandler(async (req, res) => {
   product.stock = stock || product.stock;
   product.category = category || product.category;
   product.brand = brand || product.brand;
-  product.isActive = isActive || product.isActive;
+  product.isActive = isActive ?? product.isActive;
 
   product.thumbnail = thumbnail;
   product.images = images;

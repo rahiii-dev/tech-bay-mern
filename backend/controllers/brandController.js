@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Brand from "../models/Brand.js";
 import handleResponse from "../utils/handleResponse.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
+import { escapeRegex } from "../utils/helpers/appHelpers.js";
 
 export function handleBrand(brand) {
   return {
@@ -63,21 +64,33 @@ export const editBrand = asyncHandler(async (req, res) => {
     Purpose: Get all brands 
 */
 export const getBrands = asyncHandler(async (req, res) => {
-  const filter = req.query?.filter;
-  let brands;
+  const { page = 1, limit = 10, search, filter } = req.query;
 
-  if (filter === "active") {
-    brands = await Brand.find({ isDeleted: false });
-  } else {
-    brands = await Brand.find();
+  const myCustomLabels = {
+    totalDocs: 'totalBrands',
+    docs: 'brands',
+  };
+
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    customLabels: myCustomLabels,
+  };
+
+  const query = {};
+
+  if (filter === 'active') {
+    query.isDeleted = false
+  }
+
+  if (search) {
+    const regTerm = escapeRegex(search.trim());
+    query.name = { $regex: regTerm, $options: 'i' }
   }
   
-  return handleResponse(
-    res,
-    "Brands retrieved",
-    {},
-    { brandCount: brands.length, brands }
-  );
+  const brands = await Brand.paginate(query, options);
+
+  return res.json({ ...brands });
 });
 
 /*  

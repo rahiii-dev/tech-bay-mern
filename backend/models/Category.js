@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { capitalize } from '../utils/helpers/appHelpers.js';
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const { Schema, model } = mongoose;
 
@@ -35,6 +36,8 @@ categorySchema.methods.restore = function () {
   this.isDeleted = false;
   return this.save();
 };
+
+categorySchema.plugin(mongoosePaginate)
 
 const Category = model("Category", categorySchema);
 

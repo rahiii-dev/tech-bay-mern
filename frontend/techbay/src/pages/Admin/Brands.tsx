@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import TableSkeleton from "../../components/ui/TableSkeleton";
-import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import useAxios from "../../hooks/useAxios";
 import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { BRAND_DELETE_URL, BRAND_LIST_URL, BRAND_RESTORE_URL } from "../../utils/urls/adminUrls";
@@ -13,20 +12,33 @@ import BrandForm from "../../components/Admin/BrandForm";
 import BrandTable from "../../components/Admin/BrandTable";
 import { Brand, BrandList } from "../../utils/types/brandTypes";
 import { filterBrand } from "../../utils/filters/brandFilter";
+import { useSearchParams } from "react-router-dom";
+import { debounce } from "@mui/material";
+import { Input } from "../../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import CustomPagination from "../../components/ui/CustomPagination";
 
 const Brands = () => {
-    const { data, error, loading, fetchData } = useAxios<BACKEND_RESPONSE<BrandList>>({
-        url: BRAND_LIST_URL,
-        method: 'GET'
-    });
+    const { data, error, loading, fetchData } = useAxios<BrandList>({}, false);
 
     const [filter, setFilter] = useState("all");
     const [brands, setBrands] = useState<Brand[]>([]);
     const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
+    const [searchBrand, setSearchBrand] = useState("");
+    const [searchParams] = useSearchParams();
+
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
-        if (data?.data) {
-            setBrands(data.data.brands);
+        fetchData({
+            url: `${BRAND_LIST_URL}?page=${currentPage}`,
+            method: 'GET'
+        })
+    }, [currentPage]);
+
+    useEffect(() => {
+        if (data) {
+            setBrands(data.brands);
         }
     }, [data]);
 
@@ -62,16 +74,37 @@ const Brands = () => {
         }
     };
 
+    const handleSearch = debounce((term: string) => {
+        fetchData({
+            url: `${BRAND_LIST_URL}?page=${currentPage}&search=${term.trim()}`,
+            method: 'GET'
+        })
+    }, 300);
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target;
+        setSearchBrand(value)
+        handleSearch(value)
+    }
+
     return (
         <div className="h-full w-full flex flex-col gap-2 overflow-y-hidden">
-            <div className="w-full flex justify-between items-center gap-2">
-                <Tabs defaultValue="all" className="w-[250px] shadow-sm" onValueChange={setFilter}>
-                    <TabsList className="flex items-center justify-between gap-2 bg-primary-foreground rounded-sm">
-                        <TabsTrigger value="all" className="bg-secondary w-full rounded-sm p-1 data-[state=active]:bg-foreground data-[state=active]:text-background">All</TabsTrigger>
-                        <TabsTrigger value="inactive" className="bg-secondary w-full rounded-sm p-1 data-[state=active]:bg-foreground data-[state=active]:text-background">Inactive</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-                <div className="text-sm font-medium">
+            <div className="w-full h-max py-2 flex justify-between items-center gap-2">
+                <div>
+                    <Input className="h-[35px]" placeholder="Search by brands" value={searchBrand} onChange={handleChange} />
+                </div>
+                <div className="text-sm font-medium flex items-center gap-3">
+                    <div>
+                        <Select onValueChange={setFilter}>
+                            <SelectTrigger className="w-[120px] h-[35px]">
+                                <SelectValue placeholder="Filter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button size="sm" className="h-8 gap-1">
@@ -92,7 +125,21 @@ const Brands = () => {
                     <div className="p-4 text-center text-foreground">No Brand found.</div>
                 )}
                 {!loading && !error && filteredBrands.length > 0 && (
-                    <BrandTable refetData={fetchData} brands={filteredBrands} handleBrandDeleteandRestore={handleBrandDeleteandRestore} />
+                    <>
+                        <BrandTable refetData={fetchData} brands={filteredBrands} handleBrandDeleteandRestore={handleBrandDeleteandRestore} />
+                        <div className="px-4 py-3 border-t-2 border-secondary flex justify-between items-center gap-3">
+                            {data && (
+                                <>
+                                    <div className="text-sm font-medium text-gray-400">
+                                        {(data.totalBrands ?? 0) > 10
+                                            ? `Showing 1 - ${data.limit} of ${data.totalBrands}`
+                                            : `Showing all ${data.totalBrands}`}
+                                    </div>
+                                    <CustomPagination hasNextPage={data.hasNextPage} hasPrevPage={data.hasPrevPage} page={data.page} totalPages={data.totalPages} />
+                                </>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
         </div>
