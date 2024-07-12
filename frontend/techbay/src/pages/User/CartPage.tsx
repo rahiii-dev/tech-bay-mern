@@ -3,7 +3,7 @@ import SubHeading from "../../components/User/SubHeading";
 import { Button } from "../../components/ui/button";
 import CartList from "../../components/User/CartList";
 import { useAppSelector } from "../../hooks/useSelector";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatPrice } from "../../utils/appHelpers";
 import { useEffect } from "react";
 import { toast } from "../../components/ui/use-toast";
@@ -12,6 +12,8 @@ const CartPage = () => {
     const cart = useAppSelector((state) => state.cart.cart);
     const cartStatus = useAppSelector((state) => state.cart.status);
     const cartError = useAppSelector((state) => state.cart.error);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if(cartStatus === "error" && cartError){
@@ -60,7 +62,7 @@ const CartPage = () => {
                                     <p className="font-semibold text-xl">{formatPrice(cart.cartTotal.total)}</p>
                                 </div>
                                 <div className="mb-2">
-                                    <Button className="rounded-full w-full">Go to Checkout <ArrowRight className="ms-2" size={20} /></Button>
+                                    <Button onClick={() => navigate('/checkout')} className="rounded-full w-full">Go to Checkout <ArrowRight className="ms-2" size={20} /></Button>
                                 </div>
                             </div>
                         </div>

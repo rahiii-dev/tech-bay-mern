@@ -8,10 +8,12 @@ import { removeItemFromCart, updateItemQuantity } from "../../features/cart/cart
 
 type CartListProp = {
     cartItems: ICartItem[];
+    editable?: boolean;
 }
 
-const CartList = ({ cartItems }: CartListProp) => {
+const CartList = ({ cartItems, editable=true }: CartListProp) => {
     const dispatch = useAppDispatch();
+
 
     const handleDelete = (id: string) => {
         dispatch(removeItemFromCart({ productId: id }))
@@ -53,12 +55,20 @@ const CartList = ({ cartItems }: CartListProp) => {
                     </div>
 
                     <div className="flex flex-col items-end justify-between">
-                        <Trash2 onClick={() => handleDelete(item._id)} className="text-red-500 cursor-pointer" size={20} />
-                        <div className="flex items-center bg-gray-200 text-secondary-foreground rounded-full overflow-hidden gap-2">
-                            <Button onClick={() => handleQuantityUpdate(item._id, "decrement")} variant={"secondary"} className="bg-inherit text-inherit rounded-none"><Minus size={20} /></Button>
-                            <span className="font-medium">{item.quantity}</span>
-                            <Button onClick={() => handleQuantityUpdate(item._id, "increment")} variant={"secondary"} className="bg-inherit text-inherit rounded-none"><Plus size={20} /></Button>
-                        </div>
+                        {!editable
+                            ? (
+                                <div className="bg-gray-200 text-secondary-foreground rounded-full px-4">{item.quantity}</div>
+                            )
+                            : (
+                                <>
+                                    <Trash2 onClick={() => handleDelete(item._id)} className="text-red-500 cursor-pointer" size={20} />
+                                    <div className="flex items-center bg-gray-200 text-secondary-foreground rounded-full overflow-hidden gap-2">
+                                        <Button onClick={() => handleQuantityUpdate(item._id, "decrement")} variant={"secondary"} className="bg-inherit text-inherit rounded-none"><Minus size={20} /></Button>
+                                        <span className="font-medium">{item.quantity}</span>
+                                        <Button onClick={() => handleQuantityUpdate(item._id, "increment")} variant={"secondary"} className="bg-inherit text-inherit rounded-none"><Plus size={20} /></Button>
+                                    </div>
+                                </>
+                            )}
                     </div>
                 </div>
             ))}

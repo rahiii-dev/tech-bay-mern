@@ -23,6 +23,8 @@ import ShopPage from "./pages/User/ShopPage"
 import ProductDetails from "./pages/User/ProductDetails"
 import CartPage from "./pages/User/CartPage"
 import UserScreenProtected from "./screens/UserScreenProtected"
+import CheckoutPage from "./pages/User/CheckoutPage"
+import PaymentPage from "./pages/User/PaymentPage"
 
 
 function App() {
@@ -57,6 +59,8 @@ function App() {
           <Route element={<UserScreenProtected/>}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/payment" element={<PaymentPage />} />
           </Route>
         </Route>
 
