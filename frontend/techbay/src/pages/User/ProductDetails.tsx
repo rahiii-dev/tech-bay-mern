@@ -1,5 +1,5 @@
 import { Rating } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import Slider from 'react-slick';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -21,6 +21,7 @@ const ProductDetails = () => {
     const { productId } = useParams();
 
     const dispatch = useAppDispatch();
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (productId) {
@@ -64,7 +65,8 @@ const ProductDetails = () => {
     }
 
     const handleAddToCart = (id: string, quantity: number) => {
-        dispatch(addItemToCart({productId: id, quantity: quantity}))
+        dispatch(addItemToCart({ productId: id, quantity: quantity }))
+        navigate('/cart')
     }
 
     return (
@@ -108,11 +110,14 @@ const ProductDetails = () => {
                             <div className='flex items-center gap-2 mb-2'>
                                 <Rating name="read-only" value={3} readOnly />
                                 <span className='font-medium text-[12px] text-gray-400'>3/2</span>
+                                {data.product.stock === 0 
+                                    ? (<span className="bg-red-200 text-red-800 px-3 text-[12px] font-medium rounded-full">out-of stock</span>)
+                                    : (<span className="bg-green-200 text-green-800 px-3 text-[12px] font-medium rounded-full">In stock</span>)}
                             </div>
                             <h2 className='font-semibold text-gray-500 text-3xl mb-2'>{formatPrice(data.product.price)}</h2>
                             <p className='text-sm text-gray-400 mb-8 min-h-[100px]'>{data.product.description}</p>
                             <div className='flex items-center gap-5'>
-                                <Button onClick={() => handleAddToCart(data.product._id, 1)} disabled={!data.product.isActive} className='rounded-full w-full max-w-[200px]'>Add to Cart</Button>
+                                <Button onClick={() => handleAddToCart(data.product._id, 1)} disabled={(!data.product.isActive || data.product.stock === 0)} className='rounded-full w-full max-w-[200px]'>Add to Cart</Button>
                                 <Button disabled={!data.product.isActive} variant={"secondary"} className='rounded-full bg-gray-200 w-full max-w-[200px]'>Add to WishList</Button>
                             </div>
                         </div>

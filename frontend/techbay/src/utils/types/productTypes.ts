@@ -1,11 +1,13 @@
 import { PaginationResponse } from "./backendResponseTypes";
+import { Brand } from "./brandTypes";
+import { Category } from "./categoryTypes";
 
 export interface Product {
     _id: string;
     name: string;
     description: string;
-    category: string;
-    brand: string;
+    category: Category;
+    brand: Brand;
     thumbnail: string;
     thumbnailUrl: string;
     imageUrls: string[];
