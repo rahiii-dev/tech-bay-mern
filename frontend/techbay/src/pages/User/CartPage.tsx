@@ -5,15 +5,21 @@ import CartList from "../../components/User/CartList";
 import { useAppSelector } from "../../hooks/useSelector";
 import { Link, useNavigate } from "react-router-dom";
 import { formatPrice } from "../../utils/appHelpers";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "../../components/ui/use-toast";
+import { useAppDispatch } from "../../hooks/useDispatch";
+import { clearCartError } from "../../features/cart/cartSlice";
+import { loadCart, verifyCartItems } from "../../features/cart/cartThunk";
+import { CircularProgress } from "@mui/material";
 
 const CartPage = () => {
     const cart = useAppSelector((state) => state.cart.cart);
     const cartStatus = useAppSelector((state) => state.cart.status);
     const cartError = useAppSelector((state) => state.cart.error);
+    const [verifyCart, setVerifyCart] = useState(false);
 
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         if(cartStatus === "error" && cartError){
@@ -23,8 +29,25 @@ const CartPage = () => {
                 description: cartError?.extraMessage?.description || '',
                 className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
               })
+            dispatch(clearCartError())
         }
     }, [cartError, cartStatus])
+
+    const handleCheckout  = () => {
+        setVerifyCart(true);
+        dispatch(verifyCartItems())
+        .then((resultAction) => {
+            if(verifyCartItems.fulfilled.match(resultAction)){
+                navigate('/checkout')
+            }
+            else{
+                dispatch(loadCart())
+            }
+        })
+        .finally(() => {
+            setVerifyCart(false)
+        })
+    }
 
     return (
         <section>
@@ -42,7 +65,7 @@ const CartPage = () => {
                 {cart && cart.items.length > 0 && (
                     <>
                         <SubHeading className="text-left mb-10">Your Cart</SubHeading>
-                        <div className="flex gap-6">
+                        <div className="flex flex-col items-center md:items-start md:flex-row gap-6">
                             <div className="flex-grow">
                                 <CartList cartItems={cart.items}/>
                             </div>
@@ -51,7 +74,7 @@ const CartPage = () => {
 
                                 <div className="font-medium flex justify-between items-center mb-2">
                                     <p className="text-gray-400">Subtotal</p>
-                                    <p>{formatPrice(cart.cartTotal.subtotal)}</p>
+                                    <p>{cart.cartTotal.subtotal > 0 ? formatPrice(cart.cartTotal.subtotal) : '-'}</p>
                                 </div>
                                 <div className="font-medium flex justify-between items-center mb-2">
                                     <p className="text-gray-400">Discount</p>
@@ -59,10 +82,13 @@ const CartPage = () => {
                                 </div>
                                 <div className="font-medium flex justify-between items-centerb border-t py-3">
                                     <p>Total</p>
-                                    <p className="font-semibold text-xl">{formatPrice(cart.cartTotal.total)}</p>
+                                    <p className="font-semibold text-xl">{cart.cartTotal.total > 0 ? formatPrice(cart.cartTotal.total) : '-'}</p>
                                 </div>
                                 <div className="mb-2">
-                                    <Button onClick={() => navigate('/checkout')} className="rounded-full w-full">Go to Checkout <ArrowRight className="ms-2" size={20} /></Button>
+                                    <Button disabled={verifyCart} onClick={handleCheckout} className="rounded-full w-full">
+                                        {verifyCart ? <CircularProgress color="inherit" size={20} /> :'Go to Checkout'}
+                                        {!verifyCart && <ArrowRight className="ms-2" size={20} />}
+                                    </Button>
                                 </div>
                             </div>
                         </div>

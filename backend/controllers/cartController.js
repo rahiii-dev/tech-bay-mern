@@ -4,9 +4,15 @@ import Product from "../models/Product.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 
 const formatCart = (cart, user) => {
-  const subtotal = cart.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-  let discount = 0;
+  const subtotal = cart.items.reduce((acc, item) => {
+    if (item.product.stock > 0) {
+      return acc + item.product.price * item.quantity;
+    }
+    return acc;
+  }, 0);
 
+  const discount = 0;
+  const deliveryFee = 50;
   const total = subtotal - discount;
 
   return {
@@ -20,6 +26,10 @@ const formatCart = (cart, user) => {
       discount,
       total,
     },
+    orderTotal: {
+      deliveryFee,
+      total: (total + deliveryFee),
+    }
   };
 };
 
@@ -32,6 +42,8 @@ const populateOptions = {
 const findUserCart = async (userId) => {
   return await Cart.findOne({ user: userId }).populate(populateOptions);
 };
+
+const MAX_QUANTITY = 4
 
 /*  
     Route: GET api/user/cart
@@ -63,7 +75,6 @@ export const addItemToCart = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if sufficient stock is available
   if (product.stock < quantity) {
     return handleErrorResponse(res, 400, "Insufficient Stock", {
       title: "Insufficient Stock",
@@ -77,16 +88,21 @@ export const addItemToCart = asyncHandler(async (req, res) => {
   }
 
   const cartItem = cart.items.find(
-    (item) => item.product.toString() === productId
+    (item) => item.product.id === productId
   );
+
   if (cartItem) {
+    if (cartItem.quantity >= MAX_QUANTITY) {
+      return handleErrorResponse(res, 400, "Maximum Quantity Exceeded", {
+        title: "Maximum Quantity Exceeded",
+        description: "You can only add up to 4 units of this item",
+      });
+    }
+
     cartItem.quantity += quantity;
   } else {
     cart.items.push({ product: productId, quantity });
   }
-
-  product.stock -= quantity;
-  await product.save();
 
   await cart.save();
 
@@ -105,15 +121,9 @@ export const removeItemFromCart = asyncHandler(async (req, res) => {
   const { itemId } = req.params;
   const cart = await Cart.findOne({ user: req.user._id });
   if (cart) {
-    const cartItem = cart.items.find((item) => item._id.toString() === itemId);
+    const cartItem = cart.items.find((item) => item.id === itemId);
     if (cartItem) {
-      const product = await Product.findById(cartItem.product);
-      if (product) {
-        product.stock += cartItem.quantity;
-        await product.save();
-      }
-
-      cart.items = cart.items.filter((item) => item._id.toString() !== itemId);
+      cart.items = cart.items.filter((item) => item.id !== itemId);
       await cart.save();
 
       const updatedCart = await findUserCart(req.user._id);
@@ -152,7 +162,8 @@ export const updateCartItemQuantity = asyncHandler(async (req, res) => {
     });
   }
 
-  const cartItem = cart.items.find((item) => item._id.toString() === itemId);
+  const cartItem = cart.items.find((item) => item.id === itemId);
+
   if (!cartItem) {
     return handleErrorResponse(res, 404, "Item not found in cart", {
       title: "Invalid Item",
@@ -169,20 +180,21 @@ export const updateCartItemQuantity = asyncHandler(async (req, res) => {
   }
 
   if (action === 'increment') {
-    if (cartItem.quantity >= 4) {
+    if (cartItem.quantity >= MAX_QUANTITY) {
       return handleErrorResponse(res, 400, "Maximum Quantity Exceeded", {
         title: "Maximum Quantity Exceeded",
         description: "You can only add up to 4 units of this item",
       });
     }
-    if (product.stock < 1) {
+
+    if (product.stock < 1 || cartItem.quantity >= product.stock) {
       return handleErrorResponse(res, 400, "Insufficient Stock", {
         title: "Insufficient Stock",
         description: "No stock available to increment",
       });
     }
     cartItem.quantity += 1;
-    product.stock -= 1;
+
   } else if (action === 'decrement') {
     if (cartItem.quantity === 1) {
       return handleErrorResponse(res, 400, "Quantity cannot be less than 1", {
@@ -191,15 +203,38 @@ export const updateCartItemQuantity = asyncHandler(async (req, res) => {
       });
     }
     cartItem.quantity -= 1;
-    product.stock += 1;
   }
 
   await cart.save();
-  await product.save();
 
   const updatedCart = await findUserCart(req.user._id);
   const formattedCart = formatCart(updatedCart, req.user);
   return res.json(formattedCart);
 });
 
+
+/*  
+    Route: POST api/user/cart/verify
+    Purpose: verify and clear out-of-stock items from the cart
+*/
+export const verifyCart = asyncHandler(async (req, res) => {
+  const cart = await findUserCart(req.user._id);
+  if (!cart) {
+    return handleErrorResponse(res, 404, "Cart not found", {
+      title: "Invalid Cart",
+      description: "This cart is not available",
+    });
+  }
+
+  const outOfStockItems = cart.items.filter(item => item.product.stock === 0 || item.quantity > item.product.stock);
+  
+  if (outOfStockItems.length > 0) {
+    return handleErrorResponse(res, 400, "Items are out of Stock or quantity exceeds available stock", {
+      title: "Out of Stock items",
+      description: "Please remove or adjust the quantity of out-of-stock items to continue",
+    });
+  }
+
+  return res.json({message: "Cart is good to proceed"});
+});
 

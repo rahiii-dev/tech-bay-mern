@@ -12,4 +12,5 @@ export interface Cart {
     user: User;
     items: CartItem[];
     cartTotal: { subtotal: number, discount: number, total: number }
+    orderTotal: { deliveryFee: number, total: number}
 }

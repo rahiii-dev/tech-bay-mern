@@ -50,7 +50,7 @@ const CheckoutPage = () => {
 
                                     <div className="font-medium flex justify-between items-center mb-2">
                                         <p className="text-gray-400">Subtotal</p>
-                                        <p>{formatPrice(cart.cartTotal.subtotal)}</p>
+                                        <p>{cart.cartTotal.subtotal > 0 ? formatPrice(cart.cartTotal.subtotal) : "-"}</p>
                                     </div>
                                     <div className="font-medium flex justify-between items-center mb-2">
                                         <p className="text-gray-400">Discount</p>
@@ -58,11 +58,11 @@ const CheckoutPage = () => {
                                     </div>
                                     <div className="font-medium flex justify-between items-center mb-2">
                                         <p className="text-gray-400">Delivery Fee</p>
-                                        <p>{formatPrice(50)}</p>
+                                        <p>{cart.orderTotal.deliveryFee > 0 ? formatPrice(cart.orderTotal.deliveryFee) : '-'}</p>
                                     </div>
                                     <div className="font-medium flex justify-between items-centerb border-t py-3">
                                         <p>Total</p>
-                                        <p className="font-semibold text-xl">{formatPrice(cart.cartTotal.total)}</p>
+                                        <p className="font-semibold text-xl">{cart.orderTotal.total > 0 ? formatPrice(cart.orderTotal.total) : '-'}</p>
                                     </div>
                                     <div className="mb-2">
                                         <Button onClick={() => navigate('/payment')} className="rounded-full w-full">Proceed to Payment <ArrowRight className="ms-2" size={20} /></Button>

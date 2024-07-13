@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { BACKEND_ERROR_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { Cart } from "../../utils/types/cartTypes";
-import { addItemToCart, loadCart, removeItemFromCart, updateItemQuantity } from "./cartThunk";
+import { addItemToCart, loadCart, removeItemFromCart, updateItemQuantity, verifyCartItems } from "./cartThunk";
 
 export interface CartState {
     cart : Cart | null,
@@ -18,7 +18,11 @@ const initialState: CartState = {
 const cartSlice = createSlice({
     name: 'cart',
     initialState,
-    reducers: {},
+    reducers: {
+        clearCartError: (state) => {
+            state.error = null;
+        }
+    },
     extraReducers: (builder) => {
         builder
         .addCase(loadCart.pending, (state) => {
@@ -77,8 +81,17 @@ const cartSlice = createSlice({
             state.status = "error";
             state.error = action.payload ? action.payload : null;
         })
+        .addCase(verifyCartItems.pending, (state) => {
+            state.error = null
+        })
+        .addCase(verifyCartItems.rejected, (state, action) => {
+            state.status = "error";
+            state.error = action.payload ? action.payload : null;
+        })
 
     }
 });
+
+export const { clearCartError } = cartSlice.actions;
 
 export default cartSlice.reducer

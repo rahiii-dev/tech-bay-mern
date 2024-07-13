@@ -62,11 +62,11 @@ const CartList = ({ cartItems, editable=true }: CartListProp) => {
                             : (
                                 <>
                                     <Trash2 onClick={() => handleDelete(item._id)} className="text-red-500 cursor-pointer" size={20} />
-                                    <div className="flex items-center bg-gray-200 text-secondary-foreground rounded-full overflow-hidden gap-2">
+                                    {item.product.stock > 0 && (<div className="flex items-center bg-gray-200 text-secondary-foreground rounded-full overflow-hidden gap-2">
                                         <Button onClick={() => handleQuantityUpdate(item._id, "decrement")} variant={"secondary"} className="bg-inherit text-inherit rounded-none"><Minus size={20} /></Button>
                                         <span className="font-medium">{item.quantity}</span>
                                         <Button onClick={() => handleQuantityUpdate(item._id, "increment")} variant={"secondary"} className="bg-inherit text-inherit rounded-none"><Plus size={20} /></Button>
-                                    </div>
+                                    </div>)}
                                 </>
                             )}
                     </div>
