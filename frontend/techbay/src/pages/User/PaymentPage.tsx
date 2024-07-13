@@ -40,7 +40,7 @@ const PaymentPage = () => {
                                             </div>
                                         </RadioGroup>
                                     </div>
-                                    <Button className="rounded-full w-full">Pay Now</Button>
+                                    <Button onClick={() => navigate('/order-confirm')} className="rounded-full w-full">Pay Now</Button>
                                 </div>
                                 <div>
                                     <Button onClick={() => navigate('/checkout')} variant={"secondary"} className="rounded-full"><ArrowLeft className="me-2" size={20} /> Back to Checkout</Button>

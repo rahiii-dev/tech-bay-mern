@@ -25,6 +25,8 @@ import CartPage from "./pages/User/CartPage"
 import UserScreenProtected from "./screens/UserScreenProtected"
 import CheckoutPage from "./pages/User/CheckoutPage"
 import PaymentPage from "./pages/User/PaymentPage"
+import OrderConfirmation from "./pages/User/OrderConfirmation"
+import OrdersPage from "./pages/User/OrdersPage"
 
 
 function App() {
@@ -61,6 +63,8 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment" element={<PaymentPage />} />
+            <Route path="/order-confirm" element={<OrderConfirmation />} />
+            <Route path="/orders" element={<OrdersPage />} />
           </Route>
         </Route>
 
