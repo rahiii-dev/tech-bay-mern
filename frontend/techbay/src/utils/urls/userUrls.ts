@@ -12,3 +12,7 @@ export const USER_ADD_TO_CART_URL = generateUrl('/cart')
 export const USER_UPDATE_CART_ITEM_QUANTITY_URL = (id:string) => generateUrl(`/cart/${id}`)
 export const USER_DELETE_CART_ITEM_URL = (id:string) => generateUrl(`/cart/${id}`)
 export const USER_CART_VERIFY = generateUrl(`/cart/verify`)
+
+export const USER_ADDRESS_LIST_URL = generateUrl('/profile/addresses');
+export const USER_ADDRESS_ADD_URL = generateUrl('/profile/addresses');
+export const USER_ADDRESS_UPDATE_URL = (id:string) => generateUrl(`/profile/addresses/${id}`);

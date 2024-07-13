@@ -9,7 +9,7 @@ import { REGISTER_URL } from "../../utils/urls/authUrls";
 import { Link, useNavigate } from "react-router-dom";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import './PhoneInput.css';
+import '../ui/PhoneInput.css';
 import GoogleLogin from "./GoogleLogin";
 import { toast } from "../ui/use-toast";
 import { useAuthFormContext } from "./AuthFormContext";

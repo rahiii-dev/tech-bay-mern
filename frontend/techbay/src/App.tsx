@@ -27,6 +27,7 @@ import CheckoutPage from "./pages/User/CheckoutPage"
 import PaymentPage from "./pages/User/PaymentPage"
 import OrderConfirmation from "./pages/User/OrderConfirmation"
 import OrdersPage from "./pages/User/OrdersPage"
+import { clearCart } from "./features/cart/cartSlice"
 
 
 function App() {
@@ -36,8 +37,14 @@ function App() {
   const CustomNavigate = (url:string, ShoudLogout=false) => {
     if(ShoudLogout){
       dispatch(logoutAsync())
-    }
-    if(url){
+      .then((resultAction) => {
+        if(logoutAsync.fulfilled.match(resultAction)){
+            dispatch(clearCart())
+            navigate('/login', {replace: true})
+        }
+        return
+    })
+    } else if(url){
       navigate(url, {replace: true})
     }
   }
