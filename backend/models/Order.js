@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { addressSchema } from "./Address.js";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const { Schema, model } = mongoose;
 
-const orderStatusEnum = [
+export const orderStatusEnum = [
   "Pending",
   "Processing",
   "Shipped",
@@ -55,11 +55,14 @@ const orderSchema = new Schema(
       enum: ["debit card", "credit card", "wallet", "cod"],
       required: true,
     },
+    orderNumber: { type: String, unique: true },
   },
   {
     timestamps: true,
   }
 );
+
+orderSchema.plugin(mongoosePaginate)
 
 const Order = model("Order", orderSchema);
 

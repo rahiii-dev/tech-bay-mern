@@ -1,4 +1,4 @@
-import { AlignJustify, Home, Layers3, LogOut, Package, PackagePlus, Star, UsersRound } from 'lucide-react';
+import { AlignJustify, Home, Layers3, LogOut, Package, PackagePlus, ShoppingCart, Star, UsersRound } from 'lucide-react';
 import { LOGO_BLACK, LOGO_WHITE } from "../../utils/constants";
 import { NavLink } from "react-router-dom";
 import Logout from "../../components/auth/Logout";
@@ -44,6 +44,21 @@ const Sidebar = () => {
                             {!sidebarActive && (
                                 <TooltipContent side='right'>
                                     <p>Dashboard</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <NavLink to={'orders'} className="navlink py-2 px-2 flex items-center gap-2 rounded-sm">
+                                    <ShoppingCart size={20} /> <span className="font-medium">Orders</span>
+                                </NavLink>
+                            </TooltipTrigger>
+                            {!sidebarActive && (
+                                <TooltipContent side='right'>
+                                    <p>Order Management</p>
                                 </TooltipContent>
                             )}
                         </Tooltip>

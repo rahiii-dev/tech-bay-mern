@@ -22,3 +22,6 @@ export const SINGLE_PRODUCT_URL = (id: string) => generateUrl(`/product/${id}`);
 export const PRODUCT_EDIT_URL = (id: string) => generateUrl(`/products/${id}`);
 export const PRODUCT_DELETE_URL = (id: string) => generateUrl(`/products/${id}`);
 export const PRODUCT_RESTORE_URL = (id: string) => generateUrl(`/products/restore/${id}`);
+
+export const ORDER_LIST_URL = generateUrl('/orders');
+export const ORDER_DETAIL_URL = (id: string) => generateUrl(`/order/${id}`);

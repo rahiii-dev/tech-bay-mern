@@ -3,6 +3,8 @@ import ThemeToggler from "../ui/ThemeToggler";
 
 const ADMIN_URL_MAP = new Map([
     ['/admin/dashboard', 'Dashboard'],
+    ['/admin/orders', 'Order Management'],
+    ['/admin/order', 'Order Details'],
     ['/admin/customers', 'Customers'],
     ['/admin/categories', 'Categories'],
     ['/admin/brands', 'Brands'],

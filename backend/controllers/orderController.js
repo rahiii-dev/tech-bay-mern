@@ -2,8 +2,13 @@ import asyncHandler from "express-async-handler";
 import Cart from "../models/Cart.js";
 import Address from "../models/Address.js";
 import { cartPopulateOptions, formatCart } from "./cartController.js";
-import Order from "../models/Order.js";
+import Order, { orderStatusEnum } from "../models/Order.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
+import { escapeRegex } from "../utils/helpers/appHelpers.js";
+
+const generateOrderNumber = () => {
+  return `ORD-${Date.now()}`;
+};
 
 /*  
     Route: POST api/admin/order
@@ -13,7 +18,9 @@ export const createOrder = asyncHandler(async (req, res) => {
   const { cartId, addressId, paymentMethod } = req.body;
   const userId = req.user._id;
 
-  const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(cartPopulateOptions);
+  const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(
+    cartPopulateOptions
+  );
 
   if (!cart) {
     return handleErrorResponse(res, 404, "Cart not forund");
@@ -47,7 +54,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     state: address.state,
     zipCode: address.zipCode,
     country: address.country,
-  }
+  };
 
   const order = new Order({
     user: userId,
@@ -60,10 +67,63 @@ export const createOrder = asyncHandler(async (req, res) => {
     },
     address: orderedAddres,
     paymentMethod,
+    orderNumber: generateOrderNumber(),
   });
 
   const createdOrder = await order.save();
   await Cart.findByIdAndDelete(cart._id);
 
   res.status(201).json(createdOrder);
+});
+
+/*  
+    Route: GET api/admin/orders
+    Purpose: List and filter orders for admin
+*/
+export const getAdminOrders = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, status, search } = req.query;
+  const filter = {};
+
+  const myCustomLabels = {
+    totalDocs: "totalOrders",
+    docs: "orders",
+  };
+
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    customLabels: myCustomLabels,
+  };
+
+  if (status && orderStatusEnum.includes(status)) {
+    filter.status = status;
+  }
+
+  if (search) {
+    const regTerm = escapeRegex(search.trim());
+    filter.orderNumber = { $regex: regTerm, $options: "i" };
+  }
+
+  const orders = await Order.paginate(filter, options);
+
+  res.status(200).json(orders);
+});
+
+/*  
+    Route: GET api/admin/order/:orderId
+    Purpose: show details of order
+*/
+export const getOrderDetail = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const order = await Order.findById(orderId).populate({
+    path: 'user',
+    select: 'fullName email'
+  });
+
+  if (!order) {
+    return handleErrorResponse(res, 404, "Order not found");
+  }
+
+  res.status(200).json(order);
 });
