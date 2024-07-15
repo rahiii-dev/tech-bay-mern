@@ -81,7 +81,7 @@ const OrderView = () => {
                             {orderStatus === "Delivered" && (
                                 <>
                                     <span className="bg-green-100 text-green-600 px-2 rounded-lg font-medium text-[12px]">Delivered</span>
-                                    <span className="text-gray-400 px-2 rounded-lg font-medium text-[12px]">{orderData.deliveryDate && `On${formatDate(orderData.deliveryDate)}`}</span>
+                                    <span className="text-gray-400 px-2 rounded-lg font-medium text-[12px]">{orderData.deliveryDate && `On ${formatDate(orderData.deliveryDate)}`}</span>
                                 </>
                             )}
                         </div>

@@ -50,8 +50,6 @@ const AddressForm = ({onSuccess}: AddressFormProp) => {
     async function onSubmit(data: z.infer<typeof AddressSchema>) {
         setSubmitting(true);
         try {
-            console.log(data);
-
             const resData = await axios.post<Addresss>(USER_ADDRESS_ADD_URL, data)
             if (resData) {
                 toast({
