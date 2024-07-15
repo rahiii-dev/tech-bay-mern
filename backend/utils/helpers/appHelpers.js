@@ -5,4 +5,11 @@ export function capitalize(val) {
 
 export function escapeRegex(string) {
     return string.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+export function calculateDateAfterDays(days = 7) {
+    const date = new Date()
+    const newDate = new Date(date.getTime());
+    newDate.setDate(newDate.getDate() + days);
+    return newDate;
   }

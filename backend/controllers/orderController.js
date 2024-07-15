@@ -4,7 +4,8 @@ import Address from "../models/Address.js";
 import { cartPopulateOptions, formatCart } from "./cartController.js";
 import Order, { orderStatusEnum } from "../models/Order.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
-import { escapeRegex } from "../utils/helpers/appHelpers.js";
+import { calculateDateAfterDays, escapeRegex } from "../utils/helpers/appHelpers.js";
+import Product from "../models/Product.js";
 
 const generateOrderNumber = () => {
   return `ORD-${Date.now()}`;
@@ -35,6 +36,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const orderedItems = cart.items.map((item) => {
     return {
+      productID: item.product._id,
       name: item.product.name,
       price: item.product.price,
       images: item.product.imageUrls,
@@ -73,6 +75,13 @@ export const createOrder = asyncHandler(async (req, res) => {
   const createdOrder = await order.save();
   await Cart.findByIdAndDelete(cart._id);
 
+  for (const item of order.orderedItems) {
+    await Product.findByIdAndUpdate(
+      item.productID,
+      { $inc: { stock: -item.quantity } }
+    );
+  }
+
   res.status(201).json(createdOrder);
 });
 
@@ -93,6 +102,10 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
     page: parseInt(page),
     limit: parseInt(limit),
     customLabels: myCustomLabels,
+    populate: {
+      path: 'user',
+      select: 'email fullName'
+    },
   };
 
   if (status && orderStatusEnum.includes(status)) {
@@ -126,4 +139,80 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json(order);
+});
+
+/*  
+    Route: PUT api/admin/order/:orderId
+    Purpose: change status
+*/
+export const updateOrderDetail = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    return handleErrorResponse(res, 404, "Order not found");
+  }
+
+  if(order.status === "Delivered") {
+    return handleErrorResponse(res, 403, "Order is already delivered");
+  }
+
+  if (status && orderStatusEnum.includes(status)) {
+    let deliveryDate = null;
+
+    if (status === "Processing") {
+      deliveryDate = calculateDateAfterDays(); 
+    } else if (status === "Shipped") {
+      deliveryDate = calculateDateAfterDays(3); 
+    } else if (status === "Delivered") {
+      deliveryDate = new Date();
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, { $set: { deliveryDate, status } }, { new : true});
+    
+    return res.json(updatedOrder)
+  }
+  
+  return handleErrorResponse(res, 404, "Status not found");
+});
+
+/*  
+    Route: POST api/user/orders/
+    Purpose: Get user specific orders
+*/
+export const getUserOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({user: req.user._id});
+  res.status(200).json(orders);
+});
+/*  
+    Route: POST api/user/order/:orderId/cancel
+    Purpose: cancel order
+*/
+export const cancelOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const userId = req.user._id;
+
+  const order = await Order.findOne({ _id: orderId, user: userId });
+
+  if (!order) {
+    return handleErrorResponse(res, 404, "Order not found");
+  }
+
+  if(order.status === "Delivered") {
+    return handleErrorResponse(res, 403, "Order is already delivered");
+  }
+
+  order.status = 'Cancelled';
+  await order.save();
+
+  for (const item of order.orderedItems) {
+    await Product.findByIdAndUpdate(
+      item._id,
+      { $inc: { stock: item.quantity } }
+    );
+  }
+
+  res.status(200).json({ message: "Order cancelled successfully"});
 });

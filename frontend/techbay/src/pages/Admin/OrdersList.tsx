@@ -1,14 +1,9 @@
-import ProductListTable from "../../components/Admin/ProductListTable";
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import TableSkeleton from "../../components/ui/TableSkeleton";
-import { Product, ProductListResponse } from "../../utils/types/productTypes"
-import { filterProducts } from "../../utils/filters/productsFIlter";
-import { ORDER_LIST_URL, PRODUCT_DELETE_URL, PRODUCT_LIST_URL, PRODUCT_RESTORE_URL } from "../../utils/urls/adminUrls";
+import { ORDER_LIST_URL } from "../../utils/urls/adminUrls";
 import useAxios from "../../hooks/useAxios";
 import CustomPagination from "../../components/ui/CustomPagination";
-import axios from "../../utils/axios";
-import { toast } from "../../components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Input } from "../../components/ui/input";
 import { debounce } from "@mui/material";
@@ -17,7 +12,6 @@ import OrderListTable from "../../components/Admin/OrderListTable";
 
 const OrdersList = () => {
     const [orders, setOrders] = useState<Order[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [filter, setFilter] = useState("all");
     const [searchOrder, setSearchorder] = useState("");
     const [searchParams] = useSearchParams();
@@ -28,51 +22,16 @@ const OrdersList = () => {
 
     useEffect(() => {
         fetchData({
-            url: `${ORDER_LIST_URL}?page=${currentPage}`,
+            url: `${ORDER_LIST_URL}?page=${currentPage}&status=${filter}`,
             method: 'GET'
         })
-    }, [currentPage]);
+    }, [currentPage, filter]);
 
     useEffect(() => {
         if (data) {
             setOrders(data.orders)
         }
     }, [data]);
-
-    console.log(orders);
-    
-    // useEffect(() => {
-    //     if (products.length > 0) {
-    //         setFilteredProducts(filterProducts(products, filter));
-    //     }
-    // }, [filter, products]);
-
-    const handleDeleteAndRestore = async (prodId: string, deleteProd: boolean) => {
-        // const url = deleteProd ? PRODUCT_DELETE_URL(prodId) : PRODUCT_RESTORE_URL(prodId);
-        // const method = deleteProd ? 'delete' : 'put';
-        // const updatedStatus = deleteProd ? false : true;
-
-        // try {
-        //     await axios[method](url);
-        //     const updatedProducts = products.map(product =>
-        //         product._id === prodId ? { ...product, isActive: updatedStatus } : product
-        //     );
-        //     setProducts(updatedProducts);
-        //     toast({
-        //         variant: "default",
-        //         title: `Product ${deleteProd ? 'Deleted' : 'Restored'} Successfully.`,
-        //         description: "",
-        //         className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
-        //     });
-        // } catch (error) {
-        //     toast({
-        //         variant: "destructive",
-        //         title: `Failed to ${deleteProd ? 'Delete' : 'Restore'} Product.`,
-        //         description: "Please try again.",
-        //         className: "bg-red-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
-        //     });
-        // }
-    };
 
     const handleSearch = debounce((term: string) => {
         fetchData({
@@ -86,7 +45,6 @@ const OrdersList = () => {
         setSearchorder(value)
         handleSearch(value)
     }
-
 
     return (
         <div className="h-full w-full flex flex-col gap-2 overflow-y-hidden">
@@ -102,7 +60,11 @@ const OrdersList = () => {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
-                                <SelectItem value="inactive">Inactive</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Processing">Processing</SelectItem>
+                                <SelectItem value="Shipped">Shipped</SelectItem>
+                                <SelectItem value="Delivered">Delivered</SelectItem>
+                                <SelectItem value="Cancelled">Cancelled</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -13,6 +13,7 @@ export const orderStatusEnum = [
 
 const orderProductSchema = new Schema(
   {
+    productID: {type: mongoose.Schema.ObjectId, required: true},
     name: { type: String, required: true },
     price: { type: Number, required: true },
     images: [{ type: String, required: true }],
@@ -56,6 +57,7 @@ const orderSchema = new Schema(
       required: true,
     },
     orderNumber: { type: String, unique: true },
+    deliveryDate: { type: Date, null: true}
   },
   {
     timestamps: true,

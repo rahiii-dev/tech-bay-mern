@@ -1,18 +1,21 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import useAxios from "../../hooks/useAxios";
-import { ORDER_DETAIL_URL } from "../../utils/urls/adminUrls";
+import { ORDER_DETAIL_UPDATE_URL, ORDER_DETAIL_URL } from "../../utils/urls/adminUrls";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@mui/material";
 import { Order } from "../../utils/types/orderTypes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { SERVER_URL } from "../../utils/constants";
-import { formatPrice } from "../../utils/appHelpers";
+import { formatDate, formatPrice } from "../../utils/appHelpers";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
+import axios from "../../utils/axios";
+import { toast } from "../../components/ui/use-toast";
 
 const OrderView = () => {
     const { data: orderData, loading, fetchData } = useAxios<Order>({}, false)
     const [orderStatus, setOrderStatus] = useState("")
+    const [modelOpen, setModelOpen] = useState(false)
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -35,8 +38,31 @@ const OrderView = () => {
         }
     }, [orderData])
 
-    const handleOrderStatus = (status: string) => {
-        setOrderStatus(status)
+    const handleOrderStatus = async (status: string) => {
+        if(orderData && orderStatus != status){
+            try {
+                await axios.put(ORDER_DETAIL_UPDATE_URL(orderData._id), {status});
+                setOrderStatus(status);
+                toast({
+                    variant: "default",
+                    title: `Order status updated successfully.`,
+                    description: "",
+                    className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                });
+            } catch (error) {
+                toast({
+                    variant: "destructive",
+                    title: `Failed to update order status`,
+                    description: "",
+                    className: "text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                });
+            }
+            finally{
+                setModelOpen(false)
+            }
+        } else {
+            setModelOpen(false)
+        }
     }
 
 
@@ -51,14 +77,19 @@ const OrderView = () => {
                             {orderStatus === "Pending" && <span className="bg-yellow-100 text-yellow-600 px-2 rounded-lg font-medium text-[12px]">Pending</span>}
                             {orderStatus === "Processing" && <span className="bg-blue-100 text-blue-600 px-2 rounded-lg font-medium text-[12px]">Processing</span>}
                             {orderStatus === "Shipped" && <span className="bg-yellow-100 text-yellow-600 px-2 rounded-lg font-medium text-[12px]">Shipped</span>}
-                            {orderStatus === "Delivered" && <span className="bg-green-100 text-green-600 px-2 rounded-lg font-medium text-[12px]">Delivered</span>}
                             {orderStatus === "Cancelled" && <span className="bg-red-100 text-red-600 px-2 rounded-lg font-medium text-[12px]">Cancelled</span>}
+                            {orderStatus === "Delivered" && (
+                                <>
+                                    <span className="bg-green-100 text-green-600 px-2 rounded-lg font-medium text-[12px]">Delivered</span>
+                                    <span className="text-gray-400 px-2 rounded-lg font-medium text-[12px]">{orderData.deliveryDate && `On${formatDate(orderData.deliveryDate)}`}</span>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
                 <div className="flex items-center gap-2">
                     {orderStatus != "Delivered" && (
-                        <Dialog>
+                        <Dialog open={modelOpen} onOpenChange={setModelOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="default" size={"sm"}>Change Status</Button>
                             </DialogTrigger>
@@ -78,7 +109,6 @@ const OrderView = () => {
                                             Close
                                         </Button>
                                     </DialogClose>
-                                    <Button type="button">Save</Button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>

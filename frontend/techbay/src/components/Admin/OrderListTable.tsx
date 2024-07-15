@@ -34,7 +34,7 @@ const OrderListTable = ({ orders }: OrderListTable) => {
                     <TableRow key={order.orderNumber}>
                         <TableCell>{order.orderNumber}</TableCell>
                         <TableCell>{formatDate(order.createdAt)}</TableCell>
-                        <TableCell>User</TableCell>
+                        <TableCell>{order.user.fullName}</TableCell>
                         <TableCell className="font-medium">{formatPrice(order.orderedAmount.total)}</TableCell>
                         <TableCell>
                             {order.status === "Pending" && <span className="bg-yellow-100 text-yellow-600 px-2 rounded-lg font-medium text-[12px]">Pending</span>}

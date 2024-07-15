@@ -25,3 +25,4 @@ export const PRODUCT_RESTORE_URL = (id: string) => generateUrl(`/products/restor
 
 export const ORDER_LIST_URL = generateUrl('/orders');
 export const ORDER_DETAIL_URL = (id: string) => generateUrl(`/order/${id}`);
+export const ORDER_DETAIL_UPDATE_URL = (id: string) => generateUrl(`/order/${id}`);

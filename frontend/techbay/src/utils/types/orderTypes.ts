@@ -2,6 +2,7 @@ import { User } from "../../features/auth/authTypes";
 import { PaginationResponse } from "./backendResponseTypes";
 
 interface OrderProduct {
+    productID: string;
     name: string,
     price: number,
     images: string[],
@@ -39,6 +40,7 @@ export interface Order {
     paymentMethod: 'debit card' | 'credit card' | 'wallet' | 'cod';
     orderNumber: string;
     createdAt: string;
+    deliveryDate: string;
 }
 
 export interface OrderList extends PaginationResponse {
