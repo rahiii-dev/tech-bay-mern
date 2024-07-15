@@ -14,7 +14,6 @@ import { CircularProgress } from "@mui/material";
 
 const CartPage = () => {
     const cart = useAppSelector((state) => state.cart.cart);
-    const cartStatus = useAppSelector((state) => state.cart.status);
     const cartError = useAppSelector((state) => state.cart.error);
     const [verifyCart, setVerifyCart] = useState(false);
 
@@ -22,7 +21,7 @@ const CartPage = () => {
     const dispatch = useAppDispatch();
 
     useEffect(() => {
-        if(cartStatus === "error" && cartError){
+        if(cartError){
             toast({
                 variant: "destructive",
                 title: cartError?.extraMessage?.title || "Cart operation failed",
@@ -31,13 +30,14 @@ const CartPage = () => {
               })
             dispatch(clearCartError())
         }
-    }, [cartError, cartStatus])
+    }, [cartError])
 
     const handleCheckout  = () => {
         setVerifyCart(true);
         dispatch(verifyCartItems())
         .then((resultAction) => {
             if(verifyCartItems.fulfilled.match(resultAction)){
+                dispatch(loadCart())
                 navigate('/checkout')
             }
             else{

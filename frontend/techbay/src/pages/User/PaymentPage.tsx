@@ -6,13 +6,69 @@ import { useAppSelector } from "../../hooks/useSelector";
 import { ArrowLeft } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
+import { useCart } from "../../components/User/CartProvider";
+import { useAppDispatch } from "../../hooks/useDispatch";
+import { loadCart, verifyCartItems } from "../../features/cart/cartThunk";
+import { useState } from "react";
+import { CircularProgress } from "@mui/material";
+import { toast } from "../../components/ui/use-toast";
+import { USER_CREATE_ORDER_URL } from "../../utils/urls/userUrls";
+import axios from "../../utils/axios";
+
 
 const PaymentPage = () => {
     const cart = useAppSelector((state) => state.cart.cart)
-    const navigate = useNavigate();
+    const { paymentPageAccessible, setOrderConfirmPageAccessible, checkoutAddress } = useCart();
+    const [confirmButtonActive, setConfirmButtonActive] = useState(false);
 
-    if ((!cart || cart.items.length === 0)) {
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
+    if ((!cart || cart.items.length === 0 || !paymentPageAccessible)) {
         return <Navigate to={'/cart'} />
+    }
+
+    const handleOrderConfirm = () => {
+        setConfirmButtonActive(true);
+        dispatch(verifyCartItems())
+            .then((resultAction) => {
+                if (verifyCartItems.fulfilled.match(resultAction)) {
+
+                    axios.post(USER_CREATE_ORDER_URL, { 
+                        cartId : cart._id,
+                        addressId: checkoutAddress?._id, 
+                        paymentMethod : 'cod'
+                    }).then( _ => {
+                        dispatch(loadCart())
+                        setOrderConfirmPageAccessible(true)
+                        navigate('/order-confirm', {replace: true})
+                    })
+                    .catch((_) => {
+                        toast({
+                            variant: "destructive",
+                            title: "Order COnfirmation failed",
+                            description: 'Please try again',
+                            className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+                        })
+                    })
+                }
+                else if (verifyCartItems.rejected.match(resultAction)) {
+                    if(resultAction.payload){
+                        const { extraMessage } = resultAction.payload;
+                        toast({
+                            variant: "destructive",
+                            title: extraMessage?.title || "Order Confirmation failed",
+                            description: extraMessage?.description || '',
+                            className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+                        })
+                    }
+                    dispatch(loadCart())
+                    navigate('/cart')
+                }
+            })
+            .finally(() => {
+                setConfirmButtonActive(false)
+            })
     }
 
     return (
@@ -40,7 +96,9 @@ const PaymentPage = () => {
                                             </div>
                                         </RadioGroup>
                                     </div>
-                                    <Button onClick={() => navigate('/order-confirm')} className="rounded-full w-full">Pay Now</Button>
+                                    <Button onClick={handleOrderConfirm} disabled={confirmButtonActive} className="rounded-full w-full">
+                                        {confirmButtonActive ? <CircularProgress color="inherit" size={20} /> : 'Confirm Order'}
+                                    </Button>
                                 </div>
                                 <div>
                                     <Button onClick={() => navigate('/checkout')} variant={"secondary"} className="rounded-full"><ArrowLeft className="me-2" size={20} /> Back to Checkout</Button>
@@ -49,12 +107,18 @@ const PaymentPage = () => {
                             <div className="w-full max-w-[400px] h-max flex flex-col gap-4">
                                 <div className="border px-3 py-2 rounded-xl">
                                     <h1 className="text-xl font-medium mb-2">Delivery Address</h1>
-
-                                    <div className="mb-5">
-                                        <p className="text-gray-400">John Doe ,
-                                            20261 Guillermo Passage,
-                                            Eranakulam, Kerala 685758 </p>
-                                    </div>
+                                    {checkoutAddress && (
+                                        <div className="mb-5">
+                                            <div className="text-gray-400">
+                                                <div className="font-medium">{checkoutAddress.fullName}</div>
+                                                <div>{checkoutAddress.addressLine1}</div>
+                                                <div>{checkoutAddress.phone}</div>
+                                                <div>
+                                                    {checkoutAddress.city + ', ' + checkoutAddress.state + ", " + checkoutAddress.country}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="border px-3 py-2 rounded-xl">
@@ -62,7 +126,7 @@ const PaymentPage = () => {
 
                                     <div className="font-medium flex justify-between items-center mb-2">
                                         <p className="text-gray-400">Subtotal</p>
-                                        <p>{formatPrice(cart.cartTotal.subtotal)}</p>
+                                        <p>{cart.cartTotal.subtotal > 0 ? formatPrice(cart.cartTotal.subtotal) : "-"}</p>
                                     </div>
                                     <div className="font-medium flex justify-between items-center mb-2">
                                         <p className="text-gray-400">Discount</p>
@@ -70,11 +134,11 @@ const PaymentPage = () => {
                                     </div>
                                     <div className="font-medium flex justify-between items-center mb-2">
                                         <p className="text-gray-400">Delivery Fee</p>
-                                        <p>{formatPrice(50)}</p>
+                                        <p>{cart.orderTotal.deliveryFee > 0 ? formatPrice(cart.orderTotal.deliveryFee) : '-'}</p>
                                     </div>
                                     <div className="font-medium flex justify-between items-centerb border-t py-3">
                                         <p>Total</p>
-                                        <p className="font-semibold text-xl">{formatPrice(cart.cartTotal.total)}</p>
+                                        <p className="font-semibold text-xl">{cart.orderTotal.total > 0 ? formatPrice(cart.orderTotal.total) : '-'}</p>
                                     </div>
                                 </div>
                             </div>

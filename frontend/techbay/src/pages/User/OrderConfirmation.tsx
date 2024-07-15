@@ -1,9 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import SubHeading from "../../components/User/SubHeading";
+import { useCart } from "../../components/User/CartProvider";
+import { useEffect } from "react";
 
 const OrderConfirmation = () => {
+    const { orderConfirmPageAccessible, setOrderConfirmPageAccessible, setPaymentPageAccessible} = useCart();
     const navigate = useNavigate()
+
+    useEffect(() => {
+        
+        if(!orderConfirmPageAccessible){
+            navigate(-1);
+        }
+
+        return () => {
+            setOrderConfirmPageAccessible(false)
+            setPaymentPageAccessible(false)
+        };
+    }, []);
+
     return (
         <section>
             <div className="container border-t-2 border-gray-100 py-6">

@@ -37,6 +37,9 @@ const Header = () => {
         if(cart){
             setCartTotal(cart.items.length)
         }
+        else {
+            setCartTotal(0)
+        }
     }, [cart, CartStatus])
 
     useEffect(() => {

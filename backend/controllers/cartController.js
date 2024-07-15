@@ -3,7 +3,7 @@ import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 
-const formatCart = (cart, user) => {
+export const formatCart = (cart, user) => {
   const subtotal = cart.items.reduce((acc, item) => {
     if (item.product.stock > 0) {
       return acc + item.product.price * item.quantity;
@@ -33,14 +33,14 @@ const formatCart = (cart, user) => {
   };
 };
 
-const populateOptions = {
+export const cartPopulateOptions = {
   path: "items.product",
-  select: "name price brand category images thumbnail stock",
+  select: "name price brand category images thumbnail stock description",
   populate: { path: "brand category", select: "name" },
 };
 
 const findUserCart = async (userId) => {
-  return await Cart.findOne({ user: userId }).populate(populateOptions);
+  return await Cart.findOne({ user: userId }).populate(cartPopulateOptions);
 };
 
 const MAX_QUANTITY = 4

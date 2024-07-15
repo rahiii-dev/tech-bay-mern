@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useTheme } from "../components/ui/ThemeProvider";
 import axios from "../utils/axios";
 import { VERIFY_AUTH_URL } from "../utils/urls/authUrls";
+import CartProvider from "../components/User/CartProvider";
 
 const UserScreen = () => {
     const user = useAppSelector((state) => state.auth.user);
@@ -27,14 +28,15 @@ const UserScreen = () => {
     })
 
     return (
-
-        <div>
-            <Header />
-            <main>
-                <Outlet />
-            </main>
-            <Footer />
-        </div>
+        <CartProvider>
+            <div>
+                <Header />
+                <main>
+                    <Outlet />
+                </main>
+                <Footer />
+            </div>
+        </CartProvider>
     );
 }
 

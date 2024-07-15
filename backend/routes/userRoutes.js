@@ -3,6 +3,7 @@ import { userCategories, userGetProductDetail, userHome, userProducts, userProfi
 import { isAuthenticated } from "../middleware/authMiddleware.js";
 import cartRoutes from './User/cartRoutes.js';
 import profileRoutes from './User/profileRoutes.js'
+import orderRoutes from './User/orderRoutes.js'
 
 const router = express.Router();
 
@@ -12,8 +13,8 @@ router.get('/product/:id', userGetProductDetail);
 router.get('/categories', userCategories);
 
 // protected
-router.get('/profile', isAuthenticated, userProfile)
 router.use('/cart', isAuthenticated, cartRoutes)
 router.use('/profile', isAuthenticated, profileRoutes)
+router.use('/order', isAuthenticated, orderRoutes)
 
 export default router

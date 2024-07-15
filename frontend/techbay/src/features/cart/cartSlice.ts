@@ -40,9 +40,8 @@ const cartSlice = createSlice({
                 state.cart = action.payload;
             }
         })
-        .addCase(loadCart.rejected, (state, action) => {
-            state.status = "error";
-            state.error = action.payload ? action.payload : null;
+        .addCase(loadCart.rejected, (state) => {
+            state.cart = null;
         })
         .addCase(addItemToCart.pending, (state) => {
             state.status = "loading";

@@ -13,6 +13,7 @@ import { Addresss } from "../../utils/types/addressTypes";
 import { toast } from "../../components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import AddressForm from "../../components/User/AddressForm";
+import { useCart } from "../../components/User/CartProvider";
 
 const CheckoutPage = () => {
     const cart = useAppSelector((state) => state.cart.cart)
@@ -21,7 +22,7 @@ const CheckoutPage = () => {
         method: 'GET'
     })
 
-    const [checkoutAddress, setCheckoutAddress] = useState<Addresss | null>(null);
+    const { checkoutAddress, setCheckoutAddress, setPaymentPageAccessible } = useCart();
     const [addressList, setAddressList] = useState<Addresss[]>([]);
     const [adddressFormActive, setAadddressFormActive] = useState(false);
     const [adddressListModelActive, setAadddressListModelActive] = useState(false);
@@ -73,7 +74,7 @@ const CheckoutPage = () => {
             return
         }
 
-        sessionStorage.setItem('payment-page-active', "1");
+        setPaymentPageAccessible(true);
         navigate('/payment')
     }
 
