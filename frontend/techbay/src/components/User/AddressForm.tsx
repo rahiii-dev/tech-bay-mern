@@ -57,6 +57,33 @@ const AddressForm = ({ onSuccess, addressId }: AddressFormProp) => {
                 method: 'GET'
             })
         }
+        else {
+            form.reset({
+                fullName: "",
+                phone: "",
+                addressLine1: "",
+                addressLine2: "",
+                city: "",
+                state: "",
+                zipCode: "",
+                country: "",
+                isDefault: true
+            })
+        }
+
+        return () => {
+            form.reset({
+                fullName: "",
+                phone: "",
+                addressLine1: "",
+                addressLine2: "",
+                city: "",
+                state: "",
+                zipCode: "",
+                country: "",
+                isDefault: true
+            })
+        }
     }, [addressId])
 
     useEffect(() => {

@@ -17,7 +17,6 @@ import { useEffect } from "react";
 import { BACKEND_RESPONSE } from "../../utils/types/backendResponseTypes";
 import PasswordInput from "../ui/PasswordInput";
 
-// Create a new schema for the registration form
 const RegisterSchema = z.object({
     firstName: z.string()
         .trim()

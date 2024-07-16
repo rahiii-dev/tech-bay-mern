@@ -1,6 +1,64 @@
 import asyncHandler from "express-async-handler";
 import Address from "../models/Address.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
+import User from "../models/User.js";
+
+/*  
+    Route: GET api/user/profile/
+    Purpose: Get User Profile details
+    Access: Private
+*/
+export const getProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
+
+  if (!user) {
+    return handleErrorResponse(res, 404, "User not found");
+  }
+
+  return res.json(user);
+});
+/*  
+    Route: POST api/user/profile/
+    Purpose: Get User Profile details
+    Access: Private
+*/
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { fullName, phone_no } = req.body;
+  const user = await User.findById(req.user._id).select("-password");
+  if (!user) {
+    return handleErrorResponse(res, 404, "User not found");
+  }
+
+  user.fullName = fullName || user.fullName;
+  user.phone_no = phone_no || user.phone_no;
+
+  await user.save();
+  return res.json(user);
+});
+/*  
+    Route: PUT api/user/profile/change-password
+    Purpose: change user password
+    Access: Private
+*/
+export const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, password } = req.body;
+
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return handleErrorResponse(res, 404, "User not found");
+  }
+
+  if (!oldPassword || !(await user.comparePassword(oldPassword))) {
+    return handleErrorResponse(res, 401, "Invalid old password");
+  }
+
+  if (password) {
+    user.password = password;
+  }
+
+  await user.save();
+  return res.json({ message: "Password changed" });
+});
 
 /*  
     Route: POST api/user/profile/addresses
@@ -8,7 +66,17 @@ import handleErrorResponse from "../utils/handleErrorResponse.js";
     Access: Private
 */
 export const addAddress = asyncHandler(async (req, res) => {
-  const { fullName, phone, addressLine1, addressLine2, city, state, zipCode, country, isDefault } = req.body;
+  const {
+    fullName,
+    phone,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    zipCode,
+    country,
+    isDefault,
+  } = req.body;
 
   if (isDefault) {
     await Address.updateMany(
@@ -27,7 +95,7 @@ export const addAddress = asyncHandler(async (req, res) => {
     state,
     zipCode,
     country,
-    isDefault
+    isDefault,
   });
 
   await address.save();
@@ -62,34 +130,43 @@ export const getSingleAddress = asyncHandler(async (req, res) => {
     Access: Private
 */
 export const updateAddress = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const { fullName, phone, addressLine1, addressLine2, city, state, zipCode, country, isDefault } = req.body;
-  
-    const address = await Address.findById(id);
-  
-    if (!address) {
-      return handleErrorResponse(res, 404, "Address not found");
-    }
+  const { id } = req.params;
+  const {
+    fullName,
+    phone,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    zipCode,
+    country,
+    isDefault,
+  } = req.body;
 
-    if (isDefault) {
-      await Address.updateMany(
-        { user: req.user._id, isDefault: true },
-        { isDefault: false }
-      );
-    }
-    
-    address.fullName = fullName || address.fullName;
-    address.phone = phone || address.phone;
-    address.addressLine1 = addressLine1 || address.addressLine1;
-    address.addressLine2 = addressLine2 || address.addressLine2;
-    address.city = city || address.city;
-    address.state = state || address.state;
-    address.zipCode = zipCode || address.zipCode;
-    address.country = country || address.country;
-    address.isDefault = isDefault || address.isDefault;
+  const address = await Address.findById(id);
 
-    const updatedAddress = await address.save()
-  
-    return res.json(updatedAddress);
-  });
-  
+  if (!address) {
+    return handleErrorResponse(res, 404, "Address not found");
+  }
+
+  if (isDefault) {
+    await Address.updateMany(
+      { user: req.user._id, isDefault: true },
+      { isDefault: false }
+    );
+  }
+
+  address.fullName = fullName || address.fullName;
+  address.phone = phone || address.phone;
+  address.addressLine1 = addressLine1 || address.addressLine1;
+  address.addressLine2 = addressLine2 || address.addressLine2;
+  address.city = city || address.city;
+  address.state = state || address.state;
+  address.zipCode = zipCode || address.zipCode;
+  address.country = country || address.country;
+  address.isDefault = isDefault || address.isDefault;
+
+  const updatedAddress = await address.save();
+
+  return res.json(updatedAddress);
+});
