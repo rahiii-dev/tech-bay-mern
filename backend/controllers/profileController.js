@@ -46,24 +46,50 @@ export const getAddresses = asyncHandler(async (req, res) => {
 });
 
 /*  
-    Route: PUT api/user/profile/addresses/:id
+    Route: GET api/user/profile/address/:id
+    Purpose: Get a address using id
+    Access: Private
+*/
+export const getSingleAddress = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const address = await Address.findById(id);
+  return res.json(address);
+});
+
+/*  
+    Route: PUT api/user/profile/address/:id
     Purpose: Update an existing address for the user
     Access: Private
 */
 export const updateAddress = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { street, city, state, zipCode, country } = req.body;
+    const { fullName, phone, addressLine1, addressLine2, city, state, zipCode, country, isDefault } = req.body;
   
-    const address = await Address.findOneAndUpdate(
-      { _id: id, user: req.user._id },
-      { street, city, state, zipCode, country },
-      { new: true }
-    );
+    const address = await Address.findById(id);
   
     if (!address) {
       return handleErrorResponse(res, 404, "Address not found");
     }
+
+    if (isDefault) {
+      await Address.updateMany(
+        { user: req.user._id, isDefault: true },
+        { isDefault: false }
+      );
+    }
+    
+    address.fullName = fullName || address.fullName;
+    address.phone = phone || address.phone;
+    address.addressLine1 = addressLine1 || address.addressLine1;
+    address.addressLine2 = addressLine2 || address.addressLine2;
+    address.city = city || address.city;
+    address.state = state || address.state;
+    address.zipCode = zipCode || address.zipCode;
+    address.country = country || address.country;
+    address.isDefault = isDefault || address.isDefault;
+
+    const updatedAddress = await address.save()
   
-    return res.json(address);
+    return res.json(updatedAddress);
   });
   

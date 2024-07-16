@@ -5,14 +5,15 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "../ui/use-toast";
-import { USER_ADDRESS_ADD_URL } from "../../utils/urls/userUrls";
+import { USER_ADDRESS_ADD_URL, USER_ADDRESS_SINGLE_URL, USER_ADDRESS_UPDATE_URL } from "../../utils/urls/userUrls";
 import axios from "../../utils/axios";
 import { Checkbox } from "../ui/checkbox";
 // import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import '../ui/PhoneInput.css';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Addresss } from "../../utils/types/addressTypes";
+import useAxios from "../../hooks/useAxios";
 
 const AddressSchema = z.object({
     fullName: z.string().trim().min(1, "Full name is required"),
@@ -28,9 +29,11 @@ const AddressSchema = z.object({
 
 type AddressFormProp = {
     onSuccess?: (data: Addresss) => void;
+    addressId?: string | null;
 }
-const AddressForm = ({onSuccess}: AddressFormProp) => {
+const AddressForm = ({ onSuccess, addressId }: AddressFormProp) => {
     const [sumbitting, setSubmitting] = useState(false);
+    const { data: addressData, loading: addresDataLoading, fetchData: fetchAddress } = useAxios<Addresss>({}, false)
 
     const form = useForm<z.infer<typeof AddressSchema>>({
         resolver: zodResolver(AddressSchema),
@@ -47,14 +50,40 @@ const AddressForm = ({onSuccess}: AddressFormProp) => {
         },
     });
 
+    useEffect(() => {
+        if (addressId) {
+            fetchAddress({
+                url: USER_ADDRESS_SINGLE_URL(addressId),
+                method: 'GET'
+            })
+        }
+    }, [addressId])
+
+    useEffect(() => {
+        if (addressData) {
+            form.reset({
+                fullName: addressData.fullName,
+                phone: addressData.phone,
+                addressLine1: addressData.addressLine1,
+                addressLine2: addressData.addressLine2,
+                city: addressData.city,
+                state: addressData.state,
+                zipCode: addressData.zipCode,
+                country: addressData.country,
+                isDefault: addressData.isDefault
+            })
+        }
+    }, [addressData])
+
     async function onSubmit(data: z.infer<typeof AddressSchema>) {
         setSubmitting(true);
         try {
-            const resData = await axios.post<Addresss>(USER_ADDRESS_ADD_URL, data)
+            const url = addressId ? USER_ADDRESS_UPDATE_URL(addressId) : USER_ADDRESS_ADD_URL;
+            const resData = await axios.post<Addresss>(url, data)
             if (resData) {
                 toast({
                     variant: "default",
-                    title: 'Address added successfully',
+                    title: `Address ${addressId ? 'updated' : 'added'} successfully`,
                     className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
                 });
 
@@ -96,7 +125,7 @@ const AddressForm = ({onSuccess}: AddressFormProp) => {
                         </FormItem>
                     )}
                 />
-               
+
                 <FormField
                     control={form.control}
                     name="addressLine1"
@@ -191,8 +220,8 @@ const AddressForm = ({onSuccess}: AddressFormProp) => {
                         </FormItem>
                     )}
                 />
-                <Button disabled={sumbitting} type="submit" className="w-full">
-                    Add Address
+                <Button disabled={(sumbitting || addresDataLoading)} type="submit" className="w-full">
+                    {addressId ? "Edit Address" : "Add Address"}
                 </Button>
             </form>
         </Form>

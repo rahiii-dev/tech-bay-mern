@@ -179,7 +179,7 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
 });
 
 /*  
-    Route: POST api/user/orders/
+    Route: POST api/user/order/list
     Purpose: Get user specific orders
 */
 export const getUserOrders = asyncHandler(async (req, res) => {
@@ -209,7 +209,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 
   for (const item of order.orderedItems) {
     await Product.findByIdAndUpdate(
-      item._id,
+      item.productID,
       { $inc: { stock: item.quantity } }
     );
   }
