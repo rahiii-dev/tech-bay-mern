@@ -1,5 +1,5 @@
 import express from "express";
-import { userCategories, userGetProductDetail, userHome, userProducts, userProfile } from "../controllers/userController.js";
+import { userBrands, userCategories, userGetProductDetail, userHome, userProducts } from "../controllers/userController.js";
 import { isAuthenticated } from "../middleware/authMiddleware.js";
 import cartRoutes from './User/cartRoutes.js';
 import profileRoutes from './User/profileRoutes.js'
@@ -11,6 +11,7 @@ router.get('/home', userHome);
 router.get('/products', userProducts);
 router.get('/product/:id', userGetProductDetail);
 router.get('/categories', userCategories);
+router.get('/brands', userBrands);
 
 // protected
 router.use('/cart', isAuthenticated, cartRoutes)

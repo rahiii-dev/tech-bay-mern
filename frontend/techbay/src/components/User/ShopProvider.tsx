@@ -1,30 +1,37 @@
-import { ProductListResponse } from '../../utils/types/productTypes';
-import { Category, CategoryList } from '../../utils/types/categoryTypes';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, Dispatch, SetStateAction } from 'react';
 import useAxios from '../../hooks/useAxios';
-import { USER_PRODUCT_LIST_URL, USER_CATEGORY_LIST_URL } from '../../utils/urls/userUrls';
+import { USER_PRODUCT_LIST_URL, USER_CATEGORY_LIST_URL, USER_BRAND_LIST_URL } from '../../utils/urls/userUrls';
+import { ProductListResponse } from '../../utils/types/productTypes';
+import { Category } from '../../utils/types/categoryTypes';
+import { Brand } from '../../utils/types/brandTypes';
 
 type ShopProviderState = {
     productsData: ProductListResponse | null;
     categories: Category[];
-    activeCategory: string;
+    checkedCategories: string[];
+    setCheckedCategories: Dispatch<SetStateAction<string[]>>;
+    brands: Brand[];
+    checkedBrands: string[];
+    setCheckedBrands: Dispatch<SetStateAction<string[]>>;
     status: "loading" | "success" | "error";
-    setActiveCategory: (category: string) => void;
     setActivePage: (page: number) => void;
     fetchProducts: () => void;
-    fetchCategories: () => void;
 }
+
 
 const initialState: ShopProviderState = {
     productsData: null,
     categories: [],
-    activeCategory: "all",
+    checkedCategories: [],
+    setCheckedCategories: () => {},
+    brands: [],
+    checkedBrands: [], 
+    setCheckedBrands: () => {},
     status: "loading",
-    setActiveCategory: () => {},
     setActivePage: () => {},
     fetchProducts: () => {},
-    fetchCategories: () => {},
-}
+};
+
 
 const ShopProviderContext = createContext<ShopProviderState>(initialState);
 
@@ -34,62 +41,77 @@ type ShopProviderProps = {
 
 const ShopProvider = ({children}: ShopProviderProps) => {
     const [productsData, setProductData] = useState<ProductListResponse | null>(null);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-    const [activeCategory, setActiveCategory] = useState<string>("all");
     const [activePage, setActivePage] = useState<number>(1);
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [checkedCategories, setCheckedCategories] = useState<string[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [checkedBrands, setCheckedBrands] = useState<string[]>([]);
 
     const { data: productData, fetchData: fetchProducts } = useAxios<ProductListResponse>({}, false);
 
-    const { data: categoryData, fetchData: fetchCategories } = useAxios<CategoryList>({
+    const { data: categoryData} = useAxios<Category[]>({
         url: USER_CATEGORY_LIST_URL,
         method: 'GET'
     });
 
+    const { data: brandsData } = useAxios<Brand[]>({
+        url: USER_BRAND_LIST_URL,
+        method: 'GET'
+    });
+
     useEffect(() => {
-        setStatus("loading")
-        const url = activeCategory === "all" ? `${USER_PRODUCT_LIST_URL}?page=${activePage}` : `${USER_PRODUCT_LIST_URL}?page=${activePage}&category=${activeCategory}`;
+        setStatus("loading");
+        const url = `${USER_PRODUCT_LIST_URL}?page=${activePage}&limit=9&categories=${checkedCategories.join(',')}&brands=${checkedBrands.join(',')}`;
         fetchProducts({
             url,
             method: 'GET'
-        }).then((_) => {
-            setStatus("success")
-        }).catch((_) => {
-            setStatus("error")
-        })
-        
-    }, [activeCategory, activePage])
+        }).then(() => {
+            setStatus("success");
+        }).catch(() => {
+            setStatus("error");
+        });
+    }, [checkedCategories, checkedBrands, activePage]);
 
     useEffect(() => {
         if(productData){
-            setProductData(productData)
-            setStatus("success")
+            setProductData(productData);
+            setStatus("success");
         }
-    }, [productData])
+    }, [productData]);
 
     useEffect(() => {
         if(categoryData){
-            setCategories(categoryData.categories)
+            setCategories(categoryData);
         }
-    }, [categoryData])
+    }, [categoryData]);
+
+    useEffect(() => {
+        if(brandsData){
+            setBrands(brandsData);
+        }
+    }, [brandsData]);
 
     const value: ShopProviderState = {
         productsData,
         categories,
-        status: status,
-        activeCategory,
+        status,
+        checkedCategories,
+        setCheckedCategories,
+        brands,
+        checkedBrands,
+        setCheckedBrands,
         setActivePage,
-        setActiveCategory,
         fetchProducts,
-        fetchCategories,
-    }
+    };
 
     return (
         <ShopProviderContext.Provider value={value}>
             {children}
         </ShopProviderContext.Provider>
     );
-}
+};
+
 
 export const useShop = () => {
     const context = useContext(ShopProviderContext);

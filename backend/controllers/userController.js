@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
+import Brand from "../models/Brand.js";
 import { ACTIVE_PRODUCT_PIPELINE } from "../utils/pipelines/product.js";
 import { handleProduct } from "./productController.js";
 import { generateFileURL } from "../utils/helpers/fileHelper.js";
@@ -69,11 +70,11 @@ export const userHome = asyncHandler(async (req, res) => {
 });
 
 /*  
-    Route: GET api/user/proucts
+    Route: GET api/user/products
     Purpose: list products for user and filter according to query
 */
 export const userProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 8, search, category } = req.query;
+  const { page = 1, limit = 10, search, categories, brands } = req.query;
 
   const pipeline = [...ACTIVE_PRODUCT_PIPELINE];
 
@@ -84,10 +85,20 @@ export const userProducts = asyncHandler(async (req, res) => {
     });
   }
 
-  if (category) {
+  if (categories) {
+    const categoryNames = categories.split(',').map(cat => cat.trim());
     pipeline.push({
       $match: {
-        "category._id": new mongoose.Types.ObjectId(category),
+        "category.name": { $in: categoryNames },
+      },
+    });
+  }
+
+  if (brands) {
+    const brandNames = brands.split(',').map(brand => brand.trim());
+    pipeline.push({
+      $match: {
+        "brand.name": { $in: brandNames },
       },
     });
   }
@@ -124,6 +135,7 @@ export const userProducts = asyncHandler(async (req, res) => {
   return res.json(result);
 });
 
+
 /*  
     Route: GET api/user/product/:id
     Purpose: get product using product id
@@ -156,8 +168,14 @@ export const userGetProductDetail = asyncHandler(async (req, res) => {
 */
 export const userCategories = asyncHandler(async (req, res) => {
   const categories = await Category.find({ isDeleted: false });
-  return res.json({
-    categoriesCount: categories.length,
-    categories,
-  });
+  return res.json(categories);
+});
+
+/*  
+    Route: GET api/user/brand
+    Purpose: list active for user
+*/
+export const userBrands = asyncHandler(async (req, res) => {
+  const brands = await Brand.find({ isDeleted: false });
+  return res.json(brands);
 });
