@@ -42,6 +42,11 @@ export const addressSchema = new Schema({
   isDefault: {
     type: Boolean,
     default: false
+  },
+  addressType: {
+    type: String,
+    enum: ['home', 'work'],
+    required: true
   }
 }, {
   timestamps: true

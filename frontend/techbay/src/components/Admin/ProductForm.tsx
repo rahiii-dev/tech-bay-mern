@@ -107,6 +107,8 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                     imageFiles = await Promise.all(product.imageUrls.map(imageUrl => urlToFile(`${SERVER_URL}${imageUrl}`)));
                 }
 
+                console.log(productRes);
+
 
                 form.reset({
                     name: product?.name,
@@ -114,8 +116,8 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                     price: product?.price,
                     stock: product?.stock,
                     isActive: product?.isActive,
-                    category: product?.category,
-                    brand: product?.brand,
+                    category: typeof product.category === 'string' ? product.category : product.category._id,
+                    brand: typeof product.brand === 'string' ? product.brand : product.brand._id,
                     thumbnail: thumbnailFile,
                     images: imageFiles
                 });

@@ -75,6 +75,7 @@ export const addAddress = asyncHandler(async (req, res) => {
     state,
     zipCode,
     country,
+    addressType,
     isDefault,
   } = req.body;
 
@@ -95,6 +96,7 @@ export const addAddress = asyncHandler(async (req, res) => {
     state,
     zipCode,
     country,
+    addressType,
     isDefault,
   });
 
@@ -140,6 +142,7 @@ export const updateAddress = asyncHandler(async (req, res) => {
     state,
     zipCode,
     country,
+    addressType,
     isDefault,
   } = req.body;
 
@@ -147,13 +150,6 @@ export const updateAddress = asyncHandler(async (req, res) => {
 
   if (!address) {
     return handleErrorResponse(res, 404, "Address not found");
-  }
-
-  if (isDefault) {
-    await Address.updateMany(
-      { user: req.user._id, isDefault: true },
-      { isDefault: false }
-    );
   }
 
   address.fullName = fullName || address.fullName;
@@ -164,9 +160,31 @@ export const updateAddress = asyncHandler(async (req, res) => {
   address.state = state || address.state;
   address.zipCode = zipCode || address.zipCode;
   address.country = country || address.country;
-  address.isDefault = isDefault || address.isDefault;
+  address.addressType = addressType || address.addressType;
+
+  console.log(isDefault);
+  if(isDefault === true && !address.isDefault){
+    await Address.updateMany(
+      { user: req.user._id, isDefault: true },
+      { isDefault: false }
+    );
+    address.isDefault = true;
+  } else if(isDefault === false){
+    address.isDefault = false;
+  }
 
   const updatedAddress = await address.save();
 
   return res.json(updatedAddress);
+});
+
+/*  
+    Route: DELETE api/user/profile/address/:id
+    Purpose: delete adddress permenantly
+    Access: Private
+*/
+export const deleteAddress = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await Address.deleteOne({_id: id})
+  return res.json({message: "Address deleted"})
 });

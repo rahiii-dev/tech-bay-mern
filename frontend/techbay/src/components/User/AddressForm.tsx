@@ -14,6 +14,7 @@ import '../ui/PhoneInput.css';
 import { useEffect, useState } from "react";
 import { Addresss } from "../../utils/types/addressTypes";
 import useAxios from "../../hooks/useAxios";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 const AddressSchema = z.object({
     fullName: z.string().trim().min(1, "Full name is required"),
@@ -25,6 +26,7 @@ const AddressSchema = z.object({
     zipCode: z.string().trim().min(1, "Zip Code is required"),
     country: z.string().trim().min(1, "Country is required"),
     isDefault: z.boolean().optional(),
+    addressType: z.enum(['home', 'work']),
 });
 
 type AddressFormProp = {
@@ -46,6 +48,7 @@ const AddressForm = ({ onSuccess, addressId }: AddressFormProp) => {
             state: "",
             zipCode: "",
             country: "",
+            addressType: "home",
             isDefault: true
         },
     });
@@ -97,7 +100,8 @@ const AddressForm = ({ onSuccess, addressId }: AddressFormProp) => {
                 state: addressData.state,
                 zipCode: addressData.zipCode,
                 country: addressData.country,
-                isDefault: addressData.isDefault
+                addressType: addressData.addressType,
+                isDefault: addressData.isDefault,
             })
         }
     }, [addressData])
@@ -226,6 +230,27 @@ const AddressForm = ({ onSuccess, addressId }: AddressFormProp) => {
                             <FormLabel>Country</FormLabel>
                             <FormControl>
                                 <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="addressType"
+                    render={({ field }) => (
+                        <FormItem className="max-w-[200px]">
+                            <FormLabel>Address Type</FormLabel>
+                            <FormControl>
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select address type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="home">Home</SelectItem>
+                                        <SelectItem value="work">Work</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </FormControl>
                             <FormMessage />
                         </FormItem>

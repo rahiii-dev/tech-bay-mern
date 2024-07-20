@@ -4,13 +4,16 @@ import SubHeading from "../../components/User/SubHeading";
 import useAxios from "../../hooks/useAxios";
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
-import { USER_ADDRESS_LIST_URL, USER_PROFILE_URL } from "../../utils/urls/userUrls";
+import { USER_ADDRESS_DELETE_URL, USER_ADDRESS_LIST_URL, USER_PROFILE_URL } from "../../utils/urls/userUrls";
 import { Addresss } from "../../utils/types/addressTypes";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import AddressForm from "../../components/User/AddressForm";
 import { User } from "../../features/auth/authTypes";
 import UserUpdateForm from "../../components/User/UserUpdateForm";
 import ChangePasswordForm from "../../components/auth/ChangePasswordForm";
+import { Trash } from "lucide-react";
+import axios from "../../utils/axios";
+import { toast } from "../../components/ui/use-toast";
 
 const ProfilePage = () => {
     const { data: profileData, fetchData: fetchProfile } = useAxios<User>({
@@ -37,6 +40,7 @@ const ProfilePage = () => {
 
     }, [activeSide])
 
+
     const handlesideActive = (activeSide: string) => {
         setActiveSide(activeSide)
     }
@@ -62,6 +66,23 @@ const ProfilePage = () => {
     const handleProfileFormSuccess = () => {
         fetchProfile();
         handleCloseModel();
+    }
+
+    const handleDeleteAddress = async (event: React.MouseEvent<HTMLDivElement>, addressId: string) => {
+        event.stopPropagation();
+        try {
+            await axios.delete(USER_ADDRESS_DELETE_URL(addressId));
+            toast({
+                variant: "default",
+                title: `Address deleted successfully.`,
+                description: "",
+                className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+            });
+            fetchAddressList();
+            handleCloseModel();
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     return (
@@ -110,16 +131,22 @@ const ProfilePage = () => {
                                 {addressesData && addressesData.length === 0 && <h1 className="mt-3 text-center text-lg font-medium">Add a Shipping Address</h1>}
                                 <div className="grid grid-cols-2 gap-3 mt-3">
                                     {addressesData && addressesData.map(address => (
-                                        <div key={address._id} onClick={() => handleAddressFormType("edit", address._id)} className={`text-primary-foreground border py-2 px-3 rounded-xl cursor-pointer hover:text-blue-500 hover:bg-blue-100 hover:border-2 hover:border-blue-300`}>
+                                        <div key={address._id} onClick={() => handleAddressFormType("edit", address._id)} className={`relative text-primary-foreground border py-2 px-3 rounded-xl cursor-pointer hover:text-blue-500 hover:bg-blue-100 hover:border-2 hover:border-blue-300`}>
                                             <div className="font-medium">
-                                                {address.fullName}
+                                                <span>{address.fullName}</span>
                                                 {address.isDefault && <span className="ms-2 text-green-600 text-sm bg-green-200 px-2 rounded-full">Default</span>}
+                                            </div>
+                                            <div onClick={(event) => handleDeleteAddress(event, address._id)} className="absolute right-0 top-0 z-10 p-2">
+                                                <Trash size={20} className="text-red-400"/>
                                             </div>
                                             <div>{address.addressLine1}</div>
                                             {address.addressLine2 && (<div>{address.addressLine2}</div>)}
                                             <div>{address.phone}</div>
                                             <div>
                                                 {address.city + ', ' + address.state + ", " + address.country}
+                                            </div>
+                                            <div className="text-gray-400 font-medium text-sm">
+                                                Type: {address.addressType.toLocaleUpperCase()}
                                             </div>
                                         </div>
                                     ))}

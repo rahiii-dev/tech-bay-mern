@@ -8,6 +8,7 @@ export interface Addresss {
     state: string,
     zipCode: string,
     country: string,
+    addressType: "home" | "work",
     isDefault: boolean
 }
 

@@ -184,7 +184,7 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
     Purpose: Get user specific orders
 */
 export const getUserOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({user: req.user._id});
+  const orders = await Order.find({user: req.user._id}).sort({createdAt: -1});
   res.status(200).json(orders);
 });
 /*  

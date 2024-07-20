@@ -6,8 +6,8 @@ export interface Product {
     _id: string;
     name: string;
     description: string;
-    category: Category;
-    brand: Brand;
+    category: Category | string;
+    brand: Brand | string;
     thumbnail: string;
     thumbnailUrl: string;
     imageUrls: string[];
