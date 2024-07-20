@@ -1,41 +1,45 @@
-import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
 import { User } from "../../features/auth/authTypes";
 import axios from "../../utils/axios";
-import { filterUsers } from "../../utils/filterUser";
-import { useToast } from "../../components/ui/use-toast";
+import { toast} from "../../components/ui/use-toast";
 import CustomerTable from "../../components/Admin/CustomerTable";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import { CUSTOMER_LIST_URL } from "../../utils/urls/adminUrls";
+import { useSearchParams } from "react-router-dom";
+import { Input } from "../../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { PaginationResponse } from "../../utils/types/backendResponseTypes";
+import { debounce } from "@mui/material";
+import CustomPagination from "../../components/ui/CustomPagination";
 
-interface CustomerListResponse {
-    totalCustomerCount: number;
+interface CustomerListResponse extends PaginationResponse {
+    totalCustomers: number;
     customers: User[];
 }
 
 const Customers = () => {
     const [filter, setFilter] = useState("all");
     const [customers, setCustomers] = useState<User[]>([]);
-    const [filteredCustomers, setFilteredCustomers] = useState<User[]>([]);
+    const [searchCustomer, setSearchCustomer] = useState("");
+    const [searchParams] = useSearchParams();
 
-    const { toast } = useToast();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
-    const { data, error, loading } = useAxios<CustomerListResponse>({
-        url: CUSTOMER_LIST_URL,
-        method: 'GET'
-    });
+    const { data, loading, fetchData } = useAxios<CustomerListResponse>({}, false);
 
+    useEffect(() => {
+        fetchData({
+            url: `${CUSTOMER_LIST_URL}?page=${currentPage}&filter=${filter}`,
+            method: 'GET'
+        })
+    }, [currentPage, filter]);
 
     useEffect(() => {
         if (data) {
             setCustomers(data.customers);
         }
     }, [data]);
-
-    useEffect(() => {
-        setFilteredCustomers(filterUsers(customers, filter));
-    }, [filter, customers]);
 
     const handleBlockStatusChange = async (userId: string, block: boolean) => {
         try {
@@ -54,33 +58,67 @@ const Customers = () => {
                 });
             }
         } catch (error) {
-           
+           console.error(error);
         }
     };
 
+    const handleSearch = debounce((term: string) => {
+        fetchData({
+            url: `${CUSTOMER_LIST_URL}?page=${currentPage}&search=${term.trim()}`,
+            method: 'GET'
+        })
+    }, 300);
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target;
+        setSearchCustomer(value)
+        handleSearch(value)
+    }
+    
+
     return (
         <div className="h-full w-full flex flex-col gap-2 overflow-y-hidden">
-            <div className="w-full flex justify-between items-center gap-2">
-                <Tabs defaultValue="all" className="w-[250px] shadow-sm" onValueChange={setFilter}>
-                    <TabsList className="flex items-center justify-between gap-2 bg-primary-foreground rounded-sm">
-                        <TabsTrigger value="all" className="bg-secondary w-full rounded-sm p-1 data-[state=active]:bg-foreground data-[state=active]:text-background">All</TabsTrigger>
-                        <TabsTrigger value="blocked" className="bg-secondary w-full rounded-sm p-1 data-[state=active]:bg-foreground data-[state=active]:text-background">Blocked</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-                <div className="text-sm font-medium">
-                    {(data?.totalCustomerCount ?? 0) > 10
-                        ? `Showing 1 - 10 of ${data?.totalCustomerCount}`
-                        : `Showing all ${data?.totalCustomerCount}`}
+            <div className="w-full h-max py-2 flex justify-between items-center gap-2">
+                <div>
+                    <Input className="h-[35px]" placeholder="Search by customers" value={searchCustomer} onChange={handleChange} />
+                </div>
+                <div className="flex items-center gap-3">
+                    <div>
+                        <Select onValueChange={setFilter}>
+                            <SelectTrigger className="w-[120px] h-[35px]">
+                                <SelectValue placeholder="Filter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All</SelectItem>
+                                <SelectItem value="blocked">Blocked</SelectItem>
+                                <SelectItem value="notverified">Not Verified</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
             <div className="w-full max-h-[800px] custom-scrollbar overflow-x-hidden overflow-y-scroll flex-grow bg-primary-foreground rounded-md shadow-lg">
-            {loading && <TableSkeleton />}
-                {!loading && !error && filteredCustomers.length === 0 && (
+                {loading && !searchCustomer && <TableSkeleton />}
+                {!loading && data && customers && customers.length === 0 && (
                     <div className="p-4 text-center text-foreground">No customers found.</div>
                 )}
-                {!loading && !error && filteredCustomers.length > 0 && (
-                    <CustomerTable customers={filteredCustomers} handleBlockStatusChange={handleBlockStatusChange} />
+                {data && customers && customers.length > 0 && (
+                    <>
+                        <CustomerTable customers={customers} handleBlockStatusChange={handleBlockStatusChange} />
+                        <div className="px-4 py-3 border-t-2 border-secondary flex justify-between items-center gap-3">
+                            {data && (
+                                <>
+                                    <div className="text-sm font-medium text-gray-400">
+                                        {(data.totalCustomers ?? 0) > 10
+                                            ? `Showing 1 - ${data.limit} of ${data.totalCustomers}`
+                                            : `Showing all ${data.totalCustomers}`}
+                                    </div>
+                                    <CustomPagination hasNextPage={data.hasNextPage} hasPrevPage={data.hasPrevPage} page={data.page} totalPages={data.totalPages} />
+                                </>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
         </div>

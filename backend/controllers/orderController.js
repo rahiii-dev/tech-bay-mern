@@ -106,6 +106,7 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
       path: 'user',
       select: 'email fullName'
     },
+    sort: { createdAt: -1 },
   };
 
   if (status && orderStatusEnum.includes(status)) {

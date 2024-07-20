@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { capitalize } from "../utils/helpers/appHelpers.js";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const userSchema = new mongoose.Schema({
     fullName: {
@@ -57,6 +58,8 @@ userSchema.pre('save', async function(next) {
         next(err);
     }
 });
+
+userSchema.plugin(mongoosePaginate)
 
 userSchema.methods.comparePassword = async function(userPassword) {
     return await bcrypt.compare(userPassword, this.password);

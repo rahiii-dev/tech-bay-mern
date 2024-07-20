@@ -50,7 +50,7 @@ const OrdersList = () => {
         <div className="h-full w-full flex flex-col gap-2 overflow-y-hidden">
             <div className="w-full h-max py-2 flex justify-between items-center gap-2">
                 <div>
-                    <Input className="h-[35px]" placeholder="Search by products" value={searchOrder} onChange={handleChange} />
+                    <Input className="h-[35px]" placeholder="Search by orders" value={searchOrder} onChange={handleChange} />
                 </div>
                 <div className="flex items-center gap-3">
                     <div>
