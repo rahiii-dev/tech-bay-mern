@@ -5,7 +5,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import { Product, ProductListResponse } from "../../utils/types/productTypes"
-import { filterProducts } from "../../utils/filters/productsFIlter";
 import { PRODUCT_DELETE_URL, PRODUCT_LIST_URL, PRODUCT_RESTORE_URL } from "../../utils/urls/adminUrls";
 import useAxios from "../../hooks/useAxios";
 import CustomPagination from "../../components/ui/CustomPagination";
@@ -17,7 +16,6 @@ import { debounce } from "@mui/material";
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [filter, setFilter] = useState("all");
   const [searchProducts, setSearchProducts] = useState("");
   const [searchParams] = useSearchParams();
@@ -29,10 +27,10 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchData({
-      url: `${PRODUCT_LIST_URL}?page=${currentPage}`,
+      url: `${PRODUCT_LIST_URL}?page=${currentPage}&status=${filter}`,
       method: 'GET'
     })
-  }, [currentPage]);
+  }, [currentPage, filter]);
 
   useEffect(() => {
     if (data) {
@@ -40,11 +38,11 @@ const ProductList = () => {
     }
   }, [data]);
 
-  useEffect(() => {
-    if (products.length > 0) {
-      setFilteredProducts(filterProducts(products, filter));
-    }
-  }, [filter, products]);
+  // useEffect(() => {
+  //   if (products.length > 0) {
+  //     setFilteredProducts(products);
+  //   }
+  // }, [products]);
 
   const handleDeleteAndRestore = async (prodId: string, deleteProd: boolean) => {
     const url = deleteProd ? PRODUCT_DELETE_URL(prodId) : PRODUCT_RESTORE_URL(prodId);
@@ -101,7 +99,8 @@ const ProductList = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="true">Active</SelectItem>
+                <SelectItem value="false">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -116,12 +115,12 @@ const ProductList = () => {
 
       <div className="w-full max-h-[800px] custom-scrollbar overflow-x-hidden overflow-y-scroll flex-grow bg-primary-foreground rounded-md shadow-lg">
         {loading && !searchProducts && <TableSkeleton />}
-        {!loading && data && filteredProducts.length === 0 && (
+        {!loading && data && products.length === 0 && (
           <div className="p-4 text-center text-foreground">No products found.</div>
         )}
-        {filteredProducts.length > 0 && (
+        {products.length > 0 && (
           <>
-            <ProductListTable products={filteredProducts} handleDeleteAndRestore={handleDeleteAndRestore} />
+            <ProductListTable products={products} handleDeleteAndRestore={handleDeleteAndRestore} />
             <div className="px-4 py-3 border-t-2 border-secondary flex justify-between items-center gap-3">
               {data && (
                 <>

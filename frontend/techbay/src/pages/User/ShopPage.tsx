@@ -1,3 +1,4 @@
+import ShopHeader from "../../components/User/ShopHeader";
 import ShopPageGrid from "../../components/User/ShopPageGrid";
 import ShopPageSidebar from "../../components/User/ShopPageSidebar";
 import ShopProvider from "../../components/User/ShopProvider";
@@ -13,6 +14,7 @@ const ShopPage = () => {
                             <ShopPageSidebar />
                         </div>
                         <div className="flex-grow">
+                            <ShopHeader/>
                             <ShopPageGrid />
                         </div>
                     </div>

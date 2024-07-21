@@ -17,6 +17,7 @@ import useAxios from "../../hooks/useAxios";
 import { SERVER_URL } from "../../utils/constants";
 import { Product } from "../../utils/types/productTypes";
 import { urlToFile } from "../../utils/appHelpers";
+import { Checkbox } from "../ui/checkbox";
 
 const MIN_IMAGE = 3;
 const MAX_IMAGE = 6;
@@ -37,6 +38,7 @@ const ProductFormSchema = z.object({
         z.number().min(0, "Quantity must be a positive number")
     ),
     isActive: z.boolean().refine(val => typeof val === "boolean", { message: "Status is required" }),
+    isFeatured: z.boolean(),
     category: z.string().min(1, "Category is required"),
     brand: z.string().min(1, "Brand is required"),
     thumbnail: z.instanceof(File, { message: "Thumbnail is required" }).nullable(),
@@ -73,6 +75,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
             price: 0,
             stock: 0,
             isActive: true,
+            isFeatured: false,
             category: "",
             brand: "",
             thumbnail: null,
@@ -116,6 +119,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                     price: product?.price,
                     stock: product?.stock,
                     isActive: product?.isActive,
+                    isFeatured: product.isFeatured,
                     category: typeof product.category === 'string' ? product.category : product.category._id,
                     brand: typeof product.brand === 'string' ? product.brand : product.brand._id,
                     thumbnail: thumbnailFile,
@@ -185,6 +189,7 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
             formData.append('price', data.price.toString());
             formData.append('stock', data.stock.toString());
             formData.append('isActive', data.isActive.toString());
+            formData.append('isFeatured', data.isFeatured.toString());
             formData.append('category', data.category);
             formData.append('brand', data.brand);
             formData.append('thumbnail', data.thumbnail);
@@ -407,6 +412,24 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                                     )}
                                 />
                             </div>
+                        </div>
+                        <div className="my-2">
+                            <FormField
+                                control={form.control}
+                                name="isFeatured"
+                                render={({ field }) => (
+                                    <FormItem className="flex gap-2 items-center">
+                                        <FormLabel className="text-gray-400">Mark product as Featured</FormLabel>
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={!!field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </div>
 

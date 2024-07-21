@@ -17,6 +17,7 @@ const ProductSchema = new Schema(
     isActive: { type: Boolean, default: true },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     brand: { type: Schema.Types.ObjectId, ref: "Brand", required: true },
+    isFeatured: {type: Boolean, default: false},
   },
   {
     timestamps: true,

@@ -17,6 +17,7 @@ export function handleProduct(product) {
     isActive: product.isActive,
     category: product.category,
     brand: product.brand,
+    isFeatured: product.isFeatured,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
   };
@@ -27,7 +28,7 @@ export function handleProduct(product) {
     Purpose: Create a new product
 */
 export const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, price, stock, category, brand, isActive } = req.body;
+  const { name, description, price, stock, category, brand, isActive, isFeatured } = req.body;
 
   const thumbnail = req.files?.thumbnail ? req.files.thumbnail[0].path : null;
   const images = req.files?.images ? req.files.images.map((file) => file.path) : [];
@@ -41,7 +42,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     thumbnail,
     category,
     brand,
-    isActive
+    isActive,
+    isFeatured,
   });
 
     await product.save();
@@ -61,7 +63,8 @@ export const editProduct = asyncHandler(async (req, res) => {
     stock,
     category,
     brand,
-    isActive
+    isActive,
+    isFeatured,
   } = req.body;
 
   const { id } = req.params;
@@ -91,6 +94,7 @@ export const editProduct = asyncHandler(async (req, res) => {
   product.category = category || product.category;
   product.brand = brand || product.brand;
   product.isActive = isActive ?? product.isActive;
+  product.isFeatured = isFeatured ?? product.isFeatured;
 
   product.thumbnail = thumbnail;
   product.images = images;
@@ -105,7 +109,7 @@ export const editProduct = asyncHandler(async (req, res) => {
     Purpose: Get all products 
 */
 export const getProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, search } = req.query;
+  const { page = 1, limit = 10, search, status } = req.query;
 
   const myCustomLabels = {
     totalDocs: 'totalProducts',
@@ -118,13 +122,25 @@ export const getProducts = asyncHandler(async (req, res) => {
     customLabels: myCustomLabels,
   };
 
-  const query = {};
+  const filterQuery = {};
+  
   if (search) {
     const regTerm = escapeRegex(search.trim());
-    query.name = { $regex: regTerm, $options: 'i' }
+    filterQuery.name = { $regex: regTerm, $options: 'i' }
   }
 
-  const products = await Product.paginate(query, options);
+  if (status) {
+    switch(status){
+      case 'true':
+        filterQuery.isActive = true;
+        break;
+      case 'false':
+        filterQuery.isActive = false;
+        break;
+    }
+  }
+
+  const products = await Product.paginate(filterQuery, options);
 
   return res.json({ ...products });
 });

@@ -6,9 +6,15 @@ import Brand from "../models/Brand.js";
 import { ACTIVE_PRODUCT_PIPELINE } from "../utils/pipelines/product.js";
 import { handleProduct } from "./productController.js";
 import { generateFileURL } from "../utils/helpers/fileHelper.js";
-import mongoose from "mongoose";
-import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 import { escapeRegex } from "../utils/helpers/appHelpers.js";
+
+const productSortMap = new Map([
+  ["relavence", {name: 1}],
+  ["new", {createdAt: 1}],
+  ["feautured", {isFeatured: true}],
+  ["l-h", {price: -1}],
+  ["h-l", {price: 1}],
+]);
 
 /*  
         Route: GET api/profile
@@ -74,7 +80,7 @@ export const userHome = asyncHandler(async (req, res) => {
     Purpose: list products for user and filter according to query
 */
 export const userProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, search, categories, brands } = req.query;
+  const { page = 1, limit = 10, search, categories, brands, sort } = req.query;
 
   const pipeline = [...ACTIVE_PRODUCT_PIPELINE];
 
@@ -103,10 +109,23 @@ export const userProducts = asyncHandler(async (req, res) => {
     });
   }
 
+  if(sort && productSortMap.has(sort)){
+    if(sort === "feautured"){
+      pipeline.push({
+        $match: productSortMap.get(sort)
+      })
+    }else {
+      pipeline.push({
+        $sort: productSortMap.get(sort)
+      })
+    }
+  }
+
   pipeline.push({
     $project: {
       name: 1,
       description: 1,
+      isFeatured: 1,
       price: 1,
       thumbnail: 1,
       "category.name": 1,

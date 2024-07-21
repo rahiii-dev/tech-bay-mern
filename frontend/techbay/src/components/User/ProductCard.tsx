@@ -1,17 +1,20 @@
 import { Rating } from "@mui/material";
-import { Product } from "../../features/product/productTypes";
 import { SERVER_URL } from "../../utils/constants";
 import { Link } from "react-router-dom";
 import { Skeleton } from "../ui/skeleton";
 import { formatPrice } from "../../utils/appHelpers";
+import { Product } from "../../utils/types/productTypes";
 
 type ProductCardProps = {
     product: Product
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+    console.log(product);
+    
     return (
-        <Link to={`/product/${product._id}`} className="group">
+        <Link to={`/product/${product._id}`} className="group relative overflow-hidden">
+            {product.isFeatured && <div className="absolute bg-primary text-primary-foreground text-sm py-1 px-3 z-10 rounded-tl-2xl rounded-br-2xl">Featured</div>}
             <div className="w-full max-w-[300px] mx-auto overflow-hidden">
                 <div className="w-full aspect-square overflow-hidden rounded-2xl">
                     <img src={`${SERVER_URL}${product.thumbnail}`} alt="product-img"

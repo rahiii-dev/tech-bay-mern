@@ -14,6 +14,8 @@ type ShopProviderState = {
     checkedBrands: string[];
     setCheckedBrands: Dispatch<SetStateAction<string[]>>;
     status: "loading" | "success" | "error";
+    sort: "relavence" | "new" | "feautured" | "l-h" | "h-l";
+    setSort: (value: "relavence" | "new" | "feautured" | "l-h" | "h-l") => void;
     setActivePage: (page: number) => void;
     fetchProducts: () => void;
 }
@@ -28,6 +30,8 @@ const initialState: ShopProviderState = {
     checkedBrands: [], 
     setCheckedBrands: () => {},
     status: "loading",
+    sort: "relavence",
+    setSort: () => {},
     setActivePage: () => {},
     fetchProducts: () => {},
 };
@@ -40,13 +44,14 @@ type ShopProviderProps = {
 }
 
 const ShopProvider = ({children}: ShopProviderProps) => {
-    const [productsData, setProductData] = useState<ProductListResponse | null>(null);
+    const [productsData, setProductData] = useState<ProductListResponse | null>(initialState.productsData);
     const [activePage, setActivePage] = useState<number>(1);
-    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [checkedCategories, setCheckedCategories] = useState<string[]>([]);
-    const [brands, setBrands] = useState<Brand[]>([]);
-    const [checkedBrands, setCheckedBrands] = useState<string[]>([]);
+    const [status, setStatus] = useState<"loading" | "success" | "error">(initialState.status);
+    const [categories, setCategories] = useState<Category[]>(initialState.categories);
+    const [checkedCategories, setCheckedCategories] = useState<string[]>(initialState.checkedCategories);
+    const [brands, setBrands] = useState<Brand[]>(initialState.brands);
+    const [checkedBrands, setCheckedBrands] = useState<string[]>(initialState.checkedBrands);
+    const [sort, setSort] = useState<"relavence" | "new" | "feautured" | "l-h" | "h-l">(initialState.sort);
 
     const { data: productData, fetchData: fetchProducts } = useAxios<ProductListResponse>({}, false);
 
@@ -62,7 +67,7 @@ const ShopProvider = ({children}: ShopProviderProps) => {
 
     useEffect(() => {
         setStatus("loading");
-        const url = `${USER_PRODUCT_LIST_URL}?page=${activePage}&limit=9&categories=${checkedCategories.join(',')}&brands=${checkedBrands.join(',')}`;
+        const url = `${USER_PRODUCT_LIST_URL}?page=${activePage}&limit=9&categories=${checkedCategories.join(',')}&brands=${checkedBrands.join(',')}&sort=${sort}`;
         fetchProducts({
             url,
             method: 'GET'
@@ -71,7 +76,7 @@ const ShopProvider = ({children}: ShopProviderProps) => {
         }).catch(() => {
             setStatus("error");
         });
-    }, [checkedCategories, checkedBrands, activePage]);
+    }, [checkedCategories, checkedBrands, activePage, sort]);
 
     useEffect(() => {
         if(productData){
@@ -101,6 +106,8 @@ const ShopProvider = ({children}: ShopProviderProps) => {
         brands,
         checkedBrands,
         setCheckedBrands,
+        sort,
+        setSort, 
         setActivePage,
         fetchProducts,
     };
