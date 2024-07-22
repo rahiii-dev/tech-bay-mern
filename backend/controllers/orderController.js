@@ -254,3 +254,27 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   
   res.status(200).json({ message: "Order cancelled successfully" });
 });
+
+/*  
+    Route: POST api/user/order/:orderId/return
+    Purpose: cancel order
+*/
+export const returnOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { productId, reason } = req.body;
+  const userId = req.user._id;
+
+  const order = await Order.findOne({ _id: orderId, user: userId });
+
+  if (!order) {
+    return handleErrorResponse(res, 404, "Order not found");
+  }
+
+  if (order.status !== "Delivered") {
+    return handleErrorResponse(res, 403, "Order is not Delivered");
+  }
+
+  await order.returnItem(productId, reason);
+
+  res.status(200).json({ message: "Order returned" });
+})

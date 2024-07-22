@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import SubHeading from "../../components/User/SubHeading";
 import { formatDate, formatPrice } from "../../utils/appHelpers";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CircleAlert } from "lucide-react";
 import useAxios from "../../hooks/useAxios";
-import { USER_CANCEL_ORDER_URL, USER_ORDER_LIST_URL } from "../../utils/urls/userUrls";
+import { USER_CANCEL_ORDER_URL, USER_ORDER_LIST_URL, USER_RETURN_ORDER_URL } from "../../utils/urls/userUrls";
 import { Order, OrderProduct } from "../../utils/types/orderTypes";
 import { SERVER_URL } from "../../utils/constants";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
@@ -16,28 +16,37 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
 const OrdersPage = () => {
-    const [modelActive, setModelActive] = useState(false);
+    const [cancelModelActive, setCancelModelActive] = useState(false);
+    const [returnModelActive, setReturnModelActive] = useState(false);
     const [itemToCancel, setItemToCancel] = useState<{ orderId: string, OrderProduct: OrderProduct } | null>(null);
+    const [itemToReturn, setItemToReturn] = useState<{ orderId: string, OrderProduct: OrderProduct } | null>(null);
     const [cancelReason, setCancelReason] = useState("");
+    const [returnReason, setReturnReason] = useState("");
 
-    const { data: OrdersList, loading, fetchData: fetchOdersList } = useAxios<Order[]>({
+    const { data: OrdersList, loading, fetchData: fetchOrdersList } = useAxios<Order[]>({
         url: USER_ORDER_LIST_URL,
         method: 'GET',
     });
 
-    console.log(OrdersList);
-
     const navigate = useNavigate();
 
     const handleCloseModel = () => {
-        setModelActive(false);
+        setCancelModelActive(false);
+        setReturnModelActive(false);
         setItemToCancel(null);
+        setItemToReturn(null);
         setCancelReason("");
+        setReturnReason("");
     };
 
     const handleCancelItemModel = (orderId: string, product: OrderProduct) => {
         setItemToCancel({ orderId, OrderProduct: product });
-        setModelActive(true);
+        setCancelModelActive(true);
+    };
+
+    const handleReturnItemModel = (orderId: string, product: OrderProduct) => {
+        setItemToReturn({ orderId, OrderProduct: product });
+        setReturnModelActive(true);
     };
 
     const handleCancel = async () => {
@@ -47,7 +56,7 @@ const OrdersPage = () => {
                     productId: itemToCancel.OrderProduct.productID,
                     reason: cancelReason
                 });
-                fetchOdersList();
+                fetchOrdersList();
                 toast({
                     variant: "default",
                     title: `Order cancelled successfully.`,
@@ -56,7 +65,7 @@ const OrdersPage = () => {
                 });
                 handleCloseModel();
             } catch (error) {
-                fetchOdersList();
+                fetchOrdersList();
                 toast({
                     variant: "destructive",
                     title: `Failed to cancel order`,
@@ -67,6 +76,37 @@ const OrdersPage = () => {
             }
         }
     };
+
+    const handleReturn = async () => {
+        if (itemToReturn) {
+            try {
+                await axios.post(USER_RETURN_ORDER_URL(itemToReturn.orderId), {
+                    productId: itemToReturn.OrderProduct.productID,
+                    reason: returnReason
+                });
+                fetchOrdersList();
+                toast({
+                    variant: "default",
+                    title: `Return initiated successfully.`,
+                    description: "",
+                    className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                });
+                handleCloseModel();
+            } catch (error) {
+                fetchOrdersList();
+                toast({
+                    variant: "destructive",
+                    title: `Failed to initiate return`,
+                    description: "",
+                    className: "text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                });
+                handleCloseModel();
+            }
+        }
+    };
+
+    console.log(OrdersList);
+
 
     return (
         <section>
@@ -146,7 +186,7 @@ const OrdersPage = () => {
                                         <AccordionContent>
                                             <div className="border-t">
                                                 {order.orderedItems.map(item => (
-                                                    <div key={item.productID} className={`py-3 border-b flex justify-between items-center gap-2 ${item.cancelled && 'text-gray-400'}`}>
+                                                    <div key={item.productID} className={`py-3 border-b flex justify-between items-center gap-2 ${(item.cancelled || item.returnConfirmed) && 'text-gray-400'}`}>
                                                         <div className="flex gap-3 w-[300px] overflow-x-hidden">
                                                             <div className={`size-16 ${item.cancelled && 'opacity-30'}`}>
                                                                 <img src={`${SERVER_URL}${item.thumbnail}`} alt="product-img" />
@@ -167,17 +207,25 @@ const OrdersPage = () => {
 
                                                         <div>
                                                             {item.canCancel && <Button onClick={() => handleCancelItemModel(order._id, item)} variant={"destructive"} size={"sm"} className="rounded-full min-w-[100px]">Cancel</Button>}
-                                                            {item.canReturn && <Button variant={"secondary"} size={"sm"} className="rounded-full min-w-[100px]">Return</Button>}
+                                                            {item.canReturn && <Button onClick={() => handleReturnItemModel(order._id, item)} variant={"secondary"} size={"sm"} className="rounded-full min-w-[100px]">Return</Button>}
                                                         </div>
 
-                                                        {item.cancelled ? (<div>Item cancelled</div>) : (
-                                                            <div className="text-center font-medium">
-                                                                <div className="text-gray-400 mb-2">Item total</div>
-                                                                <div>{formatPrice(item.price * item.quantity)}</div>
-                                                            </div>
-                                                        )}
+                                                        <div>
+                                                            {item.cancelled && <div>Item Cancelled</div>}
+                                                            {item.returned && <div className="text-center">
+                                                                <div className="font-medium text-primary">Item Returned</div>
+                                                                {!item.returnConfirmed && <div className="max-w-[150px] text-sm">Our team is confirming your return request.</div>}
+                                                            </div>}
+                                                            {(!item.cancelled && !item.returned) && (
+                                                                <div className="text-center font-medium">
+                                                                    <div className="text-gray-400 mb-2">Item total</div>
+                                                                    <div>{formatPrice(item.price * item.quantity)}</div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ))}
+
                                                 <div className="flex justify-between">
                                                     <div className="py-2 flex gap-2 items-center justify-end text-gray-400">
                                                         <div className="font-medium">Payment Type: </div>
@@ -195,67 +243,95 @@ const OrdersPage = () => {
                             </div>
                         ))
                     )}
+
+                    {!loading && OrdersList && OrdersList.length === 0 && (
+                        <div className="flex flex-col justify-center items-center gap-3 mt-16">
+                            <p className="text-gray-500 text-xl">No orders yet</p>
+                            <Button onClick={() => navigate('/shop')}>Start Shopping</Button>
+                        </div>
+                    )}
                 </div>
-                <div>
-                    <Button onClick={() => navigate('/shop')} variant={"secondary"} className="rounded-full"><ArrowLeft className="me-2" size={20} /> Back to Shop</Button>
+
+                <div className="mt-8">
+                    <Button onClick={() => navigate('/account')} variant={"outline"} size={"sm"} className="gap-2 text-xs"><ArrowLeft size="18" /> Go Back</Button>
                 </div>
             </div>
 
-            <Dialog open={modelActive} onOpenChange={handleCloseModel}>
-                <DialogContent className="flex flex-col gap-4 sm:max-w-[500px] h-[80vh] overflow-y-scroll custom-scrollbar">
-                    <DialogHeader>
-                        <div className="grid gap-2 text-center">
-                            <DialogTitle className="text-3xl font-bold">Cancel this Item?</DialogTitle>
-                        </div>
-                    </DialogHeader>
-
-                    <div className="flex flex-col gap-3">
-                        {itemToCancel && (
-                            <div className="flex justify-between items-center">
-                                <div className="flex gap-3 w-[300px] overflow-x-hidden">
-                                    <div className="size-16">
-                                        <img src={`${SERVER_URL}${itemToCancel.OrderProduct.thumbnail}`} alt="product-img" />
-                                    </div>
-                                    <div className="font-medium">
-                                        <div className="flex gap-2">
-                                            <h3>{itemToCancel.OrderProduct.name}</h3>
-                                        </div>
-                                        <p className="text-sm">Brand: <span className="text-gray-400">{itemToCancel.OrderProduct.brand}</span></p>
-                                        <h2 className="text-xl">{formatPrice(itemToCancel.OrderProduct.price)}</h2>
-                                    </div>
-                                </div>
-                                <div className="text-center font-medium">
-                                    <div className="text-gray-400 mb-2">Quantity</div>
-                                    <div>{itemToCancel.OrderProduct.quantity}</div>
-                                </div>
-                            </div>
-                        )}
+            {cancelModelActive && (
+                <Dialog open={cancelModelActive} onOpenChange={() => handleCloseModel()}>
+                    <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Cancel Order Item</DialogTitle>
+                        </DialogHeader>
 
                         <div>
-                            <h3 className="text-md font-semibold mb-3">Select Cancel Reason</h3>
-                            <Select onValueChange={(value) => setCancelReason(value)}>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select a reason (optional)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="ordered_by_mistake">Ordered by mistake</SelectItem>
-                                    {/* <SelectItem value="item_damaged_or_defective">Item was damaged or defective</SelectItem> */}
-                                    {/* <SelectItem value="item_arrived_too_late">Item arrived too late</SelectItem> */}
-                                    <SelectItem value="changed_mind">Changed mind</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                            <div className="mt-2 text-gray-400 flex items-center gap-3">
+                                <p><CircleAlert /></p>
+                                <p className="text-sm text-gray-400">Are you sure you want to cancel this item? This action cannot be undone.</p>
+                            </div>
 
-                        <div className="flex gap-2">
-                            <Button variant={"destructive"} onClick={handleCancel} className="w-full rounded-full">Cancel Order</Button>
-                            <Button variant={"secondary"} onClick={handleCloseModel} className="w-full rounded-full">Dismiss</Button>
+                            <div className="mt-4">
+                                <Select onValueChange={(value) => setCancelReason(value)} defaultValue={cancelReason}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select reason" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Better price available">Better price available</SelectItem>
+                                        <SelectItem value="Need to change shipping address">Need to change shipping address</SelectItem>
+                                        <SelectItem value="Order created by mistake">Order created by mistake</SelectItem>
+                                        <SelectItem value="Need to change payment method">Need to change payment method</SelectItem>
+                                        <SelectItem value="Other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex items-center mt-6 gap-3">
+                                <Button disabled={!cancelReason} onClick={handleCancel} className="w-full">Confirm Cancel</Button>
+                                <Button variant={"secondary"} onClick={handleCloseModel} className="w-full">Close</Button>
+                            </div>
                         </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {returnModelActive && (
+                <Dialog open={returnModelActive} onOpenChange={() => handleCloseModel()}>
+                    <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Return Order Item</DialogTitle>
+                        </DialogHeader>
+
+                        <div>
+                            <div className="mt-2 text-gray-400 flex items-center gap-3">
+                                <p><CircleAlert /></p>
+                                <p className="text-sm">Are you sure you want to return this item? Returns are accepted within 10 days of delivery. The return will be confirmed by our team and the amount will be added to your wallet.</p>
+                            </div>
+
+                            <div className="mt-4">
+                                <Select onValueChange={(value) => setReturnReason(value)} defaultValue={returnReason}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select reason" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Item damaged">Item damaged</SelectItem>
+                                        <SelectItem value="Wrong item received">Wrong item received</SelectItem>
+                                        <SelectItem value="Item not as described">Item not as described</SelectItem>
+                                        <SelectItem value="No longer needed">No longer needed</SelectItem>
+                                        <SelectItem value="Other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex items-center mt-6 gap-3">
+                                <Button disabled={!returnReason} onClick={handleReturn} className="w-full">Confirm Return</Button>
+                                <Button variant={"secondary"} onClick={handleCloseModel} className="w-full">Close</Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </section>
-    );
-};
+    )
+}
 
 export default OrdersPage;
