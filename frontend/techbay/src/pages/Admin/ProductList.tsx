@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import { Product, ProductListResponse } from "../../utils/types/productTypes"
-import { PRODUCT_DELETE_URL, PRODUCT_LIST_URL, PRODUCT_RESTORE_URL } from "../../utils/urls/adminUrls";
+import { CATEGORY_LIST_URL, PRODUCT_DELETE_URL, PRODUCT_LIST_URL, PRODUCT_RESTORE_URL } from "../../utils/urls/adminUrls";
 import useAxios from "../../hooks/useAxios";
 import CustomPagination from "../../components/ui/CustomPagination";
 import axios from "../../utils/axios";
@@ -13,10 +13,13 @@ import { toast } from "../../components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Input } from "../../components/ui/input";
 import { debounce } from "@mui/material";
+import { Category, CategoryList } from "../../utils/types/categoryTypes";
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [filter, setFilter] = useState("all");
+  const [filterByCategory, setFilterByCategory] = useState("all");
   const [searchProducts, setSearchProducts] = useState("");
   const [searchParams] = useSearchParams();
 
@@ -26,23 +29,24 @@ const ProductList = () => {
   const { data, loading, fetchData } = useAxios<ProductListResponse>({}, false)
 
   useEffect(() => {
+    axios.get<CategoryList>(`${CATEGORY_LIST_URL}?filter=active`)
+    .then(categories => {
+      setCategories(categories.data.categories)
+    })
+  }, [])
+
+  useEffect(() => {
     fetchData({
-      url: `${PRODUCT_LIST_URL}?page=${currentPage}&status=${filter}`,
+      url: `${PRODUCT_LIST_URL}?page=${currentPage}&status=${filter}&category=${filterByCategory}`,
       method: 'GET'
     })
-  }, [currentPage, filter]);
+  }, [currentPage, filter, filterByCategory]);
 
   useEffect(() => {
     if (data) {
       setProducts(data.products)
     }
   }, [data]);
-
-  // useEffect(() => {
-  //   if (products.length > 0) {
-  //     setFilteredProducts(products);
-  //   }
-  // }, [products]);
 
   const handleDeleteAndRestore = async (prodId: string, deleteProd: boolean) => {
     const url = deleteProd ? PRODUCT_DELETE_URL(prodId) : PRODUCT_RESTORE_URL(prodId);
@@ -92,6 +96,21 @@ const ProductList = () => {
           <Input className="h-[35px]" placeholder="Search by products" value={searchProducts} onChange={handleChange}/>
         </div>
         <div className="flex items-center gap-3">
+          <div>
+            {categories.length > 0 && (
+              <Select onValueChange={setFilterByCategory}>
+                <SelectTrigger className="w-[120px] h-[35px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {categories.map( category => (
+                    <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
           <div>
             <Select onValueChange={setFilter}>
               <SelectTrigger className="w-[120px] h-[35px]">

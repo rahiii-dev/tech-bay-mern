@@ -109,7 +109,7 @@ export const editProduct = asyncHandler(async (req, res) => {
     Purpose: Get all products 
 */
 export const getProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, search, status } = req.query;
+  const { page = 1, limit = 10, search, status, category } = req.query;
 
   const myCustomLabels = {
     totalDocs: 'totalProducts',
@@ -119,14 +119,19 @@ export const getProducts = asyncHandler(async (req, res) => {
   const options = {
     page: parseInt(page),
     limit: parseInt(limit),
-    customLabels: myCustomLabels,
+    customLabels: myCustomLabels, 
   };
+
 
   const filterQuery = {};
   
   if (search) {
     const regTerm = escapeRegex(search.trim());
     filterQuery.name = { $regex: regTerm, $options: 'i' }
+  }
+
+  if(category && category != 'all'){
+    filterQuery.category = category;
   }
 
   if (status) {
