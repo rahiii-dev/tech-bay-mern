@@ -10,8 +10,6 @@ type ProductCardProps = {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-    console.log(product);
-    
     return (
         <Link to={`/product/${product._id}`} className="group relative overflow-hidden">
             {product.isFeatured && <div className="absolute bg-primary text-primary-foreground text-sm py-1 px-3 z-10 rounded-tl-2xl rounded-br-2xl">Featured</div>}

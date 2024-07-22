@@ -88,7 +88,7 @@ const OrderView = () => {
                     )}
                 </div>
                 <div className="flex items-center gap-2">
-                    {orderStatus != "Delivered" && (
+                    {orderStatus != "Delivered" && orderStatus != "Cancelled" && (
                         <Dialog open={modelOpen} onOpenChange={setModelOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="default" size={"sm"}>Change Status</Button>
@@ -101,7 +101,6 @@ const OrderView = () => {
                                     <div onClick={() => handleOrderStatus("Processing")} className="border-2 border-transparent hover:border-blue-600 text-blue-600 bg-blue-100 rounded-md text-center cursor-pointer font-medium py-3">Processing</div>
                                     <div onClick={() => handleOrderStatus("Shipped")} className="border-2 border-transparent hover:border-yellow-600 text-yellow-600 bg-yellow-100 rounded-md text-center cursor-pointer font-medium py-3">Shipped</div>
                                     <div onClick={() => handleOrderStatus("Delivered")} className="border-2 border-transparent hover:border-green-600 text-green-600 bg-green-100 rounded-md text-center cursor-pointer font-medium py-3">Delivered</div>
-                                    <div onClick={() => handleOrderStatus("Cancelled")} className="border-2 border-transparent hover:border-red-600 text-red-600 bg-red-100 rounded-md text-center cursor-pointer font-medium py-3">Cancel</div>
                                 </div>
                                 <DialogFooter className="sm:justify-end">
                                     <DialogClose asChild>
@@ -128,15 +127,16 @@ const OrderView = () => {
                                                 <TableHead className="font-bold">Product</TableHead>
                                                 <TableHead className="font-bold">Price</TableHead>
                                                 <TableHead className="font-bold">Quantity</TableHead>
+                                                <TableHead className="font-bold">Status</TableHead>
                                                 <TableHead className="font-bold">Total Price</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {orderData.orderedItems.map((item, index) => (
-                                                <TableRow key={index}>
+                                                <TableRow key={index} className="text-gray-400">
                                                     <TableCell>
                                                         <div className="flex gap-3 max-w-[200px] items-center overflow-hidden">
-                                                            <div className="w-[50px] h-[50px] overflow-hidden rounded-sm shadow-lg">
+                                                            <div className={`w-[50px] h-[50px] overflow-hidden rounded-sm shadow-lg ${(item.cancelled || item.returned) && 'opacity-30'}`}>
                                                                 <img src={`${SERVER_URL}${item.thumbnail}`} className="w-full h-full object-cover object-center" alt="product-image" />
                                                             </div>
                                                             <div>
@@ -146,6 +146,11 @@ const OrderView = () => {
                                                     </TableCell>
                                                     <TableCell>{formatPrice(item.price)}</TableCell>
                                                     <TableCell>{item.quantity}</TableCell>
+                                                    <TableCell>
+                                                        {item.cancelled && "Cancelled"} 
+                                                        {item.returned && "Returned"} 
+                                                        {!item.cancelled && !item.returned && '-'}
+                                                    </TableCell>
                                                     <TableCell>{formatPrice(item.price * item.quantity)}</TableCell>
                                                 </TableRow>
                                             ))}
@@ -178,11 +183,11 @@ const OrderView = () => {
                                 </div>
                                 <div className="font-medium flex justify-between items-center mb-2">
                                     <p className="text-gray-400">Discount</p>
-                                    <p className="text-red-500">{orderData.orderedAmount.discount > 0 ? orderData.orderedAmount.discount : '-'}</p>
+                                    <p className="text-red-500">{orderData.orderedAmount.discount && orderData.orderedAmount.discount > 0 ? orderData.orderedAmount.discount : '-'}</p>
                                 </div>
                                 <div className="font-medium flex justify-between items-center mb-2">
                                     <p className="text-gray-400">Delivery Fee</p>
-                                    <p>{orderData.orderedAmount.deliveryFee > 0 ? formatPrice(orderData.orderedAmount.deliveryFee) : '-'}</p>
+                                    <p>{orderData.orderedAmount.deliveryFee && orderData.orderedAmount.deliveryFee > 0 ? formatPrice(orderData.orderedAmount.deliveryFee) : '-'}</p>
                                 </div>
                                 <div className="font-medium flex justify-between items-centerb">
                                     <p>Total</p>

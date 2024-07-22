@@ -7,7 +7,7 @@ export function escapeRegex(string) {
     return string.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
 
-export function calculateDateAfterDays(days = 7) {
+export function calculateDateAfterDays(days = 1) {
     const date = new Date()
     const newDate = new Date(date.getTime());
     newDate.setDate(newDate.getDate() + days);

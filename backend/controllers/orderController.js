@@ -2,9 +2,12 @@ import asyncHandler from "express-async-handler";
 import Cart from "../models/Cart.js";
 import Address from "../models/Address.js";
 import { cartPopulateOptions, formatCart } from "./cartController.js";
-import Order, { orderStatusEnum } from "../models/Order.js";
+import Order, { ORDER_STATUS, PAYMENT_METHODS } from "../models/Order.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
-import { calculateDateAfterDays, escapeRegex } from "../utils/helpers/appHelpers.js";
+import {
+  calculateDateAfterDays,
+  escapeRegex,
+} from "../utils/helpers/appHelpers.js";
 import Product from "../models/Product.js";
 
 const generateOrderNumber = () => {
@@ -18,6 +21,10 @@ const generateOrderNumber = () => {
 export const createOrder = asyncHandler(async (req, res) => {
   const { cartId, addressId, paymentMethod } = req.body;
   const userId = req.user._id;
+
+  if (!PAYMENT_METHODS.includes(paymentMethod)) {
+    return handleErrorResponse(res, 404, "Invalid payment method");
+  }
 
   const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(
     cartPopulateOptions
@@ -72,14 +79,17 @@ export const createOrder = asyncHandler(async (req, res) => {
     orderNumber: generateOrderNumber(),
   });
 
+  if (paymentMethod === "cod") {
+    order.status = "Processing";
+  }
+
   const createdOrder = await order.save();
   await Cart.findByIdAndDelete(cart._id);
 
   for (const item of order.orderedItems) {
-    await Product.findByIdAndUpdate(
-      item.productID,
-      { $inc: { stock: -item.quantity } }
-    );
+    await Product.findByIdAndUpdate(item.productID, {
+      $inc: { stock: -item.quantity },
+    });
   }
 
   res.status(201).json(createdOrder);
@@ -103,13 +113,13 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
     limit: parseInt(limit),
     customLabels: myCustomLabels,
     populate: {
-      path: 'user',
-      select: 'email fullName'
+      path: "user",
+      select: "email fullName",
     },
     sort: { createdAt: -1 },
   };
 
-  if (status && orderStatusEnum.includes(status)) {
+  if (status && ORDER_STATUS.includes(status)) {
     filter.status = status;
   }
 
@@ -131,8 +141,8 @@ export const getOrderDetail = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
   const order = await Order.findById(orderId).populate({
-    path: 'user',
-    select: 'fullName email'
+    path: "user",
+    select: "fullName email",
   });
 
   if (!order) {
@@ -156,26 +166,32 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Order not found");
   }
 
-  if(order.status === "Delivered") {
+  if (order.status === "Delivered") {
     return handleErrorResponse(res, 403, "Order is already delivered");
   }
 
-  if (status && orderStatusEnum.includes(status)) {
+  if (order.status === "Cancelled") {
+    return handleErrorResponse(res, 403, "Order is already canelled");
+  }
+
+  if (status && ORDER_STATUS.includes(status)) {
     let deliveryDate = null;
 
-    if (status === "Processing") {
-      deliveryDate = calculateDateAfterDays(); 
-    } else if (status === "Shipped") {
-      deliveryDate = calculateDateAfterDays(3); 
+    if (status === "Shipped") {
+      deliveryDate = calculateDateAfterDays(3);
     } else if (status === "Delivered") {
       deliveryDate = new Date();
     }
 
-    const updatedOrder = await Order.findByIdAndUpdate(orderId, { $set: { deliveryDate, status } }, { new : true});
-    
-    return res.json(updatedOrder)
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { $set: { deliveryDate, status } },
+      { new: true }
+    );
+
+    return res.json(updatedOrder);
   }
-  
+
   return handleErrorResponse(res, 404, "Status not found");
 });
 
@@ -184,7 +200,9 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
     Purpose: Get user specific orders
 */
 export const getUserOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({user: req.user._id}).sort({createdAt: -1});
+  const orders = await Order.find({ user: req.user._id }).sort({
+    createdAt: -1,
+  });
   res.status(200).json(orders);
 });
 /*  
@@ -193,6 +211,7 @@ export const getUserOrders = asyncHandler(async (req, res) => {
 */
 export const cancelOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
+  const { productId, reason } = req.body;
   const userId = req.user._id;
 
   const order = await Order.findOne({ _id: orderId, user: userId });
@@ -201,19 +220,37 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Order not found");
   }
 
-  if(order.status === "Delivered") {
-    return handleErrorResponse(res, 403, "Order is already delivered");
+  if (order.status === "Delivered") {
+    return handleErrorResponse(res, 403, "Order is already Delivered");
   }
 
-  order.status = 'Cancelled';
-  await order.save();
-
-  for (const item of order.orderedItems) {
-    await Product.findByIdAndUpdate(
-      item.productID,
-      { $inc: { stock: item.quantity } }
-    );
+  if (order.status === "Shipped") {
+    return handleErrorResponse(res, 403, "Order is already Shipped");
   }
 
-  res.status(200).json({ message: "Order cancelled successfully"});
+  await order.cancelItem(productId, reason);
+
+  const cancelledProduct = order.orderedItems.find((item) => {
+    return item.productID.toString() === productId.toString();
+  });
+
+  if(cancelledProduct){
+    const amountToReduce = cancelledProduct.price * cancelledProduct.quantity;
+    order.orderedAmount.subtotal -= amountToReduce;
+    order.orderedAmount.total -= amountToReduce;
+    
+    await Product.findByIdAndUpdate(cancelledProduct.productID, {
+      $inc: { stock: cancelledProduct.quantity },
+    });
+
+    const allItemsCancelled = order.orderedItems.every(item => item.cancelled);
+    if (allItemsCancelled) {
+      order.status = "Cancelled";
+      order.orderedAmount.deliveryFee = 0;
+    }
+
+    await order.save();
+  }
+  
+  res.status(200).json({ message: "Order cancelled successfully" });
 });
