@@ -9,6 +9,7 @@ export const ORDER_STATUS = [
   "Shipped",
   "Delivered",
   "Cancelled",
+  "Returned",
 ];
 
 export const PAYMENT_METHODS = ["debit card", "credit card", "wallet", "cod"];
@@ -134,24 +135,13 @@ orderSchema.methods.returnItem = function (productID, reason) {
   throw new Error("Item not found in the order");
 };
 
-orderSchema.methods.confirmReturn = async function (productID) {
+orderSchema.methods.confirmReturn = function (productID) {
   const item = this.orderedItems.find(
     (item) => item.productID.toString() === productID.toString()
   );
   if (item && item.returned && !item.returnConfirmed) {
     item.returnConfirmed = true;
     item.returnConfirmationDate = new Date();
-    await this.save();
-
-    // Update user's wallet
-    const user = await this.model('User').findById(this.user).populate('wallet');
-    if (!user.wallet) {
-      user.wallet = await Wallet.create({ user: this.user, balance: 0 });
-    }
-    user.wallet.balance += item.price * item.quantity;
-    await user.wallet.save();
-    await user.save();
-
     return item;
   }
   throw new Error("Return cannot be confirmed or item not found");

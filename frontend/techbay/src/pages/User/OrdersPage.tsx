@@ -115,7 +115,7 @@ const OrdersPage = () => {
                 <div className="mb-4 flex flex-col gap-4">
                     {!loading && OrdersList && OrdersList.length > 0 && (
                         OrdersList.map((order, index) => (
-                            <div key={order._id} className={`flex-grow w-full border rounded-xl overflow-hidden px-3 max-w-[800px] mx-auto ${order.status === "Cancelled" && 'text-gray-400'}`}>
+                            <div key={order._id} className={`flex-grow w-full border rounded-xl overflow-hidden px-3 max-w-[800px] mx-auto ${(order.status === "Cancelled" || order.status == "Returned") && 'text-gray-400'}`}>
                                 <div className="flex justify-between items-start border-b py-4 px-3">
                                     <div>
                                         <h1 className="text-md font-medium">#{order.orderNumber}</h1>
@@ -177,6 +177,12 @@ const OrdersPage = () => {
                                                 <p>Order is Cancelled</p>
                                             </div>
                                         )}
+
+                                        {order.status === "Returned" && (
+                                            <div className="text-gray-400">
+                                                <p>Order is Returned</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -188,7 +194,7 @@ const OrdersPage = () => {
                                                 {order.orderedItems.map(item => (
                                                     <div key={item.productID} className={`py-3 border-b flex justify-between items-center gap-2 ${(item.cancelled || item.returnConfirmed) && 'text-gray-400'}`}>
                                                         <div className="flex gap-3 w-[300px] overflow-x-hidden">
-                                                            <div className={`size-16 ${item.cancelled && 'opacity-30'}`}>
+                                                            <div className={`size-16 ${(item.cancelled || item.returnConfirmed) && 'opacity-30'}`}>
                                                                 <img src={`${SERVER_URL}${item.thumbnail}`} alt="product-img" />
                                                             </div>
                                                             <div className="font-medium">

@@ -43,7 +43,7 @@ export interface Order {
     user: User;
     orderedItems: OrderProduct[];
     orderedAmount: OrderedAmount;
-    status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+    status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Returned';
     address: Address;
     paymentMethod: 'debit card' | 'credit card' | 'wallet' | 'cod';
     orderNumber: string;

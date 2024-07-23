@@ -9,6 +9,7 @@ import {
   escapeRegex,
 } from "../utils/helpers/appHelpers.js";
 import Product from "../models/Product.js";
+import Wallet from "../models/Wallet.js";
 
 const generateOrderNumber = () => {
   return `ORD-${Date.now()}`;
@@ -257,7 +258,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 
 /*  
     Route: POST api/user/order/:orderId/return
-    Purpose: cancel order
+    Purpose: return order for user
 */
 export const returnOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
@@ -277,4 +278,86 @@ export const returnOrder = asyncHandler(async (req, res) => {
   await order.returnItem(productId, reason);
 
   res.status(200).json({ message: "Order returned" });
+})
+
+/*  
+    Route: GET api/admin/order/returns
+    Purpose: return order for user
+*/
+export const returnOrdersList = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10} = req.query;
+  const filter = {'orderedItems.returned' : true, 'orderedItems.returnConfirmed' : false};
+
+  const myCustomLabels = {
+    totalDocs: "totalOrders",
+    docs: "orders",
+  };
+
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    customLabels: myCustomLabels,
+    populate: {
+      path: "user",
+      select: "email fullName",
+    },
+    select: 'orderedItems orderNumber user',
+    sort: { updatedAt: -1 },
+  };
+
+  const orders = await Order.paginate(filter, options);
+
+  const modifiedOrders = orders.orders.map(order => {
+    const filteredItems = order.orderedItems.filter(item => item.returned && !item.returnConfirmed);
+    return { ...order._doc, orderedItems: filteredItems };
+  });
+
+  res.status(200).json({ ...orders, orders: modifiedOrders });
+})
+
+/*  
+    Route: POST api/admin/order/confirm-return
+    Purpose: return order for user
+*/
+export const confirmReturn = asyncHandler(async (req, res) => {
+  const { orderId, productId, stockUpdate=false } = req.body;
+
+  const order = await Order.findOne({ _id: orderId});
+
+  if (!order) {
+    return handleErrorResponse(res, 404, "Order not found");
+  }
+
+  if (order.status !== "Delivered") {
+    return handleErrorResponse(res, 403, "Order is not Delivered");
+  }
+  
+  const confirmedItem = order.confirmReturn(productId);
+  const amountToReduce = confirmedItem.price * confirmedItem.quantity;
+
+  const allItemsReturned = order.orderedItems.every(item => item.returned);
+  if (allItemsReturned) {
+      order.status = "Returned";
+  }
+
+  order.save()
+
+  const userWallet = await Wallet.findOne({user: order.user});
+
+  if(!userWallet){
+    const newUserWallet = new Wallet({user: order.user, balance: amountToReduce})
+    await newUserWallet.save();
+  }
+  else {
+    userWallet.balance += amountToReduce;
+    await userWallet.save()
+  }
+
+  if(stockUpdate){
+    await Product.findByIdAndUpdate(confirmedItem.productID, {
+      $inc: { stock: confirmedItem.quantity },
+    });
+  }
+
+  res.status(200).json({ message: "Order return confirmed" });
 })

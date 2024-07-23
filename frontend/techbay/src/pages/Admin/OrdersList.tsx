@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import { ORDER_LIST_URL } from "../../utils/urls/adminUrls";
@@ -9,6 +9,7 @@ import { Input } from "../../components/ui/input";
 import { debounce } from "@mui/material";
 import { Order, OrderList } from "../../utils/types/orderTypes";
 import OrderListTable from "../../components/Admin/OrderListTable";
+import { Button } from "../../components/ui/button";
 
 const OrdersList = () => {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -54,6 +55,11 @@ const OrdersList = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <div>
+                        <Link to={"/admin/return-orders"}>
+                            <Button className="py-0 px-4 h-[34px]" size={"sm"}>Returns</Button>
+                        </Link>
+                    </div>
+                    <div>
                         <Select onValueChange={setFilter}>
                             <SelectTrigger className="w-[120px] h-[35px]">
                                 <SelectValue placeholder="Filter" />
@@ -65,6 +71,7 @@ const OrdersList = () => {
                                 <SelectItem value="Shipped">Shipped</SelectItem>
                                 <SelectItem value="Delivered">Delivered</SelectItem>
                                 <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                <SelectItem value="Returned">Returned</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -30,6 +30,7 @@ import OrdersPage from "./pages/User/OrdersPage"
 import { clearCart } from "./features/cart/cartSlice"
 import OrdersList from "./pages/Admin/OrdersList"
 import OrderView from "./pages/Admin/OrderView"
+import OrderReturnList from "./pages/Admin/OrderReturnList"
 
 
 function App() {
@@ -84,6 +85,7 @@ function App() {
           <Route path="/admin/dashboard" element={<DashBoard />} />
           <Route path="/admin/orders" element={<OrdersList />} />
           <Route path="/admin/order" element={<OrderView />} />
+          <Route path="/admin/return-orders" element={<OrderReturnList />} />
           <Route path="/admin/customers" element={<Customers />} />
           <Route path="/admin/categories" element={<Category />} />
           <Route path="/admin/brands" element={<Brands />} />

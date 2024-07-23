@@ -42,6 +42,7 @@ const OrderListTable = ({ orders }: OrderListTable) => {
                             {order.status === "Shipped" && <span className="bg-yellow-100 text-yellow-600 px-2 rounded-lg font-medium text-[12px]">Shipped</span>}
                             {order.status === "Delivered" && <span className="bg-green-100 text-green-600 px-2 rounded-lg font-medium text-[12px]">Delivered</span>}
                             {order.status === "Cancelled" && <span className="bg-red-100 text-red-600 px-2 rounded-lg font-medium text-[12px]">Cancelled</span>}
+                            {order.status === "Returned" && <span className="bg-red-100 text-red-600 px-2 rounded-lg font-medium text-[12px]">Returned</span>}
                         </TableCell>
                         <TableCell>
                             <TooltipProvider>

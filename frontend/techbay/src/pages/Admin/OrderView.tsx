@@ -78,6 +78,7 @@ const OrderView = () => {
                             {orderStatus === "Processing" && <span className="bg-blue-100 text-blue-600 px-2 rounded-lg font-medium text-[12px]">Processing</span>}
                             {orderStatus === "Shipped" && <span className="bg-yellow-100 text-yellow-600 px-2 rounded-lg font-medium text-[12px]">Shipped</span>}
                             {orderStatus === "Cancelled" && <span className="bg-red-100 text-red-600 px-2 rounded-lg font-medium text-[12px]">Cancelled</span>}
+                            {orderStatus === "Returned" && <span className="bg-red-100 text-red-600 px-2 rounded-lg font-medium text-[12px]">Returned</span>}
                             {orderStatus === "Delivered" && (
                                 <>
                                     <span className="bg-green-100 text-green-600 px-2 rounded-lg font-medium text-[12px]">Delivered</span>
@@ -88,7 +89,7 @@ const OrderView = () => {
                     )}
                 </div>
                 <div className="flex items-center gap-2">
-                    {orderStatus != "Delivered" && orderStatus != "Cancelled" && (
+                    {orderStatus != "Delivered" && orderStatus != "Cancelled" && orderStatus != "Returned" && (
                         <Dialog open={modelOpen} onOpenChange={setModelOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="default" size={"sm"}>Change Status</Button>
@@ -147,8 +148,18 @@ const OrderView = () => {
                                                     <TableCell>{formatPrice(item.price)}</TableCell>
                                                     <TableCell>{item.quantity}</TableCell>
                                                     <TableCell>
-                                                        {item.cancelled && "Cancelled"} 
-                                                        {item.returned && "Returned"} 
+                                                        {item.cancelled && (
+                                                            <>
+                                                                <div className="font-medium">Cancelled</div>
+                                                                <div className="text-[12px]">{item.cancelReason}</div>
+                                                            </>
+                                                        )} 
+                                                        {item.returned && (
+                                                            <>
+                                                                <div className="font-medium">Returned</div>
+                                                                <div className="text-[12px]">{item.returnReason}</div>
+                                                            </>
+                                                        )} 
                                                         {!item.cancelled && !item.returned && '-'}
                                                     </TableCell>
                                                     <TableCell>{formatPrice(item.price * item.quantity)}</TableCell>

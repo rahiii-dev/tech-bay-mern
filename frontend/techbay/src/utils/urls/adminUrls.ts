@@ -24,5 +24,7 @@ export const PRODUCT_DELETE_URL = (id: string) => generateUrl(`/products/${id}`)
 export const PRODUCT_RESTORE_URL = (id: string) => generateUrl(`/products/restore/${id}`);
 
 export const ORDER_LIST_URL = generateUrl('/orders');
+export const ORDER_RETURNS_LIST_URL = generateUrl('/order/returns');
+export const ORDER_RETURN_CONFIRM_URL = generateUrl('/order/confirm-return');
 export const ORDER_DETAIL_URL = (id: string) => generateUrl(`/order/${id}`);
 export const ORDER_DETAIL_UPDATE_URL = (id: string) => generateUrl(`/order/${id}`);
