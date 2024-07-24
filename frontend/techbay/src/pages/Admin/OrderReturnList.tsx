@@ -1,48 +1,53 @@
+import { useEffect, useState } from "react";
 import OrderReturnTable from "../../components/Admin/OrderReturnTable";
 import CustomPagination from "../../components/ui/CustomPagination";
 import TableSkeleton from "../../components/ui/TableSkeleton";
 import useAxios from "../../hooks/useAxios";
 import { OrderList } from "../../utils/types/orderTypes";
 import { ORDER_RETURNS_LIST_URL } from "../../utils/urls/adminUrls";
+import { useSearchParams } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 
 const OrderReturnList = () => {
-    const { data: returnOrderList, loading, fetchData } = useAxios<OrderList>({
-        url: ORDER_RETURNS_LIST_URL,
-        method: 'GET'
-    });
+    const [filter, setFilter] = useState("false");
+    const [searchParams] = useSearchParams();
 
-    // console.log(returnOrderList);
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+
+    const { data: returnOrderList, loading, fetchData } = useAxios<OrderList>({}, false);
+
+    useEffect(() => {
+        fetchData({
+            url: `${ORDER_RETURNS_LIST_URL}?page=${currentPage}&confirmed=${filter}`,
+            method: 'GET'
+        })
+    }, [currentPage, filter]);
+
     const OnReturnConfirmSuccess = () => {
-        fetchData()
+        fetchData({
+            url: `${ORDER_RETURNS_LIST_URL}?page=${currentPage}&confirmed=${filter}`,
+            method: 'GET'
+        })
     }
 
     return (
         <div className="h-full w-full flex flex-col gap-2 overflow-y-hidden">
             <div className="w-full h-max py-2 flex justify-between items-center gap-2">
                 <div>
-                    {/* <Input className="h-[35px]" placeholder="Search by orders" value={searchOrder} onChange={handleChange} /> */}
+                    <h1 className="font-medium">{filter === "false" ? 'Orders Waiting for Confirmation' : 'Confirmed Return Orders'}</h1>
                 </div>
                 <div className="flex items-center gap-3">
-                    {/* <div>
-                        <Link to={"/admin/return-orders"}>
-                            <Button className="py-0 px-4 h-[34px]" size={"sm"}>Returns</Button>
-                        </Link>
-                    </div>
                     <div>
-                        <Select onValueChange={setFilter}>
+                        <Select value={filter} onValueChange={setFilter}>
                             <SelectTrigger className="w-[120px] h-[35px]">
                                 <SelectValue placeholder="Filter" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="Processing">Processing</SelectItem>
-                                <SelectItem value="Shipped">Shipped</SelectItem>
-                                <SelectItem value="Delivered">Delivered</SelectItem>
-                                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                <SelectItem value="true">Confirmed</SelectItem>
+                                <SelectItem value="false">Not_Confirmed</SelectItem>
                             </SelectContent>
                         </Select>
-                    </div> */}
+                    </div>
                 </div>
             </div>
 
@@ -53,7 +58,7 @@ const OrderReturnList = () => {
                 )}
                 {returnOrderList && returnOrderList.orders && returnOrderList.orders.length > 0 && (
                     <>
-                        <OrderReturnTable orders={returnOrderList.orders} onReturnSucess={OnReturnConfirmSuccess} />
+                        <OrderReturnTable orders={returnOrderList.orders} onReturnSucess={OnReturnConfirmSuccess} tableType={filter === "false" ? 'approve' : 'list'} />
                         <div className="px-4 py-3 border-t-2 border-secondary flex justify-between items-center gap-3">
                             {returnOrderList && (
                                 <>

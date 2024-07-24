@@ -17,9 +17,8 @@ const OrderView = () => {
     const [orderStatus, setOrderStatus] = useState("")
     const [modelOpen, setModelOpen] = useState(false)
     const location = useLocation();
+    const { orderId } = location.state || {};
     const navigate = useNavigate();
-
-    const orderId = location.state.oderId;
 
     useEffect(() => {
         if (orderId) {
@@ -30,7 +29,7 @@ const OrderView = () => {
         } else {
             navigate(-1);
         }
-    }, [orderId])
+    }, [])
 
     useEffect(() => {
         if(orderData){

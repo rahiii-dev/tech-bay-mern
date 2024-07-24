@@ -27,9 +27,7 @@ const useAxios = <T = unknown>(initialConfig: AxiosRequestConfig, immediate = tr
             const axiosError = error as AxiosError<BACKEND_ERROR_RESPONSE>;
             if (axiosError.response) {
                 setError(axiosError.response.data);
-            } else {
-                setError({ message: 'An unknown error occurred' });
-            }
+            } 
         } finally {
             setLoading(false);
         }

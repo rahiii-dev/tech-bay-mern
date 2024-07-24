@@ -88,11 +88,12 @@ const orderSchema = new Schema(
     },
     status: { type: String, enum: ORDER_STATUS, default: "Pending" },
     address: orderAddressSchema,
-    paymentMethod: {
-      type: String,
-      enum: PAYMENT_METHODS,
-      required: true,
-    },
+    // paymentMethod: {
+    //   type: String,
+    //   enum: PAYMENT_METHODS,
+    //   required: true,
+    // },
+    transaction : { type: Schema.Types.ObjectId, ref: "Transaction", required: true },
     orderNumber: { type: String, unique: true },
     deliveryDate: { type: Date, default: null },
   },

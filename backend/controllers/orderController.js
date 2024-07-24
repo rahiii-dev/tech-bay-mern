@@ -10,6 +10,7 @@ import {
 } from "../utils/helpers/appHelpers.js";
 import Product from "../models/Product.js";
 import Wallet from "../models/Wallet.js";
+import Transaction from "../models/Transactions.js";
 
 const generateOrderNumber = () => {
   return `ORD-${Date.now()}`;
@@ -76,9 +77,21 @@ export const createOrder = asyncHandler(async (req, res) => {
       total: formattedCart.orderTotal.total,
     },
     address: orderedAddres,
-    paymentMethod,
     orderNumber: generateOrderNumber(),
   });
+
+  const transaction = new Transaction({
+    user: order.user,
+    type: 'DEBIT',
+    amount: order.orderedAmount.total,
+    description: 'Item Purchase',
+    orderId: order._id,
+    paymentMethod,
+  });
+
+  await transaction.save();
+
+  order.transaction = transaction._id
 
   if (paymentMethod === "cod") {
     order.status = "Processing";
@@ -113,10 +126,16 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
     page: parseInt(page),
     limit: parseInt(limit),
     customLabels: myCustomLabels,
-    populate: {
-      path: "user",
-      select: "email fullName",
-    },
+    populate: [
+      {
+        path: "user",
+        select: "email fullName",
+      },
+      {
+        path: "transaction",
+        select: "paymentMethod",
+      },
+    ],
     sort: { createdAt: -1 },
   };
 
@@ -141,10 +160,16 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
 export const getOrderDetail = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
 
-  const order = await Order.findById(orderId).populate({
-    path: "user",
-    select: "fullName email",
-  });
+  const order = await Order.findById(orderId).populate([
+    {
+      path: "user",
+      select: "email fullName",
+    },
+    {
+      path: "transaction",
+      select: "paymentMethod",
+    },
+  ]);
 
   if (!order) {
     return handleErrorResponse(res, 404, "Order not found");
@@ -201,10 +226,19 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
     Purpose: Get user specific orders
 */
 export const getUserOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).sort({
+  const orders = await Order.find({ user: req.user._id }).populate([
+    {
+      path: "user",
+      select: "email fullName",
+    },
+    {
+      path: "transaction",
+      select: "paymentMethod",
+    },
+  ]).sort({
     createdAt: -1,
   });
-  res.status(200).json(orders);
+  return res.status(200).json(orders);
 });
 /*  
     Route: POST api/user/order/:orderId/cancel
@@ -253,7 +287,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     await order.save();
   }
   
-  res.status(200).json({ message: "Order cancelled successfully" });
+  return res.status(200).json({ message: "Order cancelled successfully" });
 });
 
 /*  
@@ -277,7 +311,7 @@ export const returnOrder = asyncHandler(async (req, res) => {
 
   await order.returnItem(productId, reason);
 
-  res.status(200).json({ message: "Order returned" });
+  return res.status(200).json({ message: "Order returned" });
 })
 
 /*  
@@ -285,8 +319,13 @@ export const returnOrder = asyncHandler(async (req, res) => {
     Purpose: return order for user
 */
 export const returnOrdersList = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10} = req.query;
-  const filter = {'orderedItems.returned' : true, 'orderedItems.returnConfirmed' : false};
+  const { page = 1, limit = 10, confirmed=false} = req.query;
+
+  if (!["false", "true"].includes(confirmed)) {
+    return handleErrorResponse(res, 404, "confirmed can only be true or false");
+  }
+
+  const filter = {'orderedItems.returned' : true, 'orderedItems.returnConfirmed' : confirmed};
 
   const myCustomLabels = {
     totalDocs: "totalOrders",
@@ -297,10 +336,16 @@ export const returnOrdersList = asyncHandler(async (req, res) => {
     page: parseInt(page),
     limit: parseInt(limit),
     customLabels: myCustomLabels,
-    populate: {
-      path: "user",
-      select: "email fullName",
-    },
+    populate: [
+      {
+        path: "user",
+        select: "email fullName",
+      },
+      {
+        path: "transaction",
+        select: "paymentMethod",
+      },
+    ],
     select: 'orderedItems orderNumber user',
     sort: { updatedAt: -1 },
   };
@@ -308,11 +353,11 @@ export const returnOrdersList = asyncHandler(async (req, res) => {
   const orders = await Order.paginate(filter, options);
 
   const modifiedOrders = orders.orders.map(order => {
-    const filteredItems = order.orderedItems.filter(item => item.returned && !item.returnConfirmed);
+    const filteredItems = order.orderedItems.filter(item => item.returned && confirmed);
     return { ...order._doc, orderedItems: filteredItems };
   });
 
-  res.status(200).json({ ...orders, orders: modifiedOrders });
+  return res.status(200).json({ ...orders, orders: modifiedOrders });
 })
 
 /*  
@@ -322,7 +367,16 @@ export const returnOrdersList = asyncHandler(async (req, res) => {
 export const confirmReturn = asyncHandler(async (req, res) => {
   const { orderId, productId, stockUpdate=false } = req.body;
 
-  const order = await Order.findOne({ _id: orderId});
+  const order = await Order.findOne({ _id: orderId}).populate([
+    {
+      path: "user",
+      select: "email fullName",
+    },
+    {
+      path: "transaction",
+      select: "paymentMethod",
+    },
+  ]);
 
   if (!order) {
     return handleErrorResponse(res, 404, "Order not found");
@@ -334,16 +388,16 @@ export const confirmReturn = asyncHandler(async (req, res) => {
   
   const confirmedItem = order.confirmReturn(productId);
   const amountToReduce = confirmedItem.price * confirmedItem.quantity;
-
+  
   const allItemsReturned = order.orderedItems.every(item => item.returned);
   if (allItemsReturned) {
-      order.status = "Returned";
+    order.status = "Returned";
   }
-
-  order.save()
-
+  
+  await order.save();
+  
   const userWallet = await Wallet.findOne({user: order.user});
-
+  
   if(!userWallet){
     const newUserWallet = new Wallet({user: order.user, balance: amountToReduce})
     await newUserWallet.save();
@@ -352,6 +406,17 @@ export const confirmReturn = asyncHandler(async (req, res) => {
     userWallet.balance += amountToReduce;
     await userWallet.save()
   }
+  
+  const transaction = new Transaction({
+    user: order.user,
+    type: 'CREDIT',
+    amount: amountToReduce,
+    description: 'Order return',
+    orderId: order._id,
+    paymentMethod: order.transaction.paymentMethod,
+    // paymentId: order.paymentMethod === 'CARD' ? order.transactionId : undefined,
+  });
+  await transaction.save();
 
   if(stockUpdate){
     await Product.findByIdAndUpdate(confirmedItem.productID, {
@@ -359,5 +424,5 @@ export const confirmReturn = asyncHandler(async (req, res) => {
     });
   }
 
-  res.status(200).json({ message: "Order return confirmed" });
+  return res.status(200).json({ message: "Order return confirmed" });
 })

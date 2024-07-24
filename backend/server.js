@@ -14,8 +14,13 @@ import cors from 'cors'
 import authRoutes from './routes/authRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+import morgan from 'morgan';
 
 const app = express();
+
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+}
 
 app.use(cors({
     origin : 'http://localhost:3000',

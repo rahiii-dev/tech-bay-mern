@@ -1,5 +1,6 @@
 import { User } from "../../features/auth/authTypes";
 import { PaginationResponse } from "./backendResponseTypes";
+import { Transaction } from "./transactionTypes";
 
 export interface OrderProduct {
     productID: string;
@@ -38,6 +39,8 @@ interface Address {
     country: string;
 }
 
+export const OrderStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned']
+
 export interface Order {
     _id: string;
     user: User;
@@ -48,6 +51,7 @@ export interface Order {
     paymentMethod: 'debit card' | 'credit card' | 'wallet' | 'cod';
     orderNumber: string;
     createdAt: string;
+    transaction: Transaction;
     deliveryDate?: string;
 }
 
