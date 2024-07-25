@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import Cart from "../models/Cart.js";
 import Address from "../models/Address.js";
 import { cartPopulateOptions, formatCart } from "./cartController.js";
-import Order, { ORDER_STATUS, PAYMENT_METHODS } from "../models/Order.js";
+import Order, { ORDER_STATUS } from "../models/Order.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 import {
   calculateDateAfterDays,
@@ -10,11 +10,7 @@ import {
 } from "../utils/helpers/appHelpers.js";
 import Product from "../models/Product.js";
 import Wallet from "../models/Wallet.js";
-import Transaction from "../models/Transactions.js";
-
-const generateOrderNumber = () => {
-  return `ORD-${Date.now()}`;
-};
+import Transaction, { PAYMENT_METHODS } from "../models/Transactions.js";
 
 /*  
     Route: POST api/admin/order
@@ -77,15 +73,28 @@ export const createOrder = asyncHandler(async (req, res) => {
       total: formattedCart.orderTotal.total,
     },
     address: orderedAddres,
-    orderNumber: generateOrderNumber(),
   });
+
+  if( paymentMethod === "wallet"){
+    const wallet = await Wallet.findOne({user: req.user._id});
+
+    if(!wallet){
+      return handleErrorResponse(res, 404, "Wallet not found");
+    }else if(wallet.balance < order.orderedAmount.total){
+        return handleErrorResponse(res, 404, "Insufiicient balnace on wallet");
+    }
+    else {
+      wallet.balance -= order.orderedAmount.total;
+      await wallet.save();
+    }
+  }
 
   const transaction = new Transaction({
     user: order.user,
     type: 'DEBIT',
     amount: order.orderedAmount.total,
     description: 'Item Purchase',
-    orderId: order._id,
+    order: order._id,
     paymentMethod,
   });
 
@@ -93,7 +102,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   order.transaction = transaction._id
 
-  if (paymentMethod === "cod") {
+  if (paymentMethod === "cod" || paymentMethod === "wallet") {
     order.status = "Processing";
   }
 
@@ -411,9 +420,9 @@ export const confirmReturn = asyncHandler(async (req, res) => {
     user: order.user,
     type: 'CREDIT',
     amount: amountToReduce,
-    description: 'Order return',
-    orderId: order._id,
-    paymentMethod: order.transaction.paymentMethod,
+    description: 'Order Return',
+    order: order._id,
+    paymentMethod: 'wallet',
     // paymentId: order.paymentMethod === 'CARD' ? order.transactionId : undefined,
   });
   await transaction.save();

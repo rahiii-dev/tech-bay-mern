@@ -1,3 +1,5 @@
+import { Order } from "./orderTypes";
+
 export type TransactionType = 'CREDIT' | 'DEBIT';
 export type PaymentMethod = "debit card"| "credit card"| "wallet"| "cod";
 
@@ -7,7 +9,8 @@ export interface Transaction {
   type: TransactionType;
   amount: number;
   description: string;
-  orderId?: string;
+  transactionNumber: string;
+  order: Order;
   paymentMethod: PaymentMethod;
   paymentId?: string;
   createdAt: string;

@@ -31,6 +31,7 @@ import { clearCart } from "./features/cart/cartSlice"
 import OrdersList from "./pages/Admin/OrdersList"
 import OrderView from "./pages/Admin/OrderView"
 import OrderReturnList from "./pages/Admin/OrderReturnList"
+import WalletHistoryPage from "./pages/User/WalletHistoryPage"
 
 
 function App() {
@@ -75,6 +76,7 @@ function App() {
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/order-confirm" element={<OrderConfirmation />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/walllet-history" element={<WalletHistoryPage />} />
           </Route>
         </Route>
 

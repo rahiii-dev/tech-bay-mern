@@ -12,8 +12,6 @@ export const ORDER_STATUS = [
   "Returned",
 ];
 
-export const PAYMENT_METHODS = ["debit card", "credit card", "wallet", "cod"];
-
 const RETURN_PERIOD_DAYS = 10;
 
 const orderProductSchema = new Schema(
@@ -88,11 +86,6 @@ const orderSchema = new Schema(
     },
     status: { type: String, enum: ORDER_STATUS, default: "Pending" },
     address: orderAddressSchema,
-    // paymentMethod: {
-    //   type: String,
-    //   enum: PAYMENT_METHODS,
-    //   required: true,
-    // },
     transaction : { type: Schema.Types.ObjectId, ref: "Transaction", required: true },
     orderNumber: { type: String, unique: true },
     deliveryDate: { type: Date, default: null },
@@ -147,6 +140,30 @@ orderSchema.methods.confirmReturn = function (productID) {
   }
   throw new Error("Return cannot be confirmed or item not found");
 };
+
+orderSchema.pre('save', async function (next) {
+  const order = this;
+
+  if (!order.isNew) {
+    return next();
+  }
+
+  const generateOrderNumber = async () => {
+    const reference = 'ORD-' + Date.now() + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const existingOrder = await Order.findOne({ orderNumber: reference });
+    if (existingOrder) {
+      return generateOrderNumber();
+    }
+    return reference;
+  };
+
+  try {
+    order.orderNumber = await generateOrderNumber();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 const Order = model("Order", orderSchema);
 

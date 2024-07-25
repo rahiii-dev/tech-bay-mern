@@ -18,6 +18,9 @@ export const USER_PROFILE_URL = generateUrl('/profile');
 export const USER_PROFILE_UPDATE_URL = generateUrl('/profile');
 export const USER_CHANGE_PASS_URL = generateUrl('/profile/change-password');
 
+export const USER_WALLET_URL = generateUrl('/wallet');
+export const USER_WALLET_HISTORY_URL = generateUrl('/wallet/history');
+
 export const USER_ADDRESS_LIST_URL = generateUrl('/profile/addresses');
 export const USER_ADDRESS_ADD_URL = generateUrl('/profile/addresses');
 export const USER_ADDRESS_SINGLE_URL = (id:string) => generateUrl(`/profile/address/${id}`);

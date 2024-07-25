@@ -278,7 +278,7 @@ const OrdersPage = () => {
                                                         <div className="flex justify-between">
                                                             <div className="py-2 flex gap-2 items-center justify-end text-gray-400">
                                                                 <div className="font-medium">Payment Type: </div>
-                                                                <div>{order.transaction.paymentMethod === "cod" ? "Cash On Delivey" : order.transaction.paymentMethod.toUpperCase()}</div>
+                                                                <div>{order.transaction.paymentMethod === "cod" ? "Cash On Delivey" : order.transaction.paymentMethod}</div>
                                                             </div>
                                                             <div className="py-2 flex gap-2 items-center justify-end">
                                                                 <div className="font-medium">Total:</div>
@@ -294,9 +294,9 @@ const OrdersPage = () => {
                             </div>
                         ) : (
                             <div className="font-medium text-gray-400 text-center pb-6">
-                                {(filter.includes("Pending") || filter.includes("Processing") || filter.includes("Shipped")) && "No Orders"}
-                                {filter.includes("Delivered") && "No Orders Delivered yet"}
-                                {(filter.includes("Cancelled") || filter.includes("Returned")) && "No Returned or Cancelles Orders"}
+                                {OrdersList && OrdersList.length > 0 && (filter.includes("Pending") || filter.includes("Processing") || filter.includes("Shipped")) && "No Orders"}
+                                {OrdersList && OrdersList.length > 0 && filter.includes("Delivered") && "No Orders Delivered yet"}
+                                {OrdersList && OrdersList.length > 0 && (filter.includes("Cancelled") || filter.includes("Returned")) && "No Returned or Cancelles Orders"}
                             </div>
                         )}
                     </>

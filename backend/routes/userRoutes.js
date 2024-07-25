@@ -4,6 +4,7 @@ import { isAuthenticated } from "../middleware/authMiddleware.js";
 import cartRoutes from './User/cartRoutes.js';
 import profileRoutes from './User/profileRoutes.js'
 import orderRoutes from './User/orderRoutes.js'
+import walletRoutes from './User/walletRoutes.js'
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.get('/brands', userBrands);
 router.use('/cart', isAuthenticated, cartRoutes)
 router.use('/profile', isAuthenticated, profileRoutes)
 router.use('/order', isAuthenticated, orderRoutes)
+router.use('/wallet', isAuthenticated, walletRoutes)
 
 export default router

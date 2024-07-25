@@ -12,14 +12,22 @@ import { loadCart, verifyCartItems } from "../../features/cart/cartThunk";
 import { useState } from "react";
 import { CircularProgress } from "@mui/material";
 import { toast } from "../../components/ui/use-toast";
-import { USER_CREATE_ORDER_URL } from "../../utils/urls/userUrls";
+import { USER_CREATE_ORDER_URL, USER_WALLET_URL } from "../../utils/urls/userUrls";
 import axios from "../../utils/axios";
+import useAxios from "../../hooks/useAxios";
+import { Wallet } from "../../utils/types/walletTypes";
 
 
 const PaymentPage = () => {
     const cart = useAppSelector((state) => state.cart.cart)
     const { paymentPageAccessible, setOrderConfirmPageAccessible, checkoutAddress } = useCart();
     const [confirmButtonActive, setConfirmButtonActive] = useState(false);
+    const [paymentOption, setPaymentOption] = useState<string | null>(null);
+
+    const { data: walletData, loading: walletDataLoading} = useAxios<Wallet>({
+        url: USER_WALLET_URL,
+        method: 'GET'
+    });
 
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -29,6 +37,16 @@ const PaymentPage = () => {
     }
 
     const handleOrderConfirm = () => {
+        if(!paymentOption) {
+            toast({
+                variant: "destructive",
+                title: "Please select a payment option",
+                className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+            })
+
+            return;
+        }
+
         setConfirmButtonActive(true);
         dispatch(verifyCartItems())
             .then((resultAction) => {
@@ -37,7 +55,7 @@ const PaymentPage = () => {
                     axios.post(USER_CREATE_ORDER_URL, { 
                         cartId : cart._id,
                         addressId: checkoutAddress?._id, 
-                        paymentMethod : 'cod'
+                        paymentMethod : paymentOption
                     }).then( _ => {
                         dispatch(loadCart())
                         setOrderConfirmPageAccessible(true)
@@ -46,7 +64,7 @@ const PaymentPage = () => {
                     .catch((_) => {
                         toast({
                             variant: "destructive",
-                            title: "Order COnfirmation failed",
+                            title: "Order Confirmation failed",
                             description: 'Please try again',
                             className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
                         })
@@ -81,14 +99,18 @@ const PaymentPage = () => {
                             <div className="flex-grow">
                                 <div className="mb-4 max-w-[400px]">
                                     <div className="border rounded-xl overflow-hidden px-3 mb-4">
-                                        <RadioGroup defaultValue="COD" className="flex flex-col gap-3">
+                                        <RadioGroup defaultValue={`${paymentOption && paymentOption}`} className="flex flex-col gap-3" onValueChange={setPaymentOption}>
                                             <div className="py-4 flex items-center justify-between border-b">
                                                 <Label className="text-lg cursor-pointer" htmlFor="r1">Cash On Delivery</Label>
-                                                <RadioGroupItem value="COD" id="r1" />
+                                                <RadioGroupItem value="cod" id="r1" />
                                             </div>
-                                            <div className="py-4 flex items-center justify-between border-b">
-                                                <Label className="text-lg cursor-pointer" htmlFor="r2">Wallet</Label>
-                                                <RadioGroupItem disabled={true} value="wallet" id="r2" />
+                                            <div className={`py-4 flex items-center justify-between border-b ${(walletDataLoading || !walletData || walletData.balance < cart.orderTotal.total) && 'text-gray-400'}`}>
+                                                <Label className="text-lg cursor-pointer" htmlFor="r2">
+                                                    <div>Wallet</div>
+                                                    {!walletDataLoading && walletData && <div className="text-sm text-gray-400">Balance: {formatPrice(walletData.balance)}</div>}
+                                                    {!walletDataLoading && !walletData && <div className="text-sm text-gray-400">No wallet</div>}
+                                                </Label>
+                                                <RadioGroupItem disabled={(walletDataLoading || !walletData || walletData.balance < cart.orderTotal.total)} value="wallet" id="r2" />
                                             </div>
                                             <div className="py-4 flex items-center justify-between border-b">
                                                 <Label className="text-lg cursor-pointer" htmlFor="r3">Card Payment</Label>

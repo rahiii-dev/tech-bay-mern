@@ -3,7 +3,7 @@ const BASE_URL: string = '/auth';
 export const LOGIN_URL:string = `${BASE_URL}/login`; 
 export const REGISTER_URL:string = `${BASE_URL}/register`;
 
-export const VERIFY_AUTH_URL:string = `${BASE_URL}//verify-auth`;
+export const VERIFY_AUTH_URL:string = `${BASE_URL}/verify-auth`;
 
 export const REFRESH_TOKEN_URL:string = `${BASE_URL}/refresh-token`;
 
