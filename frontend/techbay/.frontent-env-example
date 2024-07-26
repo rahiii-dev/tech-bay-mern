@@ -1,2 +1,3 @@
 VITE_SERVER_URL=http://localhost:5000
 VITE_GOOGLE_CLIENT_ID=your-ggogle-client-id
+PAYPAL_CLIENT_ID=your-paypal-client-id

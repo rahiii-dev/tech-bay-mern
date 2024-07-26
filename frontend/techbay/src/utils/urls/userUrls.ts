@@ -28,6 +28,7 @@ export const USER_ADDRESS_UPDATE_URL = (id:string) => generateUrl(`/profile/addr
 export const USER_ADDRESS_DELETE_URL = (id:string) => generateUrl(`/profile/address/${id}`);
 
 export const USER_CREATE_ORDER_URL = generateUrl('/order');
+export const USER_ORDER_CAPTURE_URL = generateUrl('/order/capture');
 export const USER_ORDER_LIST_URL = generateUrl('/order/list');
 export const USER_CANCEL_ORDER_URL = (id:string) => generateUrl(`/order/${id}/cancel`);
 export const USER_RETURN_ORDER_URL = (id:string) => generateUrl(`/order/${id}/return`);

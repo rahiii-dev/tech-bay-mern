@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const {Schema, model} = mongoose;
 
-export const PAYMENT_METHODS = ["debit card", "credit card", "wallet", "cod"];
+export const PAYMENT_METHODS = ["debit card", "credit card", "wallet", "cod", "paypal"];
 
 const transactionSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },

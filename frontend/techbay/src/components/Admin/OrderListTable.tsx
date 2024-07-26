@@ -15,6 +15,8 @@ const OrderListTable = ({ orders }: OrderListTable) => {
         navigate('/admin/order', { state: { orderId } })
     }
 
+    console.log(orders);
+    
     return (
         <Table className="w-full overflow-x-scroll">
             <TableHeader>
@@ -34,7 +36,7 @@ const OrderListTable = ({ orders }: OrderListTable) => {
                         <TableCell>{formatDate(order.createdAt)}</TableCell>
                         <TableCell>{order.user.fullName}</TableCell>
                         <TableCell className="font-medium">{formatPrice(order.orderedAmount.total)}</TableCell>
-                        <TableCell>{order.transaction.paymentMethod}</TableCell>
+                        <TableCell>{order.transaction ? order.transaction.paymentMethod : '-'}</TableCell>
                         <TableCell>
                             {order.status === "Pending" && <span className="bg-yellow-100 text-yellow-600 px-2 rounded-lg font-medium text-[12px]">Pending</span>}
                             {order.status === "Processing" && <span className="bg-blue-100 text-blue-600 px-2 rounded-lg font-medium text-[12px]">Processing</span>}

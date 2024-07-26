@@ -11,9 +11,11 @@ import {
 import Product from "../models/Product.js";
 import Wallet from "../models/Wallet.js";
 import Transaction, { PAYMENT_METHODS } from "../models/Transactions.js";
+import paypal from '@paypal/checkout-server-sdk';
+import paypalClient from "../utils/paypalClient.js";
 
 /*  
-    Route: POST api/admin/order
+    Route: POST api/user/order
     Purpose: Create new order
 */
 export const createOrder = asyncHandler(async (req, res) => {
@@ -29,7 +31,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   );
 
   if (!cart) {
-    return handleErrorResponse(res, 404, "Cart not forund");
+    return handleErrorResponse(res, 404, "Cart not found");
   }
 
   const address = await Address.findOne({ _id: addressId, user: userId });
@@ -52,7 +54,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     };
   });
 
-  const orderedAddres = {
+  const orderedAddress = {
     fullName: address.fullName,
     phone: address.phone,
     addressLine1: address.addressLine1,
@@ -72,50 +74,123 @@ export const createOrder = asyncHandler(async (req, res) => {
       discount: formattedCart.cartTotal.discount,
       total: formattedCart.orderTotal.total,
     },
-    address: orderedAddres,
+    address: orderedAddress,
   });
 
-  if( paymentMethod === "wallet"){
-    const wallet = await Wallet.findOne({user: req.user._id});
+  if (paymentMethod === "wallet") {
+    const wallet = await Wallet.findOne({ user: req.user._id });
 
-    if(!wallet){
+    if (!wallet) {
       return handleErrorResponse(res, 404, "Wallet not found");
-    }else if(wallet.balance < order.orderedAmount.total){
-        return handleErrorResponse(res, 404, "Insufiicient balnace on wallet");
-    }
-    else {
+    } else if (wallet.balance < order.orderedAmount.total) {
+      return handleErrorResponse(res, 404, "Insufficient balance in wallet");
+    } else {
       wallet.balance -= order.orderedAmount.total;
       await wallet.save();
     }
   }
 
-  const transaction = new Transaction({
-    user: order.user,
-    type: 'DEBIT',
-    amount: order.orderedAmount.total,
-    description: 'Item Purchase',
-    order: order._id,
-    paymentMethod,
-  });
-
-  await transaction.save();
-
-  order.transaction = transaction._id
-
-  if (paymentMethod === "cod" || paymentMethod === "wallet") {
-    order.status = "Processing";
-  }
-
-  const createdOrder = await order.save();
-  await Cart.findByIdAndDelete(cart._id);
-
-  for (const item of order.orderedItems) {
-    await Product.findByIdAndUpdate(item.productID, {
-      $inc: { stock: -item.quantity },
+  if (paymentMethod === "paypal") {
+    console.log("creating paypal ordder");
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer("return=representation");
+    request.requestBody({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "USD",
+            value: order.orderedAmount.total.toFixed(2),
+          },
+        },
+      ],
     });
+
+    try {
+      const paypalOrder = await paypalClient.execute(request);
+      order.status = "Pending";
+      const createdOrder = await order.save();
+      console.log(paypalOrder);
+      console.log("order created");
+      return res.status(201).json({
+        orderID: createdOrder._id,
+        paypalOrderID: paypalOrder.result.id,
+        links: paypalOrder.result.links,
+      });
+    } catch (error) {
+      console.log(error);
+      return handleErrorResponse(res, 500, "Error creating PayPal order", error);
+    }
+  } else {
+    const transaction = new Transaction({
+      user: order.user,
+      type: 'DEBIT',
+      amount: order.orderedAmount.total,
+      description: 'Item Purchase',
+      order: order._id,
+      paymentMethod,
+    });
+
+    await transaction.save();
+    order.transaction = transaction._id;
+
+    if (paymentMethod === "cod" || paymentMethod === "wallet") {
+      order.status = "Processing";
+    }
+
+    const createdOrder = await order.save();
+    await Cart.findByIdAndDelete(cart._id);
+
+    for (const item of order.orderedItems) {
+      await Product.findByIdAndUpdate(item.productID, {
+        $inc: { stock: -item.quantity },
+      });
+    }
+
+    res.status(201).json(createdOrder);
+  }
+});
+
+/*  
+    Route: POST api/user/order/capture
+    Purpose: Capture paypal order
+*/
+export const captureOrder = asyncHandler(async (req, res) => {
+  const { orderID, paypalOrderID } = req.body;
+
+  const order = await Order.findOne({ _id: orderID});
+
+  console.log("COMING TO CAPTURE");
+
+  if (!order) {
+    return handleErrorResponse(res, 404, "Order not found");
   }
 
-  res.status(201).json(createdOrder);
+  console.log("order found");
+  const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
+  request.requestBody({});
+
+  try {
+    const capture = await paypalClient.execute(request);
+
+    const transaction = new Transaction({
+      user: order.user,
+      type: 'DEBIT',
+      amount: order.orderedAmount.total,
+      description: 'Item Purchase',
+      order: order._id,
+      paymentMethod: "paypal",
+    });
+
+    await transaction.save();
+    order.transaction = transaction._id;
+    order.status = "Processing";
+    await order.save();
+
+    res.status(200).json(order);
+  } catch (error) {
+    return handleErrorResponse(res, 500, "Error capturing PayPal order", error);
+  }
 });
 
 /*  
