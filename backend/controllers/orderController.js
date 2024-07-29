@@ -11,7 +11,7 @@ import {
 import Product from "../models/Product.js";
 import Wallet from "../models/Wallet.js";
 import Transaction, { PAYMENT_METHODS } from "../models/Transactions.js";
-import paypal from '@paypal/checkout-server-sdk';
+import paypal from "@paypal/checkout-server-sdk";
 import paypalClient from "../utils/paypalClient.js";
 import { convertToUSD } from "../utils/currencyConverter.js";
 
@@ -42,11 +42,11 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   let order;
 
-  const existingOrder = await Order.findOne({cart: cart._id});
+  const existingOrder = await Order.findOne({ cart: cart._id });
 
-  if(!existingOrder){
+  if (!existingOrder) {
     const formattedCart = formatCart(cart, req.user);
-  
+
     const orderedItems = cart.items.map((item) => {
       return {
         productID: item.product._id,
@@ -59,7 +59,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         quantity: item.quantity,
       };
     });
-  
+
     const orderedAddress = {
       fullName: address.fullName,
       phone: address.phone,
@@ -70,7 +70,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       zipCode: address.zipCode,
       country: address.country,
     };
-  
+
     order = new Order({
       user: userId,
       orderedItems,
@@ -81,13 +81,11 @@ export const createOrder = asyncHandler(async (req, res) => {
         total: formattedCart.orderTotal.total,
       },
       address: orderedAddress,
-      cart: cart._id
+      cart: cart._id,
     });
-
   } else {
     order = existingOrder;
   }
-
 
   if (paymentMethod === "wallet") {
     const wallet = await Wallet.findOne({ user: req.user._id });
@@ -103,7 +101,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   if (paymentMethod === "paypal") {
-    const totalUSD = await convertToUSD(order.orderedAmount.total, 'INR');
+    const totalUSD = await convertToUSD(order.orderedAmount.total, "INR");
     const request = new paypal.orders.OrdersCreateRequest();
     request.prefer("return=representation");
     request.requestBody({
@@ -128,14 +126,19 @@ export const createOrder = asyncHandler(async (req, res) => {
         links: paypalOrder.result.links,
       });
     } catch (error) {
-      return handleErrorResponse(res, 500, "Error creating PayPal order", error);
+      return handleErrorResponse(
+        res,
+        500,
+        "Error creating PayPal order",
+        error
+      );
     }
   } else {
     const transaction = new Transaction({
       user: order.user,
-      type: 'DEBIT',
+      type: "DEBIT",
       amount: order.orderedAmount.total,
-      description: 'Item Purchase',
+      description: "Item Purchase",
       order: order._id,
       paymentMethod,
     });
@@ -167,7 +170,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 export const captureOrder = asyncHandler(async (req, res) => {
   const { orderID, paypalOrderID } = req.body;
 
-  const order = await Order.findOne({ _id: orderID});
+  const order = await Order.findOne({ _id: orderID });
 
   if (!order) {
     return handleErrorResponse(res, 404, "Order not found");
@@ -181,12 +184,12 @@ export const captureOrder = asyncHandler(async (req, res) => {
 
     const transaction = new Transaction({
       user: order.user,
-      type: 'DEBIT',
+      type: "DEBIT",
       amount: order.orderedAmount.total,
-      description: 'Item Purchase',
+      description: "Item Purchase",
       order: order._id,
       paymentMethod: "paypal",
-      paymentId: paypalOrderID
+      paymentId: paypalOrderID,
     });
 
     await transaction.save();
@@ -325,18 +328,23 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
     Purpose: Get user specific orders
 */
 export const getUserOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id, status : { $ne : 'Pending'} }).populate([
-    {
-      path: "user",
-      select: "email fullName",
-    },
-    {
-      path: "transaction",
-      select: "paymentMethod",
-    },
-  ]).sort({
-    createdAt: -1,
-  });
+  const orders = await Order.find({
+    user: req.user._id,
+    status: { $ne: "Pending" },
+  })
+    .populate([
+      {
+        path: "user",
+        select: "email fullName",
+      },
+      {
+        path: "transaction",
+        select: "paymentMethod",
+      },
+    ])
+    .sort({
+      createdAt: -1,
+    });
   return res.status(200).json(orders);
 });
 /*  
@@ -348,7 +356,16 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   const { productId, reason } = req.body;
   const userId = req.user._id;
 
-  const order = await Order.findOne({ _id: orderId, user: userId });
+  const order = await Order.findOne({ _id: orderId, user: userId }).populate([
+    {
+      path: "user",
+      select: "email fullName",
+    },
+    {
+      path: "transaction",
+      select: "paymentMethod",
+    },
+  ]);
 
   if (!order) {
     return handleErrorResponse(res, 404, "Order not found");
@@ -368,16 +385,47 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     return item.productID.toString() === productId.toString();
   });
 
-  if(cancelledProduct){
-    // const amountToReduce = cancelledProduct.price * cancelledProduct.quantity;
+  if (cancelledProduct) {
+    const amountToReduce = cancelledProduct.price * cancelledProduct.quantity;
     // order.orderedAmount.subtotal -= amountToReduce;
     // order.orderedAmount.total -= amountToReduce;
+
+    if (["wallet", "paypal"].includes(order.transaction.paymentMethod)) {
+      const userWallet = await Wallet.findOne({ user: order.user });
+
+      if (!userWallet) {
+        const newUserWallet = new Wallet({
+          user: order.user,
+          balance: amountToReduce,
+        });
+        await newUserWallet.save();
+      } else {
+        userWallet.balance += amountToReduce;
+        await userWallet.save();
+      }
+
+      const transaction = new Transaction({
+        user: order.user,
+        type: "CREDIT",
+        amount: amountToReduce,
+        description: "Cancelling Item",
+        order: order._id,
+        paymentMethod: "wallet",
+        paymentId:
+          order.transaction.paymentMethod === "paypal"
+            ? order.transaction.paymentId
+            : null,
+      });
+      await transaction.save();
+    }
 
     await Product.findByIdAndUpdate(cancelledProduct.productID, {
       $inc: { stock: cancelledProduct.quantity },
     });
 
-    const allItemsCancelled = order.orderedItems.every(item => item.cancelled);
+    const allItemsCancelled = order.orderedItems.every(
+      (item) => item.cancelled
+    );
     if (allItemsCancelled) {
       order.status = "Cancelled";
       order.orderedAmount.deliveryFee = 0;
@@ -385,7 +433,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 
     await order.save();
   }
-  
+
   return res.status(200).json({ message: "Order cancelled successfully" });
 });
 
@@ -411,20 +459,23 @@ export const returnOrder = asyncHandler(async (req, res) => {
   await order.returnItem(productId, reason);
 
   return res.status(200).json({ message: "Order returned" });
-})
+});
 
 /*  
     Route: GET api/admin/order/returns
     Purpose: return order for user
 */
 export const returnOrdersList = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, confirmed=false} = req.query;
+  const { page = 1, limit = 10, confirmed = false } = req.query;
 
   if (!["false", "true"].includes(confirmed)) {
     return handleErrorResponse(res, 404, "confirmed can only be true or false");
   }
 
-  const filter = {'orderedItems.returned' : true, 'orderedItems.returnConfirmed' : confirmed};
+  const filter = {
+    "orderedItems.returned": true,
+    "orderedItems.returnConfirmed": confirmed,
+  };
 
   const myCustomLabels = {
     totalDocs: "totalOrders",
@@ -445,28 +496,30 @@ export const returnOrdersList = asyncHandler(async (req, res) => {
         select: "paymentMethod",
       },
     ],
-    select: 'orderedItems orderNumber user',
+    select: "orderedItems orderNumber user",
     sort: { updatedAt: -1 },
   };
 
   const orders = await Order.paginate(filter, options);
 
-  const modifiedOrders = orders.orders.map(order => {
-    const filteredItems = order.orderedItems.filter(item => item.returned && confirmed);
+  const modifiedOrders = orders.orders.map((order) => {
+    const filteredItems = order.orderedItems.filter(
+      (item) => item.returned && confirmed
+    );
     return { ...order._doc, orderedItems: filteredItems };
   });
 
   return res.status(200).json({ ...orders, orders: modifiedOrders });
-})
+});
 
 /*  
     Route: POST api/admin/order/confirm-return
     Purpose: return order for user
 */
 export const confirmReturn = asyncHandler(async (req, res) => {
-  const { orderId, productId, stockUpdate=false } = req.body;
+  const { orderId, productId, stockUpdate = false } = req.body;
 
-  const order = await Order.findOne({ _id: orderId}).populate([
+  const order = await Order.findOne({ _id: orderId }).populate([
     {
       path: "user",
       select: "email fullName",
@@ -484,44 +537,49 @@ export const confirmReturn = asyncHandler(async (req, res) => {
   if (order.status !== "Delivered") {
     return handleErrorResponse(res, 403, "Order is not Delivered");
   }
-  
+
   const confirmedItem = order.confirmReturn(productId);
   const amountToReduce = confirmedItem.price * confirmedItem.quantity;
-  
-  const allItemsReturned = order.orderedItems.every(item => item.returned);
+
+  const allItemsReturned = order.orderedItems.every((item) => item.returned);
   if (allItemsReturned) {
     order.status = "Returned";
   }
-  
+
   await order.save();
-  
-  const userWallet = await Wallet.findOne({user: order.user});
-  
-  if(!userWallet){
-    const newUserWallet = new Wallet({user: order.user, balance: amountToReduce})
+
+  const userWallet = await Wallet.findOne({ user: order.user });
+
+  if (!userWallet) {
+    const newUserWallet = new Wallet({
+      user: order.user,
+      balance: amountToReduce,
+    });
     await newUserWallet.save();
-  }
-  else {
+  } else {
     userWallet.balance += amountToReduce;
-    await userWallet.save()
+    await userWallet.save();
   }
-  
+
   const transaction = new Transaction({
     user: order.user,
-    type: 'CREDIT',
+    type: "CREDIT",
     amount: amountToReduce,
-    description: 'Order Return',
+    description: "Order Return",
     order: order._id,
-    paymentMethod: 'wallet',
-    paymentId: order.transaction.paymentMethod === 'paypal' ? order.transaction.paymentId : null,
+    paymentMethod: "wallet",
+    paymentId:
+      order.transaction.paymentMethod === "paypal"
+        ? order.transaction.paymentId
+        : null,
   });
   await transaction.save();
 
-  if(stockUpdate){
+  if (stockUpdate) {
     await Product.findByIdAndUpdate(confirmedItem.productID, {
       $inc: { stock: confirmedItem.quantity },
     });
   }
 
   return res.status(200).json({ message: "Order return confirmed" });
-})
+});
