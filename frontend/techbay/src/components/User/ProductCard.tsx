@@ -6,13 +6,19 @@ import { formatPrice } from "../../utils/appHelpers";
 import { Product } from "../../utils/types/productTypes";
 
 type ProductCardProps = {
-    product: Product
+    product: Product;
+    label?: boolean
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, label }: ProductCardProps) => {
     return (
         <Link to={`/product/${product._id}`} className="group relative overflow-hidden">
-            {product.isFeatured && <div className="absolute bg-primary text-primary-foreground text-sm py-1 px-3 z-10 rounded-tl-2xl rounded-br-2xl">Featured</div>}
+            {label && (
+                <>
+                    {product.stock === 0 && <div className="absolute bg-red-500 text-primary-foreground text-sm py-1 px-3 z-10 rounded-tl-2xl rounded-br-2xl">Out of Stock</div>}
+                    {product.stock > 0 && product.isFeatured && <div className="absolute bg-primary text-primary-foreground text-sm py-1 px-3 z-10 rounded-tl-2xl rounded-br-2xl">Featured</div>}
+                </>
+            )}
             <div className="w-full max-w-[300px] mx-auto overflow-hidden">
                 <div className="w-full aspect-square overflow-hidden rounded-2xl">
                     <img src={`${SERVER_URL}${product.thumbnail}`} alt="product-img"

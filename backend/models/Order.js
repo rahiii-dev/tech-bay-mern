@@ -87,6 +87,7 @@ const orderSchema = new Schema(
     status: { type: String, enum: ORDER_STATUS, default: "Pending" },
     address: orderAddressSchema,
     transaction: { type: Schema.Types.ObjectId, ref: "Transaction", default: null },
+    cart: { type: Schema.Types.ObjectId, ref: "Cart", default: null },
     orderNumber: { type: String, unique: true },
     deliveryDate: { type: Date, default: null },
   },

@@ -25,7 +25,7 @@ const filterOrders = (orders: Order[], status: string[]): Order[] => {
 
 const OrdersPage = () => {
     const [filteredOrderList, setFilteredOrderList] = useState<Order[]>([]);
-    const [filter, setFilter] = useState<string[]>(["Pending", "Processing", "Shipped"]);
+    const [filter, setFilter] = useState<string[]>(["Processing", "Shipped"]);
     const [cancelModelActive, setCancelModelActive] = useState(false);
     const [returnModelActive, setReturnModelActive] = useState(false);
     const [itemToCancel, setItemToCancel] = useState<{ orderId: string, OrderProduct: OrderProduct } | null>(null);
@@ -142,7 +142,7 @@ const OrdersPage = () => {
                         <SubHeading className="text-left mb-10">My Orders</SubHeading>
                         <div className="flex gap-3 items-center justify-between border-b mb-3">
                             <div className="flex gap-2">
-                                <Button onClick={() => handleFilter(["Pending", "Processing", "Shipped"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Pending") || filter.includes("Processing") || filter.includes("Shipped")) && 'text-primary border-b-2 border-primary'}`}>Orders</Button>
+                                <Button onClick={() => handleFilter(["Processing", "Shipped"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Processing") || filter.includes("Shipped")) && 'text-primary border-b-2 border-primary'}`}>Orders</Button>
                                 <Button onClick={() => handleFilter(["Delivered"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Delivered")) && 'text-primary border-b-2 border-primary'}`}>Delivered</Button>
                                 <Button onClick={() => handleFilter(["Cancelled", "Returned"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Cancelled") || filter.includes("Returned")) && 'text-primary border-b-2 border-primary'}`}>Cancelled / Returned</Button>
                             </div>
@@ -196,13 +196,7 @@ const OrdersPage = () => {
                                                     </div>
                                                 )}
 
-                                                {order.status === "Pending" && (
-                                                    <div className="text-yellow-600">
-                                                        <p>Order is Pending</p>
-                                                    </div>
-                                                )}
-
-                                                {(order.status === "Processing" || order.status === "Pending") && (
+                                                {(order.status === "Processing") && (
                                                     <div className="text-blue-600">
                                                         <p>Order is Proceesing</p>
                                                     </div>
@@ -294,7 +288,7 @@ const OrdersPage = () => {
                             </div>
                         ) : (
                             <div className="font-medium text-gray-400 text-center pb-6">
-                                {OrdersList && OrdersList.length > 0 && (filter.includes("Pending") || filter.includes("Processing") || filter.includes("Shipped")) && "No Orders"}
+                                {OrdersList && OrdersList.length > 0 && (filter.includes("Processing") || filter.includes("Shipped")) && "No Orders"}
                                 {OrdersList && OrdersList.length > 0 && filter.includes("Delivered") && "No Orders Delivered yet"}
                                 {OrdersList && OrdersList.length > 0 && (filter.includes("Cancelled") || filter.includes("Returned")) && "No Returned or Cancelles Orders"}
                             </div>

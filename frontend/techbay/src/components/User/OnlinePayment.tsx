@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/useDispatch";
@@ -6,6 +6,7 @@ import { loadCart, verifyCartItems } from "../../features/cart/cartThunk";
 import axios from "../../utils/axios";
 import { USER_CREATE_ORDER_URL, USER_ORDER_CAPTURE_URL } from "../../utils/urls/userUrls";
 import { toast } from "../ui/use-toast";
+import { useCart } from "./CartProvider";
 
 // Renders errors or successful transactions on the screen.
 type MessageProp = {
@@ -20,20 +21,22 @@ type OnlinePaymentProps = {
     addressID: string;
 }
 const OnlinePayment = ({ cartID, addressID }: OnlinePaymentProps) => {
+    const { setOrderConfirmPageAccessible } = useCart();
+
+    const [message, setMessage] = useState<string>("");
+    const orderIdRef = useRef<string | null>(null);
+
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+
     const initialOptions = {
         "clientId": import.meta.env.VITE_PAYPAL_CLIENT_ID,
         "enable-funding": "venmo",
         "disable-funding": "",
-        // country: "IN",
-        // currency: "INR",
         "data-page-type": "product-details",
         components: "buttons",
         "data-sdk-integration-source": "developer-studio",
     };
-
-    const [message, setMessage] = useState<string>("");
-    const navigate = useNavigate();
-    const dispatch = useAppDispatch();
 
     return (
         <div className="App">
@@ -55,8 +58,13 @@ const OnlinePayment = ({ cartID, addressID }: OnlinePaymentProps) => {
                                     addressId: addressID,
                                     paymentMethod: "paypal",
                                 });
-                                console.log(response);
-                                return response.data.paypalOrderID;
+
+                                if (response.data && response.data.orderID && response.data.paypalOrderID) {
+                                    orderIdRef.current = response.data.orderID;
+                                    return response.data.paypalOrderID;
+                                } else {
+                                    throw new Error("Invalid response structure");
+                                }
                             } else {
                                 dispatch(loadCart());
                                 const { extraMessage } = resultAction.payload || {};
@@ -78,30 +86,29 @@ const OnlinePayment = ({ cartID, addressID }: OnlinePaymentProps) => {
                     }}
                     onApprove={async (data, actions) => {
                         try {
-                          const response = await axios.post(USER_ORDER_CAPTURE_URL, { 
-                            orderID: data.orderID,
-                            paypalOrderID: data.orderID
-                          });
-            
-                          const orderData = await response.data;
-            
-                          const errorDetail = orderData?.details?.[0];
-            
-                          if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-                            // Recoverable state
-                            return actions.restart();
-                          } else if (errorDetail) {
-                            // Non-recoverable errors
-                            throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
-                          } else {
-                            // Successful transaction
-                            const transaction = orderData.purchase_units[0].payments.captures[0];
-                            setMessage(`Transaction ${transaction.status}: ${transaction.id}. See console for details.`);
-                            console.log("Capture result", orderData, JSON.stringify(orderData, null, 2));
-                          }
+                            const response = await axios.post(USER_ORDER_CAPTURE_URL, {
+                                orderID: orderIdRef.current,
+                                paypalOrderID: data.orderID
+                            });
+
+                            const orderData = await response.data;
+
+                            const errorDetail = orderData?.details?.[0];
+
+                            if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
+                                // Recoverable state
+                                return actions.restart();
+                            } else if (errorDetail) {
+                                // Non-recoverable errors
+                                throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
+                            } else {
+                                dispatch(loadCart())
+                                setOrderConfirmPageAccessible(true)
+                                navigate('/order-confirm', { replace: true })
+                            }
                         } catch (error) {
-                          console.error(error);
-                          setMessage("Sorry, your transaction could not be processed");
+                            console.error(error);
+                            setMessage("Sorry, your transaction could not be processed");
                         }
                     }}
                 />

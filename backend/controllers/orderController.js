@@ -13,6 +13,7 @@ import Wallet from "../models/Wallet.js";
 import Transaction, { PAYMENT_METHODS } from "../models/Transactions.js";
 import paypal from '@paypal/checkout-server-sdk';
 import paypalClient from "../utils/paypalClient.js";
+import { convertToUSD } from "../utils/currencyConverter.js";
 
 /*  
     Route: POST api/user/order
@@ -39,43 +40,54 @@ export const createOrder = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Address not found");
   }
 
-  const formattedCart = formatCart(cart, req.user);
+  let order;
 
-  const orderedItems = cart.items.map((item) => {
-    return {
-      productID: item.product._id,
-      name: item.product.name,
-      price: item.product.price,
-      images: item.product.imageUrls,
-      thumbnail: item.product.thumbnailUrl,
-      category: item.product.brand.category,
-      brand: item.product.brand.name,
-      quantity: item.quantity,
+  const existingOrder = await Order.findOne({cart: cart._id});
+
+  if(!existingOrder){
+    const formattedCart = formatCart(cart, req.user);
+  
+    const orderedItems = cart.items.map((item) => {
+      return {
+        productID: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
+        images: item.product.imageUrls,
+        thumbnail: item.product.thumbnailUrl,
+        category: item.product.brand.category,
+        brand: item.product.brand.name,
+        quantity: item.quantity,
+      };
+    });
+  
+    const orderedAddress = {
+      fullName: address.fullName,
+      phone: address.phone,
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2,
+      city: address.city,
+      state: address.state,
+      zipCode: address.zipCode,
+      country: address.country,
     };
-  });
+  
+    order = new Order({
+      user: userId,
+      orderedItems,
+      orderedAmount: {
+        subtotal: formattedCart.cartTotal.subtotal,
+        deliveryFee: formattedCart.orderTotal.deliveryFee,
+        discount: formattedCart.cartTotal.discount,
+        total: formattedCart.orderTotal.total,
+      },
+      address: orderedAddress,
+      cart: cart._id
+    });
 
-  const orderedAddress = {
-    fullName: address.fullName,
-    phone: address.phone,
-    addressLine1: address.addressLine1,
-    addressLine2: address.addressLine2,
-    city: address.city,
-    state: address.state,
-    zipCode: address.zipCode,
-    country: address.country,
-  };
+  } else {
+    order = existingOrder;
+  }
 
-  const order = new Order({
-    user: userId,
-    orderedItems,
-    orderedAmount: {
-      subtotal: formattedCart.cartTotal.subtotal,
-      deliveryFee: formattedCart.orderTotal.deliveryFee,
-      discount: formattedCart.cartTotal.discount,
-      total: formattedCart.orderTotal.total,
-    },
-    address: orderedAddress,
-  });
 
   if (paymentMethod === "wallet") {
     const wallet = await Wallet.findOne({ user: req.user._id });
@@ -91,7 +103,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   if (paymentMethod === "paypal") {
-    console.log("creating paypal ordder");
+    const totalUSD = await convertToUSD(order.orderedAmount.total, 'INR');
     const request = new paypal.orders.OrdersCreateRequest();
     request.prefer("return=representation");
     request.requestBody({
@@ -100,7 +112,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         {
           amount: {
             currency_code: "USD",
-            value: order.orderedAmount.total.toFixed(2),
+            value: totalUSD.toFixed(2),
           },
         },
       ],
@@ -108,17 +120,14 @@ export const createOrder = asyncHandler(async (req, res) => {
 
     try {
       const paypalOrder = await paypalClient.execute(request);
-      order.status = "Pending";
       const createdOrder = await order.save();
-      console.log(paypalOrder);
-      console.log("order created");
-      return res.status(201).json({
+      const statusCode = existingOrder ? 200 : 201;
+      return res.status(statusCode).json({
         orderID: createdOrder._id,
         paypalOrderID: paypalOrder.result.id,
         links: paypalOrder.result.links,
       });
     } catch (error) {
-      console.log(error);
       return handleErrorResponse(res, 500, "Error creating PayPal order", error);
     }
   } else {
@@ -160,18 +169,15 @@ export const captureOrder = asyncHandler(async (req, res) => {
 
   const order = await Order.findOne({ _id: orderID});
 
-  console.log("COMING TO CAPTURE");
-
   if (!order) {
     return handleErrorResponse(res, 404, "Order not found");
   }
 
-  console.log("order found");
   const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
   request.requestBody({});
 
   try {
-    const capture = await paypalClient.execute(request);
+    await paypalClient.execute(request);
 
     const transaction = new Transaction({
       user: order.user,
@@ -180,12 +186,21 @@ export const captureOrder = asyncHandler(async (req, res) => {
       description: 'Item Purchase',
       order: order._id,
       paymentMethod: "paypal",
+      paymentId: paypalOrderID
     });
 
     await transaction.save();
     order.transaction = transaction._id;
     order.status = "Processing";
     await order.save();
+
+    await Cart.findByIdAndDelete(order.cart);
+
+    for (const item of order.orderedItems) {
+      await Product.findByIdAndUpdate(item.productID, {
+        $inc: { stock: -item.quantity },
+      });
+    }
 
     res.status(200).json(order);
   } catch (error) {
@@ -310,7 +325,7 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
     Purpose: Get user specific orders
 */
 export const getUserOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).populate([
+  const orders = await Order.find({ user: req.user._id, status : { $ne : 'Pending'} }).populate([
     {
       path: "user",
       select: "email fullName",
@@ -354,10 +369,10 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   });
 
   if(cancelledProduct){
-    const amountToReduce = cancelledProduct.price * cancelledProduct.quantity;
-    order.orderedAmount.subtotal -= amountToReduce;
-    order.orderedAmount.total -= amountToReduce;
-    
+    // const amountToReduce = cancelledProduct.price * cancelledProduct.quantity;
+    // order.orderedAmount.subtotal -= amountToReduce;
+    // order.orderedAmount.total -= amountToReduce;
+
     await Product.findByIdAndUpdate(cancelledProduct.productID, {
       $inc: { stock: cancelledProduct.quantity },
     });
@@ -498,7 +513,7 @@ export const confirmReturn = asyncHandler(async (req, res) => {
     description: 'Order Return',
     order: order._id,
     paymentMethod: 'wallet',
-    // paymentId: order.paymentMethod === 'CARD' ? order.transactionId : undefined,
+    paymentId: order.transaction.paymentMethod === 'paypal' ? order.transaction.paymentId : null,
   });
   await transaction.save();
 

@@ -39,6 +39,9 @@ export const userHome = asyncHandler(async (req, res) => {
   const NEWEST_PRODUCT_PIPELINE = [
     ...ACTIVE_PRODUCT_PIPELINE,
     {
+      $match : {stock : {$gt : 0}}
+    },
+    {
       $sort: { createdAt: -1 },
     },
     {
@@ -48,6 +51,9 @@ export const userHome = asyncHandler(async (req, res) => {
 
   const TOP_PRODUCT_PIPELINE = [
     ...ACTIVE_PRODUCT_PIPELINE,
+    {
+      $match : {stock : {$gt : 0}}
+    },
     {
       $sort: { createdAt: 1 },
     },
@@ -125,6 +131,7 @@ export const userProducts = asyncHandler(async (req, res) => {
     $project: {
       name: 1,
       description: 1,
+      stock: 1,
       isFeatured: 1,
       price: 1,
       thumbnail: 1,

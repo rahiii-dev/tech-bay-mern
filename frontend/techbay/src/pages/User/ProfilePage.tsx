@@ -100,7 +100,6 @@ const ProfilePage = () => {
         navigate('/walllet-history')
     }
 
-    console.log(walletData);
 
     return (
         <section>

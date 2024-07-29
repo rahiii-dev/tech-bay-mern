@@ -12,4 +12,4 @@ export function calculateDateAfterDays(days = 1) {
     const newDate = new Date(date.getTime());
     newDate.setDate(newDate.getDate() + days);
     return newDate;
-  }
+}

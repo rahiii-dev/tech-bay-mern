@@ -4,6 +4,7 @@ import ProductCard, { ProductCardSkeleton } from "./ProductCard";
 import { useShop } from "./ShopProvider";
 import { useEffect } from "react";
 
+
 const ShopPageGrid = () => {
     const { productsData, status, setActivePage } = useShop();
 
@@ -25,7 +26,7 @@ const ShopPageGrid = () => {
                 ) : status === "success" ? (
                     productsData && productsData.products.length === 0 ? (<div className="text-center">No products available</div>) :
                         productsData && productsData.products.map((product) => (
-                            <ProductCard key={product._id} product={product} />
+                            <ProductCard key={product._id} product={product} label={true} />
                         ))
                 ) : (
                     <div className="w-full text-left">No products available</div>
