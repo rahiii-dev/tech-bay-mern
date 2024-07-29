@@ -2,7 +2,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { Cart } from "../../utils/types/cartTypes";
 import { BACKEND_ERROR_RESPONSE } from "../../utils/types/backendResponseTypes";
 import axios from "../../utils/axios";
-import { USER_ADD_TO_CART_URL, USER_CART_URL, USER_CART_VERIFY, USER_DELETE_CART_ITEM_URL, USER_UPDATE_CART_ITEM_QUANTITY_URL } from "../../utils/urls/userUrls";
+import { USER_ADD_TO_CART_URL, USER_CART_URL, USER_CART_VERIFY, USER_DELETE_CART_ITEM_URL, USER_UPDATE_CART_ITEM_QUANTITY_URL, USER_WISH_TO_CART_URL } from "../../utils/urls/userUrls";
 
 export const loadCart = createAsyncThunk<Cart, void, { rejectValue: BACKEND_ERROR_RESPONSE }>(
     'cart/loadCart',
@@ -58,6 +58,18 @@ export const verifyCartItems = createAsyncThunk<null, void, { rejectValue: BACKE
         try {
             await axios.post<Cart>(USER_CART_VERIFY);
             return null
+        } catch (error: any) {
+            return rejectWithValue(error.response.data as BACKEND_ERROR_RESPONSE);
+        }
+    }
+);
+
+export const wishToCart = createAsyncThunk<Cart, void, { rejectValue: BACKEND_ERROR_RESPONSE }>(
+    'cart/wishTOCart',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axios.post<Cart>(USER_WISH_TO_CART_URL);
+            return response.data;
         } catch (error: any) {
             return rejectWithValue(error.response.data as BACKEND_ERROR_RESPONSE);
         }

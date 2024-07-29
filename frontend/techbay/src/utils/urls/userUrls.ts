@@ -14,6 +14,12 @@ export const USER_UPDATE_CART_ITEM_QUANTITY_URL = (id:string) => generateUrl(`/c
 export const USER_DELETE_CART_ITEM_URL = (id:string) => generateUrl(`/cart/${id}`)
 export const USER_CART_VERIFY = generateUrl(`/cart/verify`)
 
+export const USER_WISH_TO_CART_URL = generateUrl(`/wish-to-cart`)
+
+export const USER_WISHLIST_URL = generateUrl('/wishlist');
+export const USER_ADD_TO_WISHLIST_URL = generateUrl('/wishlist');
+export const USER_REMOVE_FROM_WISHLIST_URL = (productId: string) => generateUrl(`/wishlist/remove?productId=${productId}`);
+
 export const USER_PROFILE_URL = generateUrl('/profile');
 export const USER_PROFILE_UPDATE_URL = generateUrl('/profile');
 export const USER_CHANGE_PASS_URL = generateUrl('/profile/change-password');

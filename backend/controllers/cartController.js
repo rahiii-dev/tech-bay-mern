@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
+import Wishlist from "../models/Wishlist.js";
 
 export const formatCart = (cart, user) => {
   const subtotal = cart.items.reduce((acc, item) => {
@@ -111,6 +112,60 @@ export const addItemToCart = asyncHandler(async (req, res) => {
   const formattedCart = formatCart(updatedCart, req.user);
   res.status(201).json(formattedCart);
 });
+
+/*  
+    Route: POST api/user/wish-to-cart
+    Purpose: add items from wish list to cart
+*/
+export const wishListToCart = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const wishlist = await Wishlist.findOne({ user: userId }).populate('products');
+
+  if (!wishlist) {
+    return handleErrorResponse(res, 404, "Wishlist not found", {
+      title: "No Wishlist",
+      description: "No items found in the wishlist",
+    });
+  }
+
+  let cart = await findUserCart(userId);
+  if (!cart) {
+    cart = new Cart({ user: userId, items: [] });
+  }
+
+  const addedProducts = [];
+
+  for (const product of wishlist.products) {
+    if (product.stock > 0) {
+      const cartItem = cart.items.find((item) => {
+        return item.product._id.toString() === product._id.toString();
+      });
+
+      if (cartItem) {
+        if ((cartItem.quantity < MAX_QUANTITY)) {
+          cartItem.quantity += 1;
+          addedProducts.push(product._id);
+        } 
+      } else {
+        cart.items.push({ product: product._id, quantity: 1 });
+        addedProducts.push(product._id);
+      }
+    }
+  }
+
+  await cart.save();
+
+  wishlist.products = wishlist.products.filter(
+    (product) => !addedProducts.includes(product._id)
+  );
+  await wishlist.save();
+
+  const updatedCart = await findUserCart(userId);
+  const formattedCart = formatCart(updatedCart, req.user);
+  res.status(201).json(formattedCart);
+});
+
 
 
 /*  

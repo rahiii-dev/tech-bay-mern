@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { BACKEND_ERROR_RESPONSE } from "../../utils/types/backendResponseTypes";
 import { Cart } from "../../utils/types/cartTypes";
-import { addItemToCart, loadCart, removeItemFromCart, updateItemQuantity, verifyCartItems } from "./cartThunk";
+import { addItemToCart, loadCart, removeItemFromCart, updateItemQuantity, verifyCartItems, wishToCart } from "./cartThunk";
 
 export interface CartState {
     cart : Cart | null,
@@ -92,7 +92,20 @@ const cartSlice = createSlice({
             state.status = "error";
             state.error = action.payload ? action.payload : null;
         })
-
+        .addCase(wishToCart.pending, (state) => {
+            state.status = "loading";
+            state.error = null;
+        })
+        .addCase(wishToCart.fulfilled, (state, action) => {
+            state.status = "success";
+            if(action.payload){
+                state.cart = action.payload;
+            }
+        })
+        .addCase(wishToCart.rejected, (state, action) => {
+            state.status = "error";
+            state.error = action.payload ? action.payload : null;
+        })
     }
 });
 

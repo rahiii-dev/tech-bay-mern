@@ -32,6 +32,7 @@ import OrdersList from "./pages/Admin/OrdersList"
 import OrderView from "./pages/Admin/OrderView"
 import OrderReturnList from "./pages/Admin/OrderReturnList"
 import WalletHistoryPage from "./pages/User/WalletHistoryPage"
+import WishListPage from "./pages/User/WishListPage"
 
 
 function App() {
@@ -72,6 +73,7 @@ function App() {
           <Route element={<UserScreenProtected/>}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/wishlist" element={<WishListPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/order-confirm" element={<OrderConfirmation />} />

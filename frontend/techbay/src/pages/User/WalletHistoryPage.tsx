@@ -16,8 +16,6 @@ const WalletHistoryPage = () => {
         method: 'GET'
     });
 
-    console.log(walletHistoryData);
-
     const navigate = useNavigate();
 
     useEffect(() => {

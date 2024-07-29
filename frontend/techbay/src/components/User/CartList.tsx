@@ -49,7 +49,7 @@ const CartList = ({ cartItems, editable=true }: CartListProp) => {
                                     </div>)
                                 }
                             </div>
-                            <p className="text-sm">Brand: <span className="text-gray-400">{item.product.brand.name}</span></p>
+                            <p className="text-sm">Brand: <span className="text-gray-400">{typeof item.product.brand != 'string' && item.product.brand.name}</span></p>
                             <h2 className="text-xl">{formatPrice(item.product.price)}</h2>
                         </div>
                     </div>

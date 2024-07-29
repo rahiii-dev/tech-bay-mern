@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import Slider from 'react-slick';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { USER_GET_SINGLE_PRODUCT } from '../../utils/urls/userUrls';
+import { USER_ADD_TO_WISHLIST_URL, USER_GET_SINGLE_PRODUCT } from '../../utils/urls/userUrls';
 import useAxios from '../../hooks/useAxios';
 import ProductCard, { ProductCardSkeleton } from '../../components/User/ProductCard';
 import { SERVER_URL } from '../../utils/constants';
@@ -12,6 +12,9 @@ import { formatPrice } from '../../utils/appHelpers';
 import { ProductDetail } from '../../utils/types/productTypes';
 import { useAppDispatch } from '../../hooks/useDispatch';
 import { addItemToCart } from '../../features/cart/cartThunk';
+import axios from '../../utils/axios';
+import { getBackendError, isBackendError } from '../../utils/types/backendResponseTypes';
+import { toast } from '../../components/ui/use-toast';
 
 
 const ProductDetails = () => {
@@ -21,7 +24,7 @@ const ProductDetails = () => {
     const { productId } = useParams();
 
     const dispatch = useAppDispatch();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (productId) {
@@ -67,6 +70,25 @@ const ProductDetails = () => {
     const handleAddToCart = (id: string, quantity: number) => {
         dispatch(addItemToCart({ productId: id, quantity: quantity }))
         navigate('/cart')
+    }
+
+    const handleAddToWishList = async (productId: string) => {
+        try {
+            await axios.post(USER_ADD_TO_WISHLIST_URL, {productId});
+            navigate('/wishlist')
+        } catch (error) {
+            if(isBackendError(error)){
+                const err = getBackendError(error)
+                if(err.type === "Error"){
+                    toast({
+                        variant: "destructive",
+                        title: err.message,
+                        className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+                    })
+                }
+                navigate('/wishlist')
+            }
+        }
     }
 
     return (
@@ -118,7 +140,7 @@ const ProductDetails = () => {
                             <p className='text-sm text-gray-400 mb-8 min-h-[100px]'>{data.product.description}</p>
                             <div className='flex items-center gap-5'>
                                 <Button onClick={() => handleAddToCart(data.product._id, 1)} disabled={(!data.product.isActive || data.product.stock === 0)} className='rounded-full w-full max-w-[200px]'>Add to Cart</Button>
-                                <Button disabled={!data.product.isActive} variant={"secondary"} className='rounded-full bg-gray-200 w-full max-w-[200px]'>Add to WishList</Button>
+                                <Button onClick={() => handleAddToWishList(data.product._id)} disabled={!data.product.isActive} variant={"secondary"} className='rounded-full bg-gray-200 w-full max-w-[200px]'>Add to WishList</Button>
                             </div>
                         </div>
                     </div>
