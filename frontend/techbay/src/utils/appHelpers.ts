@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string | Date) => {
     return format(new Date(dateString), 'dd-MMM-yyyy');
 };
 

@@ -28,3 +28,9 @@ export const ORDER_RETURNS_LIST_URL = generateUrl('/order/returns');
 export const ORDER_RETURN_CONFIRM_URL = generateUrl('/order/confirm-return');
 export const ORDER_DETAIL_URL = (id: string) => generateUrl(`/order/${id}`);
 export const ORDER_DETAIL_UPDATE_URL = (id: string) => generateUrl(`/order/${id}`);
+
+export const COUPON_LIST_URL = generateUrl('/coupons');
+export const COUPON_CREATE_URL = generateUrl('/coupon');
+export const COUPON_EDIT_URL = (id: string) => generateUrl(`/coupon/${id}`);
+export const COUPON_DELETE_URL = (id: string) => generateUrl(`/coupon/${id}`);
+export const COUPON_RESTORE_URL = (id: string) => generateUrl(`/coupon/restore/${id}`);

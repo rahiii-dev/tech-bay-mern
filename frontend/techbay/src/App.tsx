@@ -33,6 +33,8 @@ import OrderView from "./pages/Admin/OrderView"
 import OrderReturnList from "./pages/Admin/OrderReturnList"
 import WalletHistoryPage from "./pages/User/WalletHistoryPage"
 import WishListPage from "./pages/User/WishListPage"
+import CouponsPage from "./pages/Admin/CouponsPage"
+import SalesReportPage from "./pages/Admin/SalesReportPage"
 
 
 function App() {
@@ -96,6 +98,8 @@ function App() {
           <Route path="/admin/products" element={<ProductList />} />
           <Route path="/admin/product/add" element={<ProductAdd />} />
           <Route path="/admin/product/edit" element={<ProductEdit />} />
+          <Route path="/admin/coupons" element={<CouponsPage />} />
+          <Route path="/admin/sales-report" element={<SalesReportPage />} />
         </Route>
 
         {/* Catch-all invalid paths */}

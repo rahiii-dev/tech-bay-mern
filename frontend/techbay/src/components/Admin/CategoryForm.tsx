@@ -68,7 +68,7 @@ const CategoryForm = ({succesFormSubmit, category}: CategoryFormProp) => {
                 succesFormSubmit();
             }
         } catch (error: any) {
-            if(isBackendError(error.response?.data)){
+            if(isBackendError(error)){
                 const {type, message} = error?.response?.data;
                 if(type === 'Error'){
                     setError(message)

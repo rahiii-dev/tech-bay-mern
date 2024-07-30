@@ -1,4 +1,4 @@
-import { AlignJustify, Home, Layers3, LogOut, Package, PackagePlus, ShoppingCart, Star, UsersRound } from 'lucide-react';
+import { AlignJustify, FileText, Home, Layers3, LogOut, Package, PackagePlus, ShoppingCart, Star, Ticket, UsersRound } from 'lucide-react';
 import { LOGO_BLACK, LOGO_WHITE } from "../../utils/constants";
 import { NavLink } from "react-router-dom";
 import Logout from "../../components/auth/Logout";
@@ -104,6 +104,34 @@ const Sidebar = () => {
                             {!sidebarActive && (
                                 <TooltipContent side='right'>
                                     <p>Brands</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <NavLink to={'coupons'} className="navlink py-2 px-2 flex items-center gap-2 rounded-sm">
+                                    <Ticket size={20} /> <span className="font-medium">Coupons</span>
+                                </NavLink>
+                            </TooltipTrigger>
+                            {!sidebarActive && (
+                                <TooltipContent side='right'>
+                                    <p>Coupons</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <NavLink to={'sales-report'} className="navlink py-2 px-2 flex items-center gap-2 rounded-sm">
+                                    <FileText size={20} /> <span className="font-medium">Sales Report</span>
+                                </NavLink>
+                            </TooltipTrigger>
+                            {!sidebarActive && (
+                                <TooltipContent side='right'>
+                                    <p>Sales Report</p>
                                 </TooltipContent>
                             )}
                         </Tooltip>
