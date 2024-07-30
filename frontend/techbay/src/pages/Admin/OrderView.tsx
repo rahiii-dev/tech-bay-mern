@@ -195,10 +195,6 @@ const OrderView = () => {
                                     <p className="text-gray-400">Discount</p>
                                     <p className="text-red-500">{orderData.orderedAmount.discount && orderData.orderedAmount.discount > 0 ? orderData.orderedAmount.discount : '-'}</p>
                                 </div>
-                                <div className="font-medium flex justify-between items-center mb-2">
-                                    <p className="text-gray-400">Delivery Fee</p>
-                                    <p>{orderData.orderedAmount.deliveryFee && orderData.orderedAmount.deliveryFee > 0 ? formatPrice(orderData.orderedAmount.deliveryFee) : '-'}</p>
-                                </div>
                                 <div className="font-medium flex justify-between items-centerb">
                                     <p>Total</p>
                                     <p className="font-semibold text-xl">{formatPrice(orderData.orderedAmount.total)}</p>

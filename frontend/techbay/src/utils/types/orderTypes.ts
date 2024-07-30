@@ -23,7 +23,6 @@ export interface OrderProduct {
 
 interface OrderedAmount {
     subtotal: number;
-    deliveryFee?: number;
     discount?: number;
     total: number;
 }

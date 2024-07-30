@@ -38,3 +38,5 @@ export const USER_ORDER_CAPTURE_URL = generateUrl('/order/capture');
 export const USER_ORDER_LIST_URL = generateUrl('/order/list');
 export const USER_CANCEL_ORDER_URL = (id:string) => generateUrl(`/order/${id}/cancel`);
 export const USER_RETURN_ORDER_URL = (id:string) => generateUrl(`/order/${id}/return`);
+
+export const USER_COUPON_LIST_URL = generateUrl('/coupon/list');

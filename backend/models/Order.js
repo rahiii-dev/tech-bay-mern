@@ -80,7 +80,6 @@ const orderSchema = new Schema(
     orderedItems: [orderProductSchema],
     orderedAmount: {
       subtotal: { type: Number, required: true },
-      deliveryFee: { type: Number, default: 0 },
       discount: { type: Number, default: 0 },
       total: { type: Number, required: true },
     },

@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Coupon from "../models/Coupon.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 import { escapeRegex } from "../utils/helpers/appHelpers.js";
+import User from "../models/User.js";
 
 /*  
     Route: POST api/admin/coupon
@@ -125,15 +126,19 @@ export const restoreCoupon = asyncHandler(async (req, res) => {
 });
 
 /*  
-    Route: GET api/user/coupons
+    Route: GET api/user/coupon/list
     Purpose: List coupons for users
 */
 export const listUserCoupons = asyncHandler(async (req, res) => {
   const currentDate = new Date();
+  const user = await User.findById(req.user._id);
+
   const coupons = await Coupon.find({
     expiryDate: { $gte: currentDate },
     isActive: true,
+    code: { $nin: user.usedCoupons },
   });
+
   res.json(coupons);
 });
 /*  

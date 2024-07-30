@@ -7,6 +7,7 @@ import profileRoutes from './User/profileRoutes.js'
 import orderRoutes from './User/orderRoutes.js'
 import walletRoutes from './User/walletRoutes.js'
 import { wishListToCart } from "../controllers/cartController.js";
+import couponRoutes from './User/couponRoutes.js'
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.use('/wish-to-cart', isAuthenticated, wishListToCart);
 router.use('/profile', isAuthenticated, profileRoutes);
 router.use('/order', isAuthenticated, orderRoutes);
 router.use('/wallet', isAuthenticated, walletRoutes);
+router.use('/coupon', isAuthenticated, couponRoutes);
 
 export default router

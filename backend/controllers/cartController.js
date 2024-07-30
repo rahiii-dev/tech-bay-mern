@@ -13,7 +13,6 @@ export const formatCart = (cart, user) => {
   }, 0);
 
   const discount = 0;
-  const deliveryFee = 50;
   const total = subtotal - discount;
 
   return {
@@ -28,8 +27,7 @@ export const formatCart = (cart, user) => {
       total,
     },
     orderTotal: {
-      deliveryFee,
-      total: (total + deliveryFee),
+      total
     }
   };
 };

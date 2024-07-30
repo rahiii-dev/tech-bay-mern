@@ -76,7 +76,6 @@ export const createOrder = asyncHandler(async (req, res) => {
       orderedItems,
       orderedAmount: {
         subtotal: formattedCart.cartTotal.subtotal,
-        deliveryFee: formattedCart.orderTotal.deliveryFee,
         discount: formattedCart.cartTotal.discount,
         total: formattedCart.orderTotal.total,
       },
@@ -428,7 +427,6 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     );
     if (allItemsCancelled) {
       order.status = "Cancelled";
-      order.orderedAmount.deliveryFee = 0;
     }
 
     await order.save();

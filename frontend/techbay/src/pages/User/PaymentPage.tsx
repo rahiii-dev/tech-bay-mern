@@ -159,10 +159,6 @@ const PaymentPage = () => {
                                             <p className="text-gray-400">Discount</p>
                                             <p className="text-red-500">{cart.cartTotal.discount > 0 ? cart.cartTotal.discount : '-'}</p>
                                         </div>
-                                        <div className="font-medium flex justify-between items-center mb-2">
-                                            <p className="text-gray-400">Delivery Fee</p>
-                                            <p>{cart.orderTotal.deliveryFee > 0 ? formatPrice(cart.orderTotal.deliveryFee) : '-'}</p>
-                                        </div>
                                         <div className="font-medium flex justify-between items-centerb border-t py-3">
                                             <p>Total</p>
                                             <p className="font-semibold text-xl">{cart.orderTotal.total > 0 ? formatPrice(cart.orderTotal.total) : '-'}</p>
