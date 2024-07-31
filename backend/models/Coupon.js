@@ -42,7 +42,36 @@ couponSchema.methods.restore = function () {
   return this.save();
 };
 
-couponSchema.plugin(mongoosePaginate)
+couponSchema.methods.validateCoupon = function (cartTotal) {
+  if (!this.isActive) {
+    return { valid: false, message: "Coupon is not active" };
+  }
+
+  if (new Date() > new Date(this.expiryDate)) {
+    return { valid: false, message: "Coupon has expired" };
+  }
+
+  if (cartTotal < this.minAmount) {
+    return {
+      valid: false,
+      message: `Minimum cart amount should be ${this.minAmount} to apply this coupon`,
+    };
+  }
+
+  if (cartTotal > this.maxAmount) {
+    return {
+      valid: false,
+      message: `Maximum cart amount should be ${this.maxAmount} to apply this coupon`,
+    };
+  }
+
+  return { 
+    valid: true,
+    message: `Coupon is valid.`,
+  };
+};
+
+couponSchema.plugin(mongoosePaginate);
 
 const Coupon = mongoose.model("Coupon", couponSchema);
 

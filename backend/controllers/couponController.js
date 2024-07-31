@@ -151,28 +151,14 @@ export const validateCoupon = asyncHandler(async (req, res) => {
   const coupon = await Coupon.findOne({ code, isActive: true });
 
   if (!coupon) {
-    res.status(404);
-    throw new Error("Coupon not found or expired");
+    return handleErrorResponse(res, 404, "Coupon not found or expired", {});
   }
 
-  if (new Date() > new Date(coupon.expiryDate)) {
-    res.status(400);
-    throw new Error("Coupon has expired");
+  const { valid, message } = coupon.validateCoupon(cartTotal);
+
+  if (!valid) {
+    return handleErrorResponse(res, 400, message, {});
   }
 
-  if (cartTotal < coupon.minAmount) {
-    res.status(400);
-    throw new Error(
-      `Minimum cart amount should be ${coupon.minAmount} to apply this coupon`
-    );
-  }
-
-  if (cartTotal > coupon.maxAmount) {
-    res.status(400);
-    throw new Error(
-      `Maximum cart amount should be ${coupon.maxAmount} to apply this coupon`
-    );
-  }
-
-  res.json({ discount: coupon.discount });
+  return res.json(coupon);
 });

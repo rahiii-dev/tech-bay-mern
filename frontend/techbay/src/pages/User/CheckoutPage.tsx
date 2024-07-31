@@ -1,11 +1,11 @@
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import SubHeading from "../../components/User/SubHeading";
-import { formatPrice } from "../../utils/appHelpers";
+import { formatDate, formatPrice } from "../../utils/appHelpers";
 import { useAppSelector } from "../../hooks/useSelector";
 import CartList from "../../components/User/CartList";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { USER_ADDRESS_LIST_URL } from "../../utils/urls/userUrls";
+import { ArrowLeft, ArrowRight, Check, Clipboard } from "lucide-react";
+import { USER_ADDRESS_LIST_URL, USER_COUPON_LIST_URL, USER_COUPON_VERIFY_URL } from "../../utils/urls/userUrls";
 import { useEffect, useState } from "react";
 import useAxios from "../../hooks/useAxios";
 import { Skeleton } from "../../components/ui/skeleton";
@@ -14,6 +14,10 @@ import { toast } from "../../components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import AddressForm from "../../components/User/AddressForm";
 import { useCart } from "../../components/User/CartProvider";
+import { Input } from "../../components/ui/input";
+import { Coupon } from "../../utils/types/couponTypes";
+import axios from "../../utils/axios";
+import { getBackendError, isBackendError } from "../../utils/types/backendResponseTypes";
 
 const CheckoutPage = () => {
     const cart = useAppSelector((state) => state.cart.cart)
@@ -22,10 +26,18 @@ const CheckoutPage = () => {
         method: 'GET'
     })
 
-    const { checkoutAddress, setCheckoutAddress, setPaymentPageAccessible } = useCart();
+    const { data: couponsData, loading: couponsLoading } = useAxios<Coupon[]>({
+        url: USER_COUPON_LIST_URL,
+        method: 'GET'
+    })
+
+    const { checkoutAddress, coupon, setCoupon, setCheckoutAddress, setPaymentPageAccessible } = useCart();
     const [addressList, setAddressList] = useState<Addresss[]>([]);
     const [adddressFormActive, setAadddressFormActive] = useState(false);
     const [adddressListModelActive, setAadddressListModelActive] = useState(false);
+    const [couponListModelActive, setCouponListModelActive] = useState(false);
+    const [copiedCouponId, setCopiedCouponId] = useState<string | null>(null);
+    const [promoCode, setPromoCode] = useState<string>('');
 
     const navigate = useNavigate();
 
@@ -45,12 +57,26 @@ const CheckoutPage = () => {
         }
     }, [addressesData]);
 
+    useEffect(() => {
+        if(coupon){
+            setPromoCode(coupon.code)
+        }
+    }, [])
+
     const handleAddressModelCLose = () => {
         setAadddressFormActive(false);
     }
 
     const handleAdddressListModelActive = () => {
         setAadddressListModelActive(false);
+    }
+
+    const handleCouponModelCLose = () => {
+        setCouponListModelActive(false);
+    }
+
+    const handleCouponModelActive = () => {
+        setCouponListModelActive(true);
     }
 
     const addresFormSuccess = (data: Addresss) => {
@@ -62,6 +88,45 @@ const CheckoutPage = () => {
     const changeCheckoutAddres = (data: Addresss) => {
         setCheckoutAddress(data)
     }
+
+    const handleRemoveCoupon = () => {
+        setCoupon(null)
+        setPromoCode("")
+    }
+
+    const handleApplyCoupon = async () => {
+        if (promoCode) {
+            try {
+                const response = await axios.post<Coupon>(USER_COUPON_VERIFY_URL, {
+                    code: promoCode,
+                    cartTotal: cart?.cartTotal.total
+                });
+                setCoupon(response.data)
+            } catch (error) {
+                if (isBackendError(error)) {
+                    const errData = getBackendError(error)
+                    if (errData.type === "Error") {
+                        toast({
+                            variant: "destructive",
+                            title: errData.message || "Coupon Verification failed",
+                            className: "text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+                        });
+                    }
+                }
+            }
+        }
+    };
+
+    const handleCopy = (code: string, id: string) => {
+        navigator.clipboard.writeText(code);
+        setCopiedCouponId(id);
+        toast({
+            variant: "default",
+            title: "Coupon Code Copied",
+            className: "bg-green-500 text-white rounded w-max shadow-lg fixed right-3 bottom-3",
+        });
+        setTimeout(() => setCopiedCouponId(null), 2000);
+    };
 
     const handleProceed = () => {
         if (!addressLoading && !checkoutAddress) {
@@ -143,11 +208,28 @@ const CheckoutPage = () => {
                                     </div>
                                     <div className="font-medium flex justify-between items-center mb-2">
                                         <p className="text-gray-400">Discount</p>
-                                        <p className="text-red-500">{cart.cartTotal.discount > 0 ? cart.cartTotal.discount : '-'}</p>
+                                        <p className="text-red-500">{coupon ? `${coupon.discount}%` : '-'}</p>
                                     </div>
-                                    <div className="font-medium flex justify-between items-centerb border-t py-3">
+                                    <div className="font-medium flex justify-between items-center border-t py-3">
                                         <p>Total</p>
-                                        <p className="font-semibold text-xl">{cart.orderTotal.total > 0 ? formatPrice(cart.orderTotal.total) : '-'}</p>
+                                        <p className="font-semibold text-xl">
+                                            {coupon ? formatPrice(cart.cartTotal.subtotal - (cart.cartTotal.subtotal * coupon.discount) / 100) : formatPrice(cart.orderTotal.total)}
+                                        </p>
+                                    </div>
+                                    <div className="mb-4">
+                                        <div className="flex gap-2 mb-1">
+                                            <Input
+                                                value={promoCode}
+                                                className="rounded-full"
+                                                placeholder="Promo Code"
+                                                onChange={(e) => setPromoCode(e.target.value)}
+                                            />
+
+                                            <Button onClick={!coupon ? handleApplyCoupon : handleRemoveCoupon} className="rounded-full w-full max-w-[100px]">
+                                                {coupon ? 'Remove' : 'Apply'}
+                                            </Button>
+                                        </div>
+                                        {!couponsLoading && couponsData && couponsData.length > 0 && <div onClick={handleCouponModelActive} className="font-medium text-sm text-gray-500 cursor-pointer hover:text-primary">Available Coupons?</div>}
                                     </div>
                                     <div className="mb-2">
                                         <Button onClick={handleProceed} disabled={(!addressLoading && !checkoutAddress)} className="rounded-full w-full">Proceed to Payment <ArrowRight className="ms-2" size={20} /></Button>
@@ -171,6 +253,48 @@ const CheckoutPage = () => {
                             </div>
                         </DialogHeader>
                         <AddressForm onSuccess={addresFormSuccess} />
+                    </DialogContent>
+                </Dialog>)
+            }
+
+            {couponListModelActive && (
+                <Dialog open={couponListModelActive} onOpenChange={handleCouponModelCLose}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Available Coupons</DialogTitle>
+                        </DialogHeader>
+                        <div className="mb-5">
+                            {couponsLoading && (
+                                <div className="text-gray-400">
+                                    <Skeleton className="h-3 mb-2"></Skeleton>
+                                    <Skeleton className="h-3 w-[80%]"></Skeleton>
+                                    <Skeleton className="h-3 w-[60%]"></Skeleton>
+                                </div>
+                            )}
+                            {!couponsLoading && couponsData && couponsData.length > 0 && couponsData.map((coupon) => (
+                                <div key={coupon._id} className="p-3 mb-2 border rounded-md cursor-pointer">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-sm font-medium">{coupon.code}</div>
+                                            <div className="text-sm text-gray-500">
+                                                Discount: {coupon.discount}%<br></br>
+                                                Purchase Amount Between:<br></br>
+                                                {formatPrice(coupon.minAmount)} - {formatPrice(coupon.maxAmount)}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Button onClick={() => handleCopy(coupon.code, coupon._id)} className="rounded-full">{copiedCouponId === coupon._id ? <Check size={20} /> : <Clipboard size={20} />}</Button>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs text-gray-400">Valid until: {formatDate(coupon.expiryDate)}</div>
+                                </div>
+                            ))}
+                            {!couponsLoading && (!couponsData || couponsData.length === 0) && (
+                                <div className="text-gray-400">
+                                    No available coupons.
+                                </div>
+                            )}
+                        </div>
                     </DialogContent>
                 </Dialog>)
             }

@@ -40,3 +40,4 @@ export const USER_CANCEL_ORDER_URL = (id:string) => generateUrl(`/order/${id}/ca
 export const USER_RETURN_ORDER_URL = (id:string) => generateUrl(`/order/${id}/return`);
 
 export const USER_COUPON_LIST_URL = generateUrl('/coupon/list');
+export const USER_COUPON_VERIFY_URL = generateUrl('/coupon/verify');

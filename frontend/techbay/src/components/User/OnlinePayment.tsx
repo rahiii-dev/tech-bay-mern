@@ -19,8 +19,9 @@ function Message({ content }: MessageProp) {
 type OnlinePaymentProps = {
     cartID: string;
     addressID: string;
+    couponId: string | null;
 }
-const OnlinePayment = ({ cartID, addressID }: OnlinePaymentProps) => {
+const OnlinePayment = ({ cartID, addressID, couponId }: OnlinePaymentProps) => {
     const { setOrderConfirmPageAccessible } = useCart();
 
     const [message, setMessage] = useState<string>("");
@@ -56,6 +57,7 @@ const OnlinePayment = ({ cartID, addressID }: OnlinePaymentProps) => {
                                 const response = await axios.post(USER_CREATE_ORDER_URL, {
                                     cartId: cartID,
                                     addressId: addressID,
+                                    couponId,
                                     paymentMethod: "paypal",
                                 });
 
