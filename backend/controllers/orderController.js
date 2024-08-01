@@ -43,7 +43,10 @@ export const createOrder = asyncHandler(async (req, res) => {
   if (couponId) {
     coupon = await Coupon.findById(couponId);
     if (coupon) {
-      const validation = coupon.validateCoupon(formattedCart.cartTotal.subtotal);
+      const validation = coupon.validateCoupon(
+        formattedCart.cartTotal.subtotal
+      );
+      
       if (!validation.valid) {
         return handleErrorResponse(res, 400, validation.message);
       }
@@ -84,7 +87,9 @@ export const createOrder = asyncHandler(async (req, res) => {
       country: address.country,
     };
 
-    const orderTotal = coupon ? formattedCart.cartTotal.subtotal * (1 - coupon.discount / 100) : formattedCart.orderTotal.total;
+    const orderTotal = coupon
+      ? formattedCart.cartTotal.subtotal * (1 - coupon.discount / 100)
+      : formattedCart.orderTotal.total;
 
     order = new Order({
       user: userId,
@@ -100,8 +105,11 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
   } else {
     order = existingOrder;
-    if(coupon){
-      order.coupon = coupon._id
+    if (coupon) {
+      order.coupon = coupon._id;
+      order.orderedAmount.discount = coupon.discount;
+      order.orderedAmount.total =
+        formattedCart.cartTotal.subtotal * (1 - coupon.discount / 100);
     }
   }
 
@@ -167,16 +175,17 @@ export const createOrder = asyncHandler(async (req, res) => {
 
     if (paymentMethod === "cod" || paymentMethod === "wallet") {
       order.status = "Processing";
+      if (coupon) {
+        const user = await User.findById(req.user._id);
+        if (!user.usedCoupons.includes(coupon._id)) {
+          user.usedCoupons.push(coupon._id);
+          await user.save();
+        }
+      }
     }
 
     const createdOrder = await order.save();
     await Cart.findByIdAndDelete(cart._id);
-
-    if (coupon) {
-      await User.findByIdAndUpdate(req.user._id, {
-        $push: { usedCoupons: coupon._id },
-      });
-    }
 
     for (const item of order.orderedItems) {
       await Product.findByIdAndUpdate(item.productID, {
@@ -225,9 +234,11 @@ export const captureOrder = asyncHandler(async (req, res) => {
     await Cart.findByIdAndDelete(order.cart);
 
     if (order.coupon) {
-      await User.findByIdAndUpdate(req.user._id, {
-        $push: { usedCoupons: order.coupon },
-      });
+      const user = await User.findById(req.user._id);
+      if (!user.usedCoupons.includes(coupon._id)) {
+        user.usedCoupons.push(coupon._id);
+        await user.save();
+      }
     }
 
     for (const item of order.orderedItems) {

@@ -136,7 +136,7 @@ export const listUserCoupons = asyncHandler(async (req, res) => {
   const coupons = await Coupon.find({
     expiryDate: { $gte: currentDate },
     isActive: true,
-    code: { $nin: user.usedCoupons },
+    _id: { $nin: user.usedCoupons },
   });
 
   res.json(coupons);
@@ -152,6 +152,12 @@ export const validateCoupon = asyncHandler(async (req, res) => {
 
   if (!coupon) {
     return handleErrorResponse(res, 404, "Coupon not found or expired", {});
+  }
+
+  const user = await User.findById(req.user._id);
+
+  if(user && user.usedCoupons.includes(coupon._id)){
+    return handleErrorResponse(res, 400, "Coupon already used", {});
   }
 
   const { valid, message } = coupon.validateCoupon(cartTotal);

@@ -21,7 +21,7 @@ import OnlinePayment from "../../components/User/OnlinePayment";
 
 const PaymentPage = () => {
     const cart = useAppSelector((state) => state.cart.cart)
-    const { paymentPageAccessible, setOrderConfirmPageAccessible, checkoutAddress, coupon } = useCart();
+    const { paymentPageAccessible, setOrderConfirmPageAccessible, checkoutAddress, coupon, setCoupon } = useCart();
     const [confirmButtonActive, setConfirmButtonActive] = useState(false);
     const [paymentOption, setPaymentOption] = useState<string | null>(null);
 
@@ -61,6 +61,7 @@ const PaymentPage = () => {
                     }).then(_ => {
                         dispatch(loadCart())
                         setOrderConfirmPageAccessible(true)
+                        setCoupon(null)
                         navigate('/order-confirm', { replace: true })
                     })
                         .catch((_) => {

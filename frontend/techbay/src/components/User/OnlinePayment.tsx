@@ -22,7 +22,7 @@ type OnlinePaymentProps = {
     couponId: string | null;
 }
 const OnlinePayment = ({ cartID, addressID, couponId }: OnlinePaymentProps) => {
-    const { setOrderConfirmPageAccessible } = useCart();
+    const { setOrderConfirmPageAccessible, setCoupon } = useCart();
 
     const [message, setMessage] = useState<string>("");
     const orderIdRef = useRef<string | null>(null);
@@ -106,6 +106,7 @@ const OnlinePayment = ({ cartID, addressID, couponId }: OnlinePaymentProps) => {
                             } else {
                                 dispatch(loadCart())
                                 setOrderConfirmPageAccessible(true)
+                                setCoupon(null)
                                 navigate('/order-confirm', { replace: true })
                             }
                         } catch (error) {
