@@ -34,3 +34,5 @@ export const COUPON_CREATE_URL = generateUrl('/coupon');
 export const COUPON_EDIT_URL = (id: string) => generateUrl(`/coupon/${id}`);
 export const COUPON_DELETE_URL = (id: string) => generateUrl(`/coupon/${id}`);
 export const COUPON_RESTORE_URL = (id: string) => generateUrl(`/coupon/restore/${id}`);
+
+export const SALES_REPORT_URL = generateUrl('/sales-report');

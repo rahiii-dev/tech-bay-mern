@@ -46,7 +46,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       const validation = coupon.validateCoupon(
         formattedCart.cartTotal.subtotal
       );
-      
+
       if (!validation.valid) {
         return handleErrorResponse(res, 400, validation.message);
       }
