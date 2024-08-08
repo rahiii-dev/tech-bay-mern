@@ -29,52 +29,64 @@ export const createOrder = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Invalid payment method");
   }
 
-  const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(
-    cartPopulateOptions
-  );
+  const exisistingOrder = await Order.findOne({ cart: cartId });
+  let order = null;
 
-  if (!cart) {
-    return handleErrorResponse(res, 404, "Cart not found");
-  }
+  if (!exisistingOrder) {
+    const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(
+      cartPopulateOptions
+    );
 
-  const formattedCart = formatCart(cart, req.user);
+    if (!cart) {
+      return handleErrorResponse(res, 404, "Cart not found");
+    }
 
-  let coupon = null;
-  if (couponId) {
-    coupon = await Coupon.findById(couponId);
-    if (coupon) {
-      const validation = coupon.validateCoupon(
-        formattedCart.cartTotal.subtotal
+    const outOfStockItems = cart.items.filter(
+      (item) => item.product.stock === 0 || item.quantity > item.product.stock
+    );
+    if (outOfStockItems.length > 0) {
+      return handleErrorResponse(
+        res,
+        400,
+        "Items are out of Stock or quantity exceeds available stock",
+        {
+          title: "Out of Stock items",
+          description:
+            "Please remove or adjust the quantity of out-of-stock items to continue",
+        }
       );
+    }
 
-      if (!validation.valid) {
-        return handleErrorResponse(res, 400, validation.message);
+    const formattedCart = formatCart(cart, req.user);
+
+    let coupon = null;
+    if (couponId) {
+      coupon = await Coupon.findById(couponId);
+      if (coupon) {
+        const validation = coupon.validateCoupon(
+          formattedCart.cartTotal.subtotal
+        );
+        if (!validation.valid) {
+          return handleErrorResponse(res, 400, validation.message);
+        }
       }
     }
-  }
 
-  const address = await Address.findOne({ _id: addressId, user: userId });
-  if (!address) {
-    return handleErrorResponse(res, 404, "Address not found");
-  }
+    const address = await Address.findOne({ _id: addressId, user: userId });
+    if (!address) {
+      return handleErrorResponse(res, 404, "Address not found");
+    }
 
-  let order;
-
-  const existingOrder = await Order.findOne({ cart: cart._id });
-
-  if (!existingOrder) {
-    const orderedItems = cart.items.map((item) => {
-      return {
-        productID: item.product._id,
-        name: item.product.name,
-        price: item.product.price,
-        images: item.product.imageUrls,
-        thumbnail: item.product.thumbnailUrl,
-        category: item.product.brand.category,
-        brand: item.product.brand.name,
-        quantity: item.quantity,
-      };
-    });
+    const orderedItems = cart.items.map((item) => ({
+      productID: item.product._id,
+      name: item.product.name,
+      price: item.product.price,
+      images: item.product.imageUrls,
+      thumbnail: item.product.thumbnailUrl,
+      category: item.product.brand.category,
+      brand: item.product.brand.name,
+      quantity: item.quantity,
+    }));
 
     const orderedAddress = {
       fullName: address.fullName,
@@ -87,29 +99,53 @@ export const createOrder = asyncHandler(async (req, res) => {
       country: address.country,
     };
 
-    const orderTotal = coupon
-      ? formattedCart.cartTotal.subtotal * (1 - coupon.discount / 100)
-      : formattedCart.orderTotal.total;
-
     order = new Order({
       user: userId,
       orderedItems,
       orderedAmount: {
         subtotal: formattedCart.cartTotal.subtotal,
-        discount: coupon ? coupon.discount : 0,
-        total: orderTotal,
+        total: formattedCart.orderTotal.total,
       },
       address: orderedAddress,
       cart: cart._id,
-      coupon: coupon ? coupon._id : null,
     });
-  } else {
-    order = existingOrder;
+
     if (coupon) {
-      order.coupon = coupon._id;
-      order.orderedAmount.discount = coupon.discount;
-      order.orderedAmount.total =
-        formattedCart.cartTotal.subtotal * (1 - coupon.discount / 100);
+      const discountAmount =
+        (formattedCart.cartTotal.subtotal * coupon.discount) / 100;
+      const totalAfterDiscount =
+        formattedCart.orderTotal.total - discountAmount;
+
+      order.coupon = {
+        couponId: coupon._id,
+        couponCode: coupon.code,
+        couponDiscount: coupon.discount,
+      };
+      order.orderedAmount.discount = discountAmount;
+      order.orderedAmount.total = totalAfterDiscount;
+
+      const user = await User.findById(req.user._id);
+      if (!user.usedCoupons.includes(coupon._id)) {
+        user.usedCoupons.push(coupon._id);
+        await user.save();
+      }
+    }
+
+    await Cart.findByIdAndDelete(order.cart);
+
+    for (const item of order.orderedItems) {
+      await Product.findByIdAndUpdate(item.productID, {
+        $inc: { stock: -item.quantity },
+      });
+    }
+  } else {
+    order = exisistingOrder;
+
+    if(!couponId && order.coupon.couponId) {
+      const user = await User.findById(req.user._id);
+      user.usedCoupons = user.usedCoupons.filter( coupon => coupon != order.coupon.couponId);
+      await user.save();
+      order.coupon = null;
     }
   }
 
@@ -146,11 +182,9 @@ export const createOrder = asyncHandler(async (req, res) => {
       const paypalOrder = await paypalClient.execute(request);
       const createdOrder = await order.save();
 
-      const statusCode = existingOrder ? 200 : 201;
-      return res.status(statusCode).json({
+      return res.status(201).json({
         orderID: createdOrder._id,
         paypalOrderID: paypalOrder.result.id,
-        links: paypalOrder.result.links,
       });
     } catch (error) {
       return handleErrorResponse(
@@ -173,25 +207,9 @@ export const createOrder = asyncHandler(async (req, res) => {
     await transaction.save();
     order.transaction = transaction._id;
 
-    if (paymentMethod === "cod" || paymentMethod === "wallet") {
-      order.status = "Processing";
-      if (coupon) {
-        const user = await User.findById(req.user._id);
-        if (!user.usedCoupons.includes(coupon._id)) {
-          user.usedCoupons.push(coupon._id);
-          await user.save();
-        }
-      }
-    }
+    order.status = "Processing";
 
     const createdOrder = await order.save();
-    await Cart.findByIdAndDelete(cart._id);
-
-    for (const item of order.orderedItems) {
-      await Product.findByIdAndUpdate(item.productID, {
-        $inc: { stock: -item.quantity },
-      });
-    }
 
     res.status(201).json(createdOrder);
   }
@@ -230,22 +248,6 @@ export const captureOrder = asyncHandler(async (req, res) => {
     order.transaction = transaction._id;
     order.status = "Processing";
     await order.save();
-
-    await Cart.findByIdAndDelete(order.cart);
-
-    if (order.coupon) {
-      const user = await User.findById(req.user._id);
-      if (!user.usedCoupons.includes(coupon._id)) {
-        user.usedCoupons.push(coupon._id);
-        await user.save();
-      }
-    }
-
-    for (const item of order.orderedItems) {
-      await Product.findByIdAndUpdate(item.productID, {
-        $inc: { stock: -item.quantity },
-      });
-    }
 
     res.status(200).json(order);
   } catch (error) {

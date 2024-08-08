@@ -13,3 +13,7 @@ export function calculateDateAfterDays(days = 1) {
     newDate.setDate(newDate.getDate() + days);
     return newDate;
 }
+
+export const formatPrice = (price) => {
+    return price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+}

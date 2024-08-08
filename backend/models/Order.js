@@ -87,7 +87,11 @@ const orderSchema = new Schema(
     address: orderAddressSchema,
     transaction: { type: Schema.Types.ObjectId, ref: "Transaction", default: null },
     cart: { type: Schema.Types.ObjectId, ref: "Cart", default: null },
-    coupon: { type: Schema.Types.ObjectId, ref: "Coupon", default: null },
+    coupon: {
+      couponId: { type: Schema.Types.ObjectId, ref: "Coupon", default: null },
+      couponCode: { type: String, default: null },
+      couponDiscount: { type: Number, default: null },
+    },
     orderNumber: { type: String, unique: true },
     deliveryDate: { type: Date, default: null },
   },

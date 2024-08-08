@@ -15,8 +15,6 @@ const OrderListTable = ({ orders }: OrderListTable) => {
         navigate('/admin/order', { state: { orderId } })
     }
 
-    console.log(orders);
-    
     return (
         <Table className="w-full overflow-x-scroll">
             <TableHeader>

@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
 import { useCart } from "../../components/User/CartProvider";
 import { useAppDispatch } from "../../hooks/useDispatch";
-import { loadCart, verifyCartItems } from "../../features/cart/cartThunk";
+import { loadCart } from "../../features/cart/cartThunk";
 import { useState } from "react";
 import { CircularProgress } from "@mui/material";
 import { toast } from "../../components/ui/use-toast";
@@ -16,7 +16,8 @@ import { USER_CREATE_ORDER_URL, USER_WALLET_URL } from "../../utils/urls/userUrl
 import axios from "../../utils/axios";
 import useAxios from "../../hooks/useAxios";
 import { Wallet } from "../../utils/types/walletTypes";
-import OnlinePayment from "../../components/User/OnlinePayment";
+import PayPalPayment from "../../components/User/PayPalPayment";
+import { getBackendError, isBackendError } from "../../utils/types/backendResponseTypes";
 
 
 const PaymentPage = () => {
@@ -49,47 +50,32 @@ const PaymentPage = () => {
         }
 
         setConfirmButtonActive(true);
-        dispatch(verifyCartItems())
-            .then((resultAction) => {
-                if (verifyCartItems.fulfilled.match(resultAction)) {
 
-                    axios.post(USER_CREATE_ORDER_URL, {
-                        cartId: cart._id,
-                        addressId: checkoutAddress?._id,
-                        paymentMethod: paymentOption,
-                        couponId: coupon?._id
-                    }).then(_ => {
-                        dispatch(loadCart())
-                        setOrderConfirmPageAccessible(true)
-                        setCoupon(null)
-                        navigate('/order-confirm', { replace: true })
-                    })
-                        .catch((_) => {
-                            toast({
-                                variant: "destructive",
-                                title: "Order Confirmation failed",
-                                description: 'Please try again',
-                                className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
-                            })
-                        })
-                }
-                else if (verifyCartItems.rejected.match(resultAction)) {
-                    if (resultAction.payload) {
-                        const { extraMessage } = resultAction.payload;
-                        toast({
-                            variant: "destructive",
-                            title: extraMessage?.title || "Order Confirmation failed",
-                            description: extraMessage?.description || '',
-                            className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
-                        })
-                    }
-                    dispatch(loadCart())
-                    navigate('/cart')
-                }
-            })
-            .finally(() => {
-                setConfirmButtonActive(false)
-            })
+        axios.post(USER_CREATE_ORDER_URL, {
+            cartId: cart._id,
+            addressId: checkoutAddress?._id,
+            paymentMethod: paymentOption,
+            couponId: coupon?._id
+        }).then(_ => {
+            dispatch(loadCart())
+            setOrderConfirmPageAccessible(true)
+            setCoupon(null)
+            navigate('/order-confirm', { replace: true })
+        }).catch((error) => {
+            if (isBackendError(error)) {
+                const { extraMessage } = getBackendError(error)
+                toast({
+                    variant: "destructive",
+                    title: extraMessage?.title || "Order Confirmation failed",
+                    description: extraMessage?.description || '',
+                    className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+                })
+            }
+            dispatch(loadCart())
+            navigate('/cart')
+        }).finally(() => {
+            setConfirmButtonActive(false)
+        })
     }
 
     return (
@@ -126,7 +112,7 @@ const PaymentPage = () => {
                                         </div>
                                     </div>
                                     <div className="mt-4">
-                                        {checkoutAddress && <OnlinePayment couponId={coupon && coupon?._id} cartID={cart._id} addressID={checkoutAddress._id} />}
+                                        {checkoutAddress && <PayPalPayment couponId={coupon && coupon?._id} cartID={cart._id} addressID={checkoutAddress._id} />}
                                     </div>
                                 </div>
                                 <div>

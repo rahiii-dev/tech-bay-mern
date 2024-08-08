@@ -2,11 +2,12 @@ import { useRef, useState } from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/useDispatch";
-import { loadCart, verifyCartItems } from "../../features/cart/cartThunk";
+import { loadCart } from "../../features/cart/cartThunk";
 import axios from "../../utils/axios";
 import { USER_CREATE_ORDER_URL, USER_ORDER_CAPTURE_URL } from "../../utils/urls/userUrls";
 import { toast } from "../ui/use-toast";
 import { useCart } from "./CartProvider";
+import { getBackendError, isBackendError } from "../../utils/types/backendResponseTypes";
 
 // Renders errors or successful transactions on the screen.
 type MessageProp = {
@@ -16,12 +17,12 @@ function Message({ content }: MessageProp) {
     return <p className="text-red-400 font-medium">{content}</p>;
 }
 
-type OnlinePaymentProps = {
+type PayPalPaymentPaymentProps = {
     cartID: string;
     addressID: string;
     couponId: string | null;
 }
-const OnlinePayment = ({ cartID, addressID, couponId }: OnlinePaymentProps) => {
+const PayPalPaymentPayment = ({ cartID, addressID, couponId }: PayPalPaymentPaymentProps) => {
     const { setOrderConfirmPageAccessible, setCoupon } = useCart();
 
     const [message, setMessage] = useState<string>("");
@@ -51,39 +52,35 @@ const OnlinePayment = ({ cartID, addressID, couponId }: OnlinePaymentProps) => {
                     }}
                     createOrder={async () => {
                         try {
-                            const resultAction = await dispatch(verifyCartItems());
+                            const response = await axios.post(USER_CREATE_ORDER_URL, {
+                                cartId: cartID,
+                                addressId: addressID,
+                                couponId,
+                                paymentMethod: "paypal",
+                            });
 
-                            if (verifyCartItems.fulfilled.match(resultAction)) {
-                                const response = await axios.post(USER_CREATE_ORDER_URL, {
-                                    cartId: cartID,
-                                    addressId: addressID,
-                                    couponId,
-                                    paymentMethod: "paypal",
-                                });
-
-                                if (response.data && response.data.orderID && response.data.paypalOrderID) {
-                                    orderIdRef.current = response.data.orderID;
-                                    return response.data.paypalOrderID;
-                                } else {
-                                    throw new Error("Invalid response structure");
-                                }
+                            if (response.data && response.data.orderID && response.data.paypalOrderID) {
+                                orderIdRef.current = response.data.orderID;
+                                return response.data.paypalOrderID;
                             } else {
-                                dispatch(loadCart());
-                                const { extraMessage } = resultAction.payload || {};
+                                throw new Error("Invalid response structure");
+                            }
+
+                        } catch (error) {
+                            console.log("Error ", error);
+                            if (isBackendError(error)) {
+                                const { extraMessage } = getBackendError(error)
                                 toast({
                                     variant: "destructive",
-                                    title: extraMessage?.title || "Payment failed",
+                                    title: extraMessage?.title || "Order Confirmation failed",
                                     description: extraMessage?.description || '',
-                                    className: 'w-auto py-6 px-12 fixed bottom-2 right-2',
-                                });
-                                dispatch(loadCart());
-                                navigate('/cart');
-                                throw new Error("Cart verification failed");
+                                    className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
+                                })
+                                dispatch(loadCart())
+                                navigate('/cart')
                             }
-                        } catch (error) {
-                            console.error(error);
                             setMessage("Could not initiate PayPal Checkout");
-                            throw new Error("Could not initiate PayPal Checkout");
+                            // throw new Error("Could not initiate PayPal Checkout");
                         }
                     }}
                     onApprove={async (data, actions) => {
@@ -121,4 +118,4 @@ const OnlinePayment = ({ cartID, addressID, couponId }: OnlinePaymentProps) => {
     );
 }
 
-export default OnlinePayment;
+export default PayPalPaymentPayment;
