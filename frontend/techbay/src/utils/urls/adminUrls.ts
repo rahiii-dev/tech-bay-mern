@@ -2,6 +2,8 @@ const BASE_URL: string = '/admin';
 
 const generateUrl = (path: string) => `${BASE_URL}${path}`;
 
+export const DASHBOARD_DETAILS_URL = generateUrl('/dashboard-details');
+
 export const CUSTOMER_LIST_URL = generateUrl('/customer/list');
 
 export const CATEGORY_LIST_URL = generateUrl('/categories');

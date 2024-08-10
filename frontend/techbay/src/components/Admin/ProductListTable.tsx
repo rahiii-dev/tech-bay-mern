@@ -10,10 +10,11 @@ import { Product } from "../../utils/types/productTypes";
 
 type ProductListTableProps = {
     products: Product[];
-    handleDeleteAndRestore: (prodId: string, deleteProd: boolean) => void;
+    handleDeleteAndRestore?: (prodId: string, deleteProd: boolean) => void;
+    actions?: boolean;
 }
 
-const ProductListTable = ({ products, handleDeleteAndRestore }: ProductListTableProps) => {
+const ProductListTable = ({ products, handleDeleteAndRestore, actions = true }: ProductListTableProps) => {
     const navigate = useNavigate();
 
     const handleEdit = (productId: string) => {
@@ -29,7 +30,7 @@ const ProductListTable = ({ products, handleDeleteAndRestore }: ProductListTable
                     <TableHead className="font-bold">Price</TableHead>
                     <TableHead className="font-bold">Rating</TableHead>
                     <TableHead className="font-bold">Status</TableHead>
-                    <TableHead className="font-bold">Actions</TableHead>
+                    {actions && <TableHead className="font-bold">Actions</TableHead>}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -53,34 +54,37 @@ const ProductListTable = ({ products, handleDeleteAndRestore }: ProductListTable
                         <TableCell>
                             <Badge variant={`${product.isActive ? 'sucess' : 'destructive'}`}>{product.isActive ? 'Active' : 'Inactive'}</Badge>
                         </TableCell>
-                        <TableCell>
-                            {!product.isActive ? (
-                                <Button className="min-w-[80px]" onClick={() => handleDeleteAndRestore(product._id, false)}>Restore</Button>
-                            ) : (
-                                <div className="flex gap-2">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Pencil size={20} className='text-yellow-600 cursor-pointer' onClick={() => handleEdit(product._id)} />
-                                        </TooltipTrigger>
-                                        <TooltipContent side='top'>
-                                            <p>Edit Product</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Trash size={20} onClick={() => handleDeleteAndRestore(product._id, true)} className='text-red-500 cursor-pointer' />
-                                        </TooltipTrigger>
-                                        <TooltipContent side='top'>
-                                            <p>Delete Product</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                            )}
-                        </TableCell>
+
+                        {actions && (
+                            <TableCell>
+                                {!product.isActive ? (
+                                    <Button className="min-w-[80px]" size={"sm"} onClick={() => handleDeleteAndRestore?.(product._id, false)}>Restore</Button>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Pencil size={20} className='text-yellow-600 cursor-pointer' onClick={() => handleEdit(product._id)} />
+                                                </TooltipTrigger>
+                                                <TooltipContent side='top'>
+                                                    <p>Edit Product</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Trash size={20} onClick={() => handleDeleteAndRestore?.(product._id, true)} className='text-red-500 cursor-pointer' />
+                                                </TooltipTrigger>
+                                                <TooltipContent side='top'>
+                                                    <p>Delete Product</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
+                                )}
+                            </TableCell>
+                        )}
                     </TableRow>
                 ))}
             </TableBody>
