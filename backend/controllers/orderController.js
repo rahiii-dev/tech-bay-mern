@@ -16,6 +16,7 @@ import paypalClient from "../utils/paypalClient.js";
 import { convertToUSD } from "../utils/currencyConverter.js";
 import Coupon from "../models/Coupon.js";
 import User from "../models/User.js";
+import { generateInvoicePDF } from "../utils/invoiceUtility.js";
 
 /*  
     Route: POST api/user/order
@@ -625,4 +626,36 @@ export const confirmReturn = asyncHandler(async (req, res) => {
   }
 
   return res.status(200).json({ message: "Order return confirmed" });
+});
+
+/*
+  Route: GET /api/user/order/invoice-download
+  Purpose: Download invoice for the user's order
+ */
+export const downloadOrderInvoice = asyncHandler(async (req, res) => {
+  const userId = req.user._id; 
+  const { orderId } = req.query; 
+
+  if (!orderId) {
+    res.status(400);
+    throw new Error('Order ID is required');
+  }
+
+  const order = await Order.findOne({ _id: orderId, user: userId }).populate([
+    {
+      path: "user",
+      select: "email fullName",
+    },
+    {
+      path: "transaction",
+      select: "paymentMethod",
+    },
+  ]);
+
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found or you do not have permission to access this order');
+  }
+
+  await generateInvoicePDF(order, res);
 });

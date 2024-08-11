@@ -193,7 +193,7 @@ const OrderView = () => {
                                 </div>
                                 <div className="font-medium flex justify-between items-center mb-2">
                                     <p className="text-gray-400">Discount</p>
-                                    <p className="text-red-500">{orderData.orderedAmount.discount && orderData.orderedAmount.discount > 0 ? orderData.orderedAmount.discount : '-'}</p>
+                                    <p className="text-red-500">{orderData.orderedAmount.discount && orderData.orderedAmount.discount > 0 ? formatPrice(orderData.orderedAmount.discount) : '-'}</p>
                                 </div>
                                 <div className="font-medium flex justify-between items-centerb">
                                     <p>Total</p>

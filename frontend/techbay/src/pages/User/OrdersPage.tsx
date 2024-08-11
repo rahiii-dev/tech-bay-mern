@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import DownloadInvoice from "../../components/User/DownloadInvoice";
 
 const filterOrders = (orders: Order[], status: string[]): Order[] => {
     if (status.length === 0) {
@@ -270,9 +271,12 @@ const OrdersPage = () => {
                                                         ))}
 
                                                         <div className="flex justify-between">
-                                                            <div className="py-2 flex gap-2 items-center justify-end text-gray-400">
-                                                                <div className="font-medium">Payment Type: </div>
-                                                                <div>{order.transaction.paymentMethod === "cod" ? "Cash On Delivey" : order.transaction.paymentMethod}</div>
+                                                            <div>
+                                                                <div className="py-2 flex gap-2 items-center justify-end text-gray-400">
+                                                                    <div className="font-medium">Payment Type: </div>
+                                                                    <div>{order.transaction.paymentMethod === "cod" ? "Cash On Delivey" : order.transaction.paymentMethod}</div>
+                                                                </div>
+                                                                <DownloadInvoice orderID={order._id} orderNumber={order.orderNumber}/>
                                                             </div>
                                                             <div className="py-2 flex gap-2 items-center justify-end">
                                                                 <div className="font-medium">Total:</div>

@@ -8,6 +8,8 @@ const notFoundHandler = (req, res, next) => {
 };
 
 const errorHandler = (err, req, res, next) => {
+    console.log(err);
+    
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
     if(statusCode < 500){
         return handleErrorResponse(res, statusCode, err.message);
