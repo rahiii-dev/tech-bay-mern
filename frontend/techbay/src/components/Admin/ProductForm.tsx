@@ -110,9 +110,6 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                     imageFiles = await Promise.all(product.imageUrls.map(imageUrl => urlToFile(`${SERVER_URL}${imageUrl}`)));
                 }
 
-                console.log(productRes);
-
-
                 form.reset({
                     name: product?.name,
                     description: product?.description,

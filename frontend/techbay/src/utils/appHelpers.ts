@@ -4,7 +4,7 @@ export const formatDate = (dateString: string | Date) => {
     return format(new Date(dateString), 'dd-MMM-yyyy');
 };
 
-export const formatPrice = (price:number) => {
+export const formatPrice = (price: number) => {
     return price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
 }
 
@@ -18,6 +18,9 @@ export function formatTime(ms: number) {
 export const urlToFile = async (url: string): Promise<File> => {
     const response = await fetch(url);
     const blob = await response.blob();
-    const fileName = url.split('/').pop() || 'file';
+    const fileNameWithPrefix = url.split('/').pop() || 'file';
+    const parts = fileNameWithPrefix.split('-');
+    const filteredParts = parts.filter(part => isNaN(Number(part)));
+    const fileName = filteredParts.join('-');
     return new File([blob], fileName, { type: blob.type });
 };
