@@ -52,6 +52,7 @@ export interface Order {
     createdAt: string;
     transaction: Transaction;
     deliveryDate?: string;
+    cart: string
 }
 
 export interface OrderList extends PaginationResponse {

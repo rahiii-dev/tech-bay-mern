@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import DownloadInvoice from "../../components/User/DownloadInvoice";
+import { useCart } from "../../components/User/CartProvider";
 
 const filterOrders = (orders: Order[], status: string[]): Order[] => {
     if (status.length === 0) {
@@ -33,6 +34,7 @@ const OrdersPage = () => {
     const [itemToReturn, setItemToReturn] = useState<{ orderId: string, OrderProduct: OrderProduct } | null>(null);
     const [cancelReason, setCancelReason] = useState("");
     const [returnReason, setReturnReason] = useState("");
+    const { setPaymentPageAccessible } = useCart()
 
     const { data: OrdersList, loading, fetchData: fetchOrdersList } = useAxios<Order[]>({
         url: USER_ORDER_LIST_URL,
@@ -126,6 +128,11 @@ const OrdersPage = () => {
         setFilter(filter);
     }
 
+    const handlePayment = (order: Order) => {
+        setPaymentPageAccessible(true);
+        navigate("/payment", { state: { order } });
+    }
+
     return (
         <section>
             <div className="container border-t-2 border-gray-100 py-6">
@@ -144,6 +151,7 @@ const OrdersPage = () => {
                         <div className="flex gap-3 items-center justify-between border-b mb-3">
                             <div className="flex gap-2">
                                 <Button onClick={() => handleFilter(["Processing", "Shipped"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Processing") || filter.includes("Shipped")) && 'text-primary border-b-2 border-primary'}`}>Orders</Button>
+                                <Button onClick={() => handleFilter(["Pending"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Pending")) && 'text-primary border-b-2 border-primary'}`}>Pending Payment</Button>
                                 <Button onClick={() => handleFilter(["Delivered"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Delivered")) && 'text-primary border-b-2 border-primary'}`}>Delivered</Button>
                                 <Button onClick={() => handleFilter(["Cancelled", "Returned"])} className={`bg-transparent text-gray-400 rounded-none hover:bg-transparent hover:text-primary ${(filter.includes("Cancelled") || filter.includes("Returned")) && 'text-primary border-b-2 border-primary'}`}>Cancelled / Returned</Button>
                             </div>
@@ -194,6 +202,13 @@ const OrdersPage = () => {
                                                     <div>
                                                         <p>Delivered On</p>
                                                         <p>{order.deliveryDate && formatDate(order.deliveryDate)}</p>
+                                                    </div>
+                                                )}
+
+                                                {order.status === "Pending" && (
+                                                    <div>
+                                                        <p className="text-yellow-600 mb-2">Order Pending</p>
+                                                        <Button onClick={() => handlePayment(order)} size={"sm"} className="rounded-full min-w-[100px]">Pay Now</Button>
                                                     </div>
                                                 )}
 
@@ -249,10 +264,12 @@ const OrdersPage = () => {
                                                                     <div>{item.quantity}</div>
                                                                 </div>
 
-                                                                <div>
-                                                                    {item.canCancel && <Button onClick={() => handleCancelItemModel(order._id, item)} variant={"destructive"} size={"sm"} className="rounded-full min-w-[100px]">Cancel</Button>}
-                                                                    {item.canReturn && <Button onClick={() => handleReturnItemModel(order._id, item)} variant={"secondary"} size={"sm"} className="rounded-full min-w-[100px]">Return</Button>}
-                                                                </div>
+                                                                {order.status != "Pending" && (
+                                                                    <div>
+                                                                        {item.canCancel && <Button onClick={() => handleCancelItemModel(order._id, item)} variant={"destructive"} size={"sm"} className="rounded-full min-w-[100px]">Cancel</Button>}
+                                                                        {item.canReturn && <Button onClick={() => handleReturnItemModel(order._id, item)} variant={"secondary"} size={"sm"} className="rounded-full min-w-[100px]">Return</Button>}
+                                                                    </div>
+                                                                )}
 
                                                                 <div>
                                                                     {item.cancelled && <div>Item Cancelled</div>}
@@ -274,9 +291,14 @@ const OrdersPage = () => {
                                                             <div>
                                                                 <div className="py-2 flex gap-2 items-center justify-end text-gray-400">
                                                                     <div className="font-medium">Payment Type: </div>
-                                                                    <div>{order.transaction.paymentMethod === "cod" ? "Cash On Delivey" : order.transaction.paymentMethod}</div>
+                                                                    {order.transaction ? (
+                                                                        <div>{order.transaction.paymentMethod === "cod" ? "Cash On Delivey" : order.transaction.paymentMethod}</div>
+                                                                    ) : '-'}
+                                                                    
                                                                 </div>
-                                                                <DownloadInvoice orderID={order._id} orderNumber={order.orderNumber}/>
+                                                                {order.status != "Pending" && (
+                                                                    <DownloadInvoice orderID={order._id} orderNumber={order.orderNumber}/>
+                                                                )}
                                                             </div>
                                                             <div className="py-2 flex gap-2 items-center justify-end">
                                                                 <div className="font-medium">Total:</div>
@@ -293,6 +315,7 @@ const OrdersPage = () => {
                         ) : (
                             <div className="font-medium text-gray-400 text-center pb-6">
                                 {OrdersList && OrdersList.length > 0 && (filter.includes("Processing") || filter.includes("Shipped")) && "No Orders"}
+                                {OrdersList && OrdersList.length > 0 && (filter.includes("Pending")) && "No Pending Orders"}
                                 {OrdersList && OrdersList.length > 0 && filter.includes("Delivered") && "No Orders Delivered yet"}
                                 {OrdersList && OrdersList.length > 0 && (filter.includes("Cancelled") || filter.includes("Returned")) && "No Returned or Cancelles Orders"}
                             </div>

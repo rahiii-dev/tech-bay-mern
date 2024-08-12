@@ -145,7 +145,9 @@ export const calculateOverallPercentageChange = (currentTotal, previousTotal) =>
   if (previousTotal === 0) {
     return currentTotal > 0 ? 100 : 0;
   }
-  return ((currentTotal - previousTotal) / previousTotal) * 100;
+
+  const percentageChange = ((currentTotal - previousTotal) / previousTotal) * 100;
+  return percentageChange.toFixed(2);
 };
 
 export const calculatePercentageChange = (data) => {

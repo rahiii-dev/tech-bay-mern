@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { PayPalButtons } from "@paypal/react-paypal-js";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../hooks/useDispatch";
 import { loadCart } from "../../features/cart/cartThunk";
@@ -18,8 +18,8 @@ function Message({ content }: MessageProp) {
 }
 
 type PayPalPaymentPaymentProps = {
-    cartID: string;
-    addressID: string;
+    cartID: string | null;
+    addressID: string | null;
     couponId: string | null;
 }
 const PayPalPaymentPayment = ({ cartID, addressID, couponId }: PayPalPaymentPaymentProps) => {
@@ -31,18 +31,8 @@ const PayPalPaymentPayment = ({ cartID, addressID, couponId }: PayPalPaymentPaym
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const initialOptions = {
-        "clientId": import.meta.env.VITE_PAYPAL_CLIENT_ID,
-        "enable-funding": "venmo",
-        "disable-funding": "",
-        "data-page-type": "product-details",
-        components: "buttons",
-        "data-sdk-integration-source": "developer-studio",
-    };
-
     return (
         <div className="App">
-            <PayPalScriptProvider options={initialOptions}>
                 <PayPalButtons
                     style={{
                         shape: "pill",
@@ -112,7 +102,6 @@ const PayPalPaymentPayment = ({ cartID, addressID, couponId }: PayPalPaymentPaym
                         }
                     }}
                 />
-            </PayPalScriptProvider>
             <Message content={message} />
         </div>
     );

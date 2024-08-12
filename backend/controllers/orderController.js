@@ -30,13 +30,11 @@ export const createOrder = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Invalid payment method");
   }
 
-  const exisistingOrder = await Order.findOne({ cart: cartId });
+  const existingOrder = await Order.findOne({ cart: cartId });
   let order = null;
 
-  if (!exisistingOrder) {
-    const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(
-      cartPopulateOptions
-    );
+  if (!existingOrder) {
+    const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(cartPopulateOptions);
 
     if (!cart) {
       return handleErrorResponse(res, 404, "Cart not found");
@@ -64,9 +62,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     if (couponId) {
       coupon = await Coupon.findById(couponId);
       if (coupon) {
-        const validation = coupon.validateCoupon(
-          formattedCart.cartTotal.subtotal
-        );
+        const validation = coupon.validateCoupon(formattedCart.cartTotal.subtotal);
         if (!validation.valid) {
           return handleErrorResponse(res, 400, validation.message);
         }
@@ -112,10 +108,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
 
     if (coupon) {
-      const discountAmount =
-        (formattedCart.cartTotal.subtotal * coupon.discount) / 100;
-      const totalAfterDiscount =
-        formattedCart.orderTotal.total - discountAmount;
+      const discountAmount = (formattedCart.cartTotal.subtotal * coupon.discount) / 100;
+      const totalAfterDiscount = formattedCart.orderTotal.total - discountAmount;
 
       order.coupon = {
         couponId: coupon._id,
@@ -140,14 +134,18 @@ export const createOrder = asyncHandler(async (req, res) => {
       });
     }
   } else {
-    order = exisistingOrder;
+    order = existingOrder;
 
-    if(!couponId && order.coupon.couponId) {
+    if (!couponId && order.coupon?.couponId) {
       const user = await User.findById(req.user._id);
-      user.usedCoupons = user.usedCoupons.filter( coupon => coupon != order.coupon.couponId);
+      user.usedCoupons = user.usedCoupons.filter(coupon => coupon !== order.coupon.couponId);
       await user.save();
       order.coupon = null;
     }
+  }
+
+  if (paymentMethod === "cod" && order.orderedAmount.total > 1000) {
+    return handleErrorResponse(res, 400, "Total amount exceeds the limit for COD payments");
   }
 
   if (paymentMethod === "wallet") {
@@ -188,12 +186,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         paypalOrderID: paypalOrder.result.id,
       });
     } catch (error) {
-      return handleErrorResponse(
-        res,
-        500,
-        "Error creating PayPal order",
-        error
-      );
+      return handleErrorResponse(res, 500, "Error creating PayPal order", error);
     }
   } else {
     const transaction = new Transaction({
@@ -215,6 +208,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     res.status(201).json(createdOrder);
   }
 });
+
 
 /*  
     Route: POST api/user/order/capture
@@ -283,7 +277,7 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
         select: "paymentMethod",
       },
     ],
-    sort: { createdAt: -1 },
+    sort: { updatedAt: -1 },
   };
 
   if (status && ORDER_STATUS.includes(status)) {
@@ -375,7 +369,6 @@ export const updateOrderDetail = asyncHandler(async (req, res) => {
 export const getUserOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({
     user: req.user._id,
-    status: { $ne: "Pending" },
   })
     .populate([
       {
@@ -388,7 +381,7 @@ export const getUserOrders = asyncHandler(async (req, res) => {
       },
     ])
     .sort({
-      createdAt: -1,
+      updatedAt: -1,
     });
   return res.status(200).json(orders);
 });
