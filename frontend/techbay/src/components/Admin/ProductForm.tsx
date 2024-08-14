@@ -18,6 +18,7 @@ import { SERVER_URL } from "../../utils/constants";
 import { Product } from "../../utils/types/productTypes";
 import { urlToFile } from "../../utils/appHelpers";
 import { Checkbox } from "../ui/checkbox";
+import ProductOfferForm from "./ProductOfferForm";
 
 const MIN_IMAGE = 3;
 const MAX_IMAGE = 6;
@@ -243,78 +244,26 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
     };
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col-reverse md:flex-row justify-between gap-3 pb-8">
-                <div className="w-full md:w-max flex md:flex-col gap-3">
-                    <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
-                        <FormField
-                            control={form.control}
-                            name="thumbnail"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-lg font-bold mb-2">Thumbnail</FormLabel>
-                                    <p className="mb-2 text-sm text-gray-400">Add thumbnail for your product</p>
-                                    <FormControl>
-                                        <ImageInput
-                                            index={-1}
-                                            defaultImage={field.value ? URL.createObjectURL(field.value) : undefined}
-                                            onImageChange={(_, file) => handleThumbnailInput(file)}
-                                            onRemoveImage={(_) => handleRemoveThumbnail()}
-                                            onImageError={handleThumbnailError}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
-                        <div className="mb-2">
+        <>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col-reverse md:flex-row justify-between gap-3 pb-8">
+                    <div className="w-full md:w-max flex md:flex-col gap-3">
+                        <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
                             <FormField
                                 control={form.control}
-                                name="isActive"
+                                name="thumbnail"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-lg font-bold mb-2">Status</FormLabel>
+                                        <FormLabel className="text-lg font-bold mb-2">Thumbnail</FormLabel>
+                                        <p className="mb-2 text-sm text-gray-400">Add thumbnail for your product</p>
                                         <FormControl>
-                                            <Select value={field.value.toString()} onValueChange={(value) => field.onChange(value === "true")}>
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select a product status" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="true">Active</SelectItem>
-                                                    <SelectItem value="false">Inactive</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
-                        <h1 className="text-lg font-bold mb-2">Details</h1>
-                        <div className="mb-2">
-                            <FormField
-                                control={form.control}
-                                name="category"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold mb-1">Category</FormLabel>
-                                        <FormControl>
-                                            <Select value={field.value} onValueChange={field.onChange}>
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select a Category" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {categories.map(category => (
-                                                        <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <ImageInput
+                                                index={-1}
+                                                defaultImage={field.value ? URL.createObjectURL(field.value) : undefined}
+                                                onImageChange={(_, file) => handleThumbnailInput(file)}
+                                                onRemoveImage={(_) => handleRemoveThumbnail()}
+                                                onImageError={handleThumbnailError}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -322,87 +271,24 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                             />
                         </div>
 
-                        <div className="mb-2">
-                            <FormField
-                                control={form.control}
-                                name="brand"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-semibold mb-1">Brand</FormLabel>
-                                        <FormControl>
-                                            <Select value={field.value} onValueChange={field.onChange}>
-                                                <SelectTrigger className="w-full">
-                                                    <SelectValue placeholder="Select a brand" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {brands.map(brand => (
-                                                        <SelectItem key={brand._id} value={brand._id}>{brand.name}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex-grow flex flex-col gap-3">
-                    <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6">
-                        <h1 className="text-lg font-bold mb-2">General</h1>
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Product Name</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Product Details</FormLabel>
-                                    <FormControl>
-                                        <Textarea {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
+                        <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
+                            <div className="mb-2">
                                 <FormField
                                     control={form.control}
-                                    name="price"
+                                    name="isActive"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Price</FormLabel>
+                                            <FormLabel className="text-lg font-bold mb-2">Status</FormLabel>
                                             <FormControl>
-                                                <Input min={0} type="number" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <div>
-                                <FormField
-                                    control={form.control}
-                                    name="stock"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Quantity</FormLabel>
-                                            <FormControl>
-                                                <Input min={0} type="number" {...field} />
+                                                <Select value={field.value.toString()} onValueChange={(value) => field.onChange(value === "true")}>
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Select a product status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="true">Active</SelectItem>
+                                                        <SelectItem value="false">Inactive</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -410,63 +296,187 @@ const ProductForm = forwardRef(({ prdID }: ProductFormProps, ref) => {
                                 />
                             </div>
                         </div>
-                        <div className="my-2">
+
+                        <div className="w-full bg-primary-foreground rounded-md shadow-lg px-4 py-6">
+                            <h1 className="text-lg font-bold mb-2">Details</h1>
+                            <div className="mb-2">
+                                <FormField
+                                    control={form.control}
+                                    name="category"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="font-semibold mb-1">Category</FormLabel>
+                                            <FormControl>
+                                                <Select value={field.value} onValueChange={field.onChange}>
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Select a Category" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {categories.map(category => (
+                                                            <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="mb-2">
+                                <FormField
+                                    control={form.control}
+                                    name="brand"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="font-semibold mb-1">Brand</FormLabel>
+                                            <FormControl>
+                                                <Select value={field.value} onValueChange={field.onChange}>
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Select a brand" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {brands.map(brand => (
+                                                            <SelectItem key={brand._id} value={brand._id}>{brand.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-grow flex flex-col gap-3">
+                        <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6">
+                            <h1 className="text-lg font-bold mb-2">General</h1>
                             <FormField
                                 control={form.control}
-                                name="isFeatured"
+                                name="name"
                                 render={({ field }) => (
-                                    <FormItem className="flex gap-2 items-center">
-                                        <FormLabel className="text-gray-400">Mark product as Featured</FormLabel>
+                                    <FormItem>
+                                        <FormLabel>Product Name</FormLabel>
                                         <FormControl>
-                                            <Checkbox
-                                                checked={!!field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
+                                            <Input {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                        </div>
-                    </div>
-
-                    <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6">
-                        <FormField
-                            control={form.control}
-                            name="images"
-                            render={() => (
-                                <FormItem>
-                                    <FormLabel className="text-lg font-bold mb-2">Media</FormLabel>
-                                    <p className="mb-2 text-sm text-gray-400">Minimum {MIN_IMAGE} and maximum {MAX_IMAGE} images</p>
-
-                                    <div className="flex flex-wrap gap-3">
-                                        {form.getValues('images').map((img, index) => (
-                                            <ImageInput
-                                                key={index}
-                                                index={index}
-                                                defaultImage={URL.createObjectURL(img)}
-                                                onImageChange={handleImageChange}
-                                                onRemoveImage={handleRemoveImage}
-                                                onImageError={handleImagesError}
-                                            />
-                                        ))}
-                                        {form.getValues('images').length < MAX_IMAGE && (
-                                            <ImageInput
-                                                key={form.getValues('images').length}
-                                                index={form.getValues('images').length}
-                                                onImageChange={handleImageChange}
-                                                onImageError={handleImagesError}
-                                            />
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Product Details</FormLabel>
+                                        <FormControl>
+                                            <Textarea {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <FormField
+                                        control={form.control}
+                                        name="price"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Price</FormLabel>
+                                                <FormControl>
+                                                    <Input min={0} type="number" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
                                         )}
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                    />
+                                </div>
+                                <div>
+                                    <FormField
+                                        control={form.control}
+                                        name="stock"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Quantity</FormLabel>
+                                                <FormControl>
+                                                    <Input min={0} type="number" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+                            <div className="my-2">
+                                <FormField
+                                    control={form.control}
+                                    name="isFeatured"
+                                    render={({ field }) => (
+                                        <FormItem className="flex gap-2 items-center">
+                                            <FormLabel className="text-gray-400">Mark product as Featured</FormLabel>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={!!field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6">
+                            <FormField
+                                control={form.control}
+                                name="images"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel className="text-lg font-bold mb-2">Media</FormLabel>
+                                        <p className="mb-2 text-sm text-gray-400">Minimum {MIN_IMAGE} and maximum {MAX_IMAGE} images</p>
+
+                                        <div className="flex flex-wrap gap-3">
+                                            {form.getValues('images').map((img, index) => (
+                                                <ImageInput
+                                                    key={index}
+                                                    index={index}
+                                                    defaultImage={URL.createObjectURL(img)}
+                                                    onImageChange={handleImageChange}
+                                                    onRemoveImage={handleRemoveImage}
+                                                    onImageError={handleImagesError}
+                                                />
+                                            ))}
+                                            {form.getValues('images').length < MAX_IMAGE && (
+                                                <ImageInput
+                                                    key={form.getValues('images').length}
+                                                    index={form.getValues('images').length}
+                                                    onImageChange={handleImageChange}
+                                                    onImageError={handleImagesError}
+                                                />
+                                            )}
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     </div>
+                </form>
+
+            </Form >
+            {prdID && (
+                <div className="bg-primary-foreground rounded-md shadow-lg px-4 py-6 mb-6">
+                    <h1 className="text-lg font-bold mb-2">Offers</h1>
+                    <ProductOfferForm productId={prdID} />
                 </div>
-            </form>
-        </Form >
+            )}
+        </>
     );
 });
 

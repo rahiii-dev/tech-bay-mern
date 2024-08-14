@@ -43,7 +43,7 @@ const PaymentPage = () => {
         }
     }, [location.state]);
 
-    if ((!cart || !paymentPageAccessible) && !order) {
+    if ((!cart || !order) && !paymentPageAccessible) {
         return <Navigate to={'/cart'} />
     }
 
@@ -55,9 +55,13 @@ const PaymentPage = () => {
         ? order.orderedAmount.discount
         : (cart && coupon) ? coupon.discount : 0;
 
-    const total = (coupon && cart)
-        ? cart.cartTotal.subtotal - (cart.cartTotal.subtotal * coupon.discount) / 100
-        : order ? order.orderedAmount.total : 0;
+    const total = order 
+        ? order.orderedAmount.total 
+        : (cart && coupon) 
+            ? cart.cartTotal.subtotal - (cart.cartTotal.subtotal * coupon.discount) / 100
+            : cart 
+                ? cart.cartTotal.total : 0;
+    
 
     const handleOrderConfirm = () => {
         if (!paymentOption) {
@@ -140,7 +144,7 @@ const PaymentPage = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <Button onClick={() => navigate('/checkout')} variant={"secondary"} className="rounded-full"><ArrowLeft className="me-2" size={20} /> Back to Checkout</Button>
+                                    <Button onClick={() => navigate(-1)} variant={"secondary"} className="rounded-full"><ArrowLeft className="me-2" size={20} /> Back</Button>
                                 </div>
                             </div>
                             <div className="w-full max-w-[400px] h-max flex flex-col gap-4">

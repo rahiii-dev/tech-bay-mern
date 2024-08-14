@@ -34,7 +34,9 @@ export const createOrder = asyncHandler(async (req, res) => {
   let order = null;
 
   if (!existingOrder) {
-    const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(cartPopulateOptions);
+    const cart = await Cart.findOne({ _id: cartId, user: userId }).populate(
+      cartPopulateOptions
+    );
 
     if (!cart) {
       return handleErrorResponse(res, 404, "Cart not found");
@@ -56,13 +58,15 @@ export const createOrder = asyncHandler(async (req, res) => {
       );
     }
 
-    const formattedCart = formatCart(cart, req.user);
+    const formattedCart = await formatCart(cart, req.user);
 
     let coupon = null;
     if (couponId) {
       coupon = await Coupon.findById(couponId);
       if (coupon) {
-        const validation = coupon.validateCoupon(formattedCart.cartTotal.subtotal);
+        const validation = coupon.validateCoupon(
+          formattedCart.cartTotal.subtotal
+        );
         if (!validation.valid) {
           return handleErrorResponse(res, 400, validation.message);
         }
@@ -74,10 +78,10 @@ export const createOrder = asyncHandler(async (req, res) => {
       return handleErrorResponse(res, 404, "Address not found");
     }
 
-    const orderedItems = cart.items.map((item) => ({
+    const orderedItems = formattedCart.items.map((item) => ({
       productID: item.product._id,
       name: item.product.name,
-      price: item.product.price,
+      price: item.product.finalPrice,
       images: item.product.imageUrls,
       thumbnail: item.product.thumbnailUrl,
       category: item.product.brand.category,
@@ -108,8 +112,10 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
 
     if (coupon) {
-      const discountAmount = (formattedCart.cartTotal.subtotal * coupon.discount) / 100;
-      const totalAfterDiscount = formattedCart.orderTotal.total - discountAmount;
+      const discountAmount =
+        (formattedCart.cartTotal.subtotal * coupon.discount) / 100;
+      const totalAfterDiscount =
+        formattedCart.orderTotal.total - discountAmount;
 
       order.coupon = {
         couponId: coupon._id,
@@ -125,27 +131,25 @@ export const createOrder = asyncHandler(async (req, res) => {
         await user.save();
       }
     }
-
-    await Cart.findByIdAndDelete(order.cart);
-
-    for (const item of order.orderedItems) {
-      await Product.findByIdAndUpdate(item.productID, {
-        $inc: { stock: -item.quantity },
-      });
-    }
   } else {
     order = existingOrder;
 
     if (!couponId && order.coupon?.couponId) {
       const user = await User.findById(req.user._id);
-      user.usedCoupons = user.usedCoupons.filter(coupon => coupon !== order.coupon.couponId);
+      user.usedCoupons = user.usedCoupons.filter(
+        (coupon) => coupon !== order.coupon.couponId
+      );
       await user.save();
       order.coupon = null;
     }
   }
 
   if (paymentMethod === "cod" && order.orderedAmount.total > 1000) {
-    return handleErrorResponse(res, 400, "Total amount exceeds the limit for COD payments");
+    return handleErrorResponse(
+      res,
+      400,
+      "Total amount exceeds the limit for COD payments"
+    );
   }
 
   if (paymentMethod === "wallet") {
@@ -180,13 +184,25 @@ export const createOrder = asyncHandler(async (req, res) => {
     try {
       const paypalOrder = await paypalClient.execute(request);
       const createdOrder = await order.save();
+      await Cart.findByIdAndDelete(order.cart);
+
+      for (const item of order.orderedItems) {
+        await Product.findByIdAndUpdate(item.productID, {
+          $inc: { stock: -item.quantity },
+        });
+      }
 
       return res.status(201).json({
         orderID: createdOrder._id,
         paypalOrderID: paypalOrder.result.id,
       });
     } catch (error) {
-      return handleErrorResponse(res, 500, "Error creating PayPal order", error);
+      return handleErrorResponse(
+        res,
+        500,
+        "Error creating PayPal order",
+        error
+      );
     }
   } else {
     const transaction = new Transaction({
@@ -204,11 +220,17 @@ export const createOrder = asyncHandler(async (req, res) => {
     order.status = "Processing";
 
     const createdOrder = await order.save();
+    await Cart.findByIdAndDelete(order.cart);
+
+    for (const item of order.orderedItems) {
+      await Product.findByIdAndUpdate(item.productID, {
+        $inc: { stock: -item.quantity },
+      });
+    }
 
     res.status(201).json(createdOrder);
   }
 });
-
 
 /*  
     Route: POST api/user/order/capture
@@ -626,12 +648,12 @@ export const confirmReturn = asyncHandler(async (req, res) => {
   Purpose: Download invoice for the user's order
  */
 export const downloadOrderInvoice = asyncHandler(async (req, res) => {
-  const userId = req.user._id; 
-  const { orderId } = req.query; 
+  const userId = req.user._id;
+  const { orderId } = req.query;
 
   if (!orderId) {
     res.status(400);
-    throw new Error('Order ID is required');
+    throw new Error("Order ID is required");
   }
 
   const order = await Order.findOne({ _id: orderId, user: userId }).populate([
@@ -647,7 +669,16 @@ export const downloadOrderInvoice = asyncHandler(async (req, res) => {
 
   if (!order) {
     res.status(404);
-    throw new Error('Order not found or you do not have permission to access this order');
+    throw new Error(
+      "Order not found or you do not have permission to access this order"
+    );
+  }
+
+  if(order.status != "Delivered"){
+    res.status(400);
+    throw new Error(
+      "Order is not Delivered"
+    );
   }
 
   await generateInvoicePDF(order, res);

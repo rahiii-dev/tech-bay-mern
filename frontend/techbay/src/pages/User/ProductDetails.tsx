@@ -74,12 +74,12 @@ const ProductDetails = () => {
 
     const handleAddToWishList = async (productId: string) => {
         try {
-            await axios.post(USER_ADD_TO_WISHLIST_URL, {productId});
+            await axios.post(USER_ADD_TO_WISHLIST_URL, { productId });
             navigate('/wishlist')
         } catch (error) {
-            if(isBackendError(error)){
+            if (isBackendError(error)) {
                 const err = getBackendError(error)
-                if(err.type === "Error"){
+                if (err.type === "Error") {
                     toast({
                         variant: "destructive",
                         title: err.message,
@@ -132,11 +132,17 @@ const ProductDetails = () => {
                             <div className='flex items-center gap-2 mb-2'>
                                 <Rating name="read-only" value={3} readOnly />
                                 <span className='font-medium text-[12px] text-gray-400'>3/2</span>
-                                {data.product.stock === 0 
+                                {data.product.stock === 0
                                     ? (<span className="bg-red-200 text-red-800 px-3 text-[12px] font-medium rounded-full">out-of stock</span>)
                                     : (<span className="bg-green-200 text-green-800 px-3 text-[12px] font-medium rounded-full">In stock</span>)}
+                                {data.product.offerDiscount && (
+                                    <span className="bg-red-200 text-red-800 px-3 font-medium rounded-full">-{data.product.offerDiscount}%</span>
+                                )}
                             </div>
-                            <h2 className='font-semibold text-gray-500 text-3xl mb-2'>{formatPrice(data.product.price)}</h2>
+                            <div className="flex items-baseline gap-2">
+                                <h2 className='font-semibold text-gray-500 text-3xl mb-2'>{data.product.offerDiscount ? formatPrice(data.product.finalPrice) : formatPrice(data.product.price)}</h2>
+                                {data.product.offerDiscount && (<p className="font-medium line-through text-xl text-gray-400">{formatPrice(data.product.price)}</p>)}
+                            </div>
                             <p className='text-sm text-gray-400 mb-8 min-h-[100px]'>{data.product.description}</p>
                             <div className='flex items-center gap-5'>
                                 <Button onClick={() => handleAddToCart(data.product._id, 1)} disabled={(!data.product.isActive || data.product.stock === 0)} className='rounded-full w-full max-w-[200px]'>Add to Cart</Button>

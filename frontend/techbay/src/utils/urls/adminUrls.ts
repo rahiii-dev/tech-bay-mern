@@ -39,3 +39,7 @@ export const COUPON_RESTORE_URL = (id: string) => generateUrl(`/coupon/restore/$
 
 export const SALES_REPORT_URL = generateUrl('/sales-report');
 export const SALES_REPORT_DOWNLOAD_URL = generateUrl('/sales-report/download');
+
+export const PRODUCT_OFFER_CREATE_URL = generateUrl('/product-offer');
+export const PRODUCT_OFFER_UPDATE_URL = (productId: string) => generateUrl(`/product-offer/${productId}`);
+export const GET_PRODUCT_OFFER_URL = (productId: string) => generateUrl(`/product-offer/${productId}`);

@@ -26,7 +26,7 @@ const CartList = ({ cartItems, editable=true }: CartListProp) => {
     return (
         <div className="border rounded-xl overflow-hidden px-3">
             {cartItems.map(item => (
-                <div key={item._id} className="flex justify-between border-b py-4 px-3">
+                <div key={item.product._id} className="flex justify-between border-b py-4 px-3">
                     <div className="flex gap-3">
                         <div className="size-20">
                             <img src={`${SERVER_URL}${item.product.thumbnailUrl}`} alt="product-img" />
@@ -50,7 +50,10 @@ const CartList = ({ cartItems, editable=true }: CartListProp) => {
                                 }
                             </div>
                             <p className="text-sm">Brand: <span className="text-gray-400">{typeof item.product.brand != 'string' && item.product.brand.name}</span></p>
-                            <h2 className="text-xl">{formatPrice(item.product.price)}</h2>
+                            <div className="flex gap-3 items-baseline">
+                                <h2 className="text-xl">{formatPrice(item.product.finalPrice)}</h2>
+                                {item.product.offerDiscount && <h2 className="text-base line-through text-gray-400">{formatPrice(item.product.price)}</h2>}
+                            </div>
                         </div>
                     </div>
 

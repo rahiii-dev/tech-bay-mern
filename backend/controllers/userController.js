@@ -7,6 +7,8 @@ import { ACTIVE_PRODUCT_PIPELINE } from "../utils/pipelines/product.js";
 import { handleProduct } from "./productController.js";
 import { generateFileURL } from "../utils/helpers/fileHelper.js";
 import { escapeRegex } from "../utils/helpers/appHelpers.js";
+import { ProductOffer } from "../models/Offer.js";
+import { calculateFinalPrice, calculateOfferDiscount } from "../utils/offerCalculators.js";
 
 const productSortMap = new Map([
   ["relavence", {name: 1}],
@@ -127,17 +129,20 @@ export const userProducts = asyncHandler(async (req, res) => {
     }
   }
 
-  pipeline.push({
-    $project: {
-      name: 1,
-      description: 1,
-      stock: 1,
-      isFeatured: 1,
-      price: 1,
-      thumbnail: 1,
-      "category.name": 1,
-    },
-  });
+ pipeline.push(
+    {
+      $project: {
+        name: 1,
+        description: 1,
+        stock: 1,
+        isFeatured: 1,
+        price: 1,
+        thumbnail: 1,
+        "category.name": 1,
+      },
+    }
+  );
+  
 
   const myCustomLabels = {
     totalDocs: "totalProducts",
@@ -153,6 +158,13 @@ export const userProducts = asyncHandler(async (req, res) => {
 
   const aggregate = Product.aggregate(pipeline);
   const result = await Product.aggregatePaginate(aggregate, options);
+
+  for (const prod of result.products) {
+    const discount = await calculateOfferDiscount(prod._id);
+    prod.offerDiscount = discount;
+    prod.finalPrice = calculateFinalPrice(prod.price, discount);
+  }
+
 
   result.products.forEach((product) => {
     product.thumbnail = generateFileURL(product.thumbnail);
@@ -171,23 +183,47 @@ export const userGetProductDetail = asyncHandler(async (req, res) => {
 
   if (id) {
     const product = await Product.findOne({ _id: id });
-
+    
     if (product) {
-      const related_products = await Product.find({
+      let related_products = await Product.find({
         _id: { $ne: product.id },
         category: product.category,
         isActive: true,
       });
-      related_products.forEach((product) => {
-        product.thumbnail = generateFileURL(product.thumbnail);
-        product.images = product.images.map((image) => generateFileURL(image));
-      });
-      return res.json({ product: handleProduct(product), related_products });
+
+      related_products = await Promise.all(related_products.map(async (prod) => {
+        const prodObject = prod.toObject();
+        prodObject.thumbnail = generateFileURL(prodObject.thumbnail);
+        prodObject.images = prodObject.images.map((image) => generateFileURL(image));
+      
+        const discount = await calculateOfferDiscount(prodObject._id);
+        prodObject.offerDiscount = discount;
+        prodObject.finalPrice = calculateFinalPrice(prodObject.price, discount);
+      
+        return prodObject;
+      }));
+
+      const highestDiscount = await calculateOfferDiscount(id);
+      console.log(highestDiscount);
+      const finalPrice = calculateFinalPrice(product.price, highestDiscount);
+
+      const result = {
+        product: {
+          ...product.toObject(),
+          imageUrls: product.imageUrls,
+          thumbnailUrl: product.thumbnailUrl,
+          offerDiscount: highestDiscount,
+          finalPrice: finalPrice,
+        },
+        related_products,
+      };
+
+      return res.json(result);
     }
   }
+
   return res.json({ product: {}, related_products: [] });
 });
-
 /*  
     Route: GET api/user/categories
     Purpose: list categories for user

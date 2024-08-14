@@ -22,8 +22,6 @@ export const generateInvoicePDF = async (order, res) => {
   const logoPath = path.resolve(__dirname, "../uploads/logo/logo-black.png");
   const logoBase64 = await getBase64Image(logoPath);
 
-  console.log(order);
-  
 
   // Create the HTML content
   const htmlContent = `

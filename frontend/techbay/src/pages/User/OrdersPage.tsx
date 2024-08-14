@@ -296,7 +296,7 @@ const OrdersPage = () => {
                                                                     ) : '-'}
                                                                     
                                                                 </div>
-                                                                {order.status != "Pending" && (
+                                                                {order.status === "Delivered" && (
                                                                     <DownloadInvoice orderID={order._id} orderNumber={order.orderNumber}/>
                                                                 )}
                                                             </div>

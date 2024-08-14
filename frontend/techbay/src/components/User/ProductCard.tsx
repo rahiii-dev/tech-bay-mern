@@ -17,8 +17,10 @@ const ProductCard = ({ product, label }: ProductCardProps) => {
                 <>
                     {product.stock === 0 && <div className="absolute bg-red-500 text-primary-foreground text-sm py-1 px-3 z-10 rounded-tl-2xl rounded-br-2xl">Out of Stock</div>}
                     {product.stock > 0 && product.isFeatured && <div className="absolute bg-primary text-primary-foreground text-sm py-1 px-3 z-10 rounded-tl-2xl rounded-br-2xl">Featured</div>}
+
                 </>
             )}
+            {product.offerDiscount && <div className="absolute right-0 top-0 bg-primary text-green-500 text-sm py-1 px-3 z-10 rounded-bl-2xl">{product.offerDiscount}%</div>}
             <div className="w-full max-w-[300px] mx-auto overflow-hidden">
                 <div className="w-full aspect-square overflow-hidden rounded-2xl">
                     <img src={`${SERVER_URL}${product.thumbnail}`} alt="product-img"
@@ -30,7 +32,10 @@ const ProductCard = ({ product, label }: ProductCardProps) => {
                         <Rating name="read-only" value={3} size="small" readOnly />
                         <span>3/5</span>
                     </div>
-                    <p className="text-xl font-bold">{formatPrice(product.price)}</p>
+                    <div className="flex items-baseline gap-2">    
+                        <p className="text-xl font-bold">{product.offerDiscount ? formatPrice(product.finalPrice) : formatPrice(product.price)}</p>
+                        {product.offerDiscount && (<p className="text-sm font-medium line-through text-gray-500">{formatPrice(product.price)}</p>)}
+                    </div>
                 </div>
             </div>
         </Link>

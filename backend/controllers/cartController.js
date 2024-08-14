@@ -3,27 +3,45 @@ import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import handleErrorResponse from "../utils/handleErrorResponse.js";
 import Wishlist from "../models/Wishlist.js";
+import { calculateFinalPrice, calculateOfferDiscount } from "../utils/offerCalculators.js";
 
-export const formatCart = (cart, user) => {
-  const subtotal = cart.items.reduce((acc, item) => {
-    if (item.product.stock > 0) {
-      return acc + item.product.price * item.quantity;
-    }
-    return acc;
-  }, 0);
+export const formatCart = async (cart, user) => {
+  let subtotal = 0;
+  let totalDiscount = 0;
 
-  const discount = 0;
-  const total = subtotal - discount;
+  const formattedItems = await Promise.all(cart.items.map(async (item) => {
+    const { product, quantity } = item;
+
+    const offerDiscount = await calculateOfferDiscount(product._id);
+
+    const finalPrice = calculateFinalPrice(product.price, offerDiscount);
+
+    const itemTotal = finalPrice * quantity;
+
+    subtotal += itemTotal;
+    totalDiscount += (product.price - finalPrice) * quantity;
+
+
+    return {
+      ...item.toObject(),
+      product: {...item.product.toObject(), finalPrice, offerDiscount},
+      finalPrice,
+      offerDiscount,
+      itemTotal,
+    };
+  }));
+
+  const total = subtotal;
 
   return {
     _id: cart.id,
     user: {
       fullName: user.fullName,
     },
-    items: cart.items,
+    items: formattedItems,
     cartTotal: {
       subtotal,
-      discount,
+      discount: 0,
       total,
     },
     orderTotal: {
@@ -55,7 +73,7 @@ export const getCart = asyncHandler(async (req, res) => {
     return handleErrorResponse(res, 404, "Cart not found");
   }
 
-  const formattedCart = formatCart(cart, req.user)
+  const formattedCart = await formatCart(cart, req.user)
 
   return res.json(formattedCart);
 });
@@ -107,7 +125,7 @@ export const addItemToCart = asyncHandler(async (req, res) => {
 
   const updatedCart = await findUserCart(req.user._id);
 
-  const formattedCart = formatCart(updatedCart, req.user);
+  const formattedCart = await formatCart(updatedCart, req.user);
   res.status(201).json(formattedCart);
 });
 
@@ -160,7 +178,7 @@ export const wishListToCart = asyncHandler(async (req, res) => {
   await wishlist.save();
 
   const updatedCart = await findUserCart(userId);
-  const formattedCart = formatCart(updatedCart, req.user);
+  const formattedCart = await formatCart(updatedCart, req.user);
   res.status(201).json(formattedCart);
 });
 
@@ -180,7 +198,7 @@ export const removeItemFromCart = asyncHandler(async (req, res) => {
       await cart.save();
 
       const updatedCart = await findUserCart(req.user._id);
-      const formattedCart = formatCart(updatedCart, req.user);
+      const formattedCart = await formatCart(updatedCart, req.user);
       return res.json(formattedCart);
     }
   }
@@ -261,7 +279,7 @@ export const updateCartItemQuantity = asyncHandler(async (req, res) => {
   await cart.save();
 
   const updatedCart = await findUserCart(req.user._id);
-  const formattedCart = formatCart(updatedCart, req.user);
+  const formattedCart = await formatCart(updatedCart, req.user);
   return res.json(formattedCart);
 });
 

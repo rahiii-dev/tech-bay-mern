@@ -28,7 +28,7 @@ const LoginSchema = z.object({
 })
 
 const LoginForm = () => {
-    const {setOtpPageAccessible, setFormData} = useAuthFormContext();
+    const { setOtpPageAccessible, setFormData } = useAuthFormContext();
     const { loading, error, fetchData } = useAxios<BACKEND_RESPONSE<User>>({
         url: LOGIN_URL,
         method: 'POST',
@@ -47,9 +47,9 @@ const LoginForm = () => {
     })
 
     useEffect(() => {
-        if(error){
-            if(error.type === 'Account'){
-                setFormData({email : form.getValues('email')})
+        if (error) {
+            if (error.type === 'Account') {
+                setFormData({ email: form.getValues('email') })
                 setOtpPageAccessible(true)
                 navigate('/otp-validate')
                 toast({
@@ -58,11 +58,11 @@ const LoginForm = () => {
                     description: `${error?.extraMessage?.description || ''}`,
                     className: 'w-auto py-6 px-12 fixed bottom-2 right-2'
                 })
-    
+
             }
         }
     }, [error])
-    
+
 
     async function onSubmit(dataToSend: z.infer<typeof LoginSchema>) {
         const resData = await fetchData({
@@ -112,12 +112,17 @@ const LoginForm = () => {
                         <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                                <PasswordInput {...field}/>
+                                <PasswordInput {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+                <div className="text-right">
+                    <Link to="/register" className="text-sm">
+                        Forgot Password?
+                    </Link>
+                </div>
                 {error && <p className="text-red-500">{error.type === 'Error' ? error.message : ''}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                     Login

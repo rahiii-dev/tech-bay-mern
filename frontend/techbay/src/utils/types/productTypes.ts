@@ -16,6 +16,8 @@ export interface Product {
     rating: number;
     isActive: boolean;
     isFeatured: boolean;
+    offerDiscount: number | null;
+    finalPrice: number;
 };
 
 export interface ProductListResponse extends PaginationResponse {

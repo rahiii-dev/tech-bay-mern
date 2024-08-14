@@ -21,6 +21,7 @@ const CartPage = () => {
     const dispatch = useAppDispatch();
 
     useEffect(() => {
+        dispatch(loadCart())
         if(cartError){
             toast({
                 variant: "destructive",

@@ -7,6 +7,7 @@ import productRoutes from './Admin/productRoutes.js'
 import orderRoutes from './Admin/orderRoutes.js';
 import couponRoutes from './Admin/couponRoutes.js';
 import salesRoutes from './Admin/salesRouter.js';
+import productOfferRoutes from './Admin/ProductOfferRoutes.js';
 import { getDashboardDetails } from "../controllers/dashboardController.js";
 
 const router = express.Router();
@@ -21,6 +22,7 @@ router.use(productRoutes)
 router.use(orderRoutes)
 router.use(couponRoutes)
 router.use(salesRoutes)
+router.use(productOfferRoutes)
 
 router.get('/dashboard-details', getDashboardDetails)
 
