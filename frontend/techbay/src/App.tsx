@@ -1,115 +1,116 @@
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom"
-import UserScreen from "./screens/UserScreen"
-import AdminScreen from "./screens/AdminScreen"
-import DashBoard from "./pages/Admin/DashBoard"
-import HomePage from "./pages/User/HomePage"
-import AuthScreen from "./screens/AuthScreen"
-import LoginForm from "./components/auth/LoginForm"
-import RegisterForm from "./components/auth/RegisterForm"
-import Category from "./pages/Admin/Category"
-import Customers from "./pages/Admin/Customers"
-import { setupInterceptor } from "./utils/axios"
-import { Toaster } from "./components/ui/toaster"
-import { useAppDispatch } from "./hooks/useDispatch"
-import ProfilePage from "./pages/User/ProfilePage"
-import OtpForm from "./components/auth/OtpForm"
-import { logoutAsync } from "./features/auth/authThunk"
-import { ThemeProvider } from "./components/ui/ThemeProvider"
-import Brands from "./pages/Admin/Brands"
-import ProductList from "./pages/Admin/ProductList"
-import ProductEdit from "./pages/Admin/productEdit"
-import ProductAdd from "./pages/Admin/ProductAdd"
-import ShopPage from "./pages/User/ShopPage"
-import ProductDetails from "./pages/User/ProductDetails"
-import CartPage from "./pages/User/CartPage"
-import UserScreenProtected from "./screens/UserScreenProtected"
-import CheckoutPage from "./pages/User/CheckoutPage"
-import PaymentPage from "./pages/User/PaymentPage"
-import OrderConfirmation from "./pages/User/OrderConfirmation"
-import OrdersPage from "./pages/User/OrdersPage"
-import { clearCart } from "./features/cart/cartSlice"
-import OrdersList from "./pages/Admin/OrdersList"
-import OrderView from "./pages/Admin/OrderView"
-import OrderReturnList from "./pages/Admin/OrderReturnList"
-import WalletHistoryPage from "./pages/User/WalletHistoryPage"
-import WishListPage from "./pages/User/WishListPage"
-import CouponsPage from "./pages/Admin/CouponsPage"
-import SalesReportPage from "./pages/Admin/SalesReportPage"
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Suspense, lazy } from "react";
+import { setupInterceptor } from "./utils/axios";
+import { Toaster } from "./components/ui/toaster";
+import { useAppDispatch } from "./hooks/useDispatch";
+import { logoutAsync } from "./features/auth/authThunk";
+import { clearCart } from "./features/cart/cartSlice";
+import { ThemeProvider } from "./components/ui/ThemeProvider";
+import PageLoader from "./components/ui/PageLoader";
 
+// Lazy loaded components
+const UserScreen = lazy(() => import("./screens/UserScreen"));
+const AdminScreen = lazy(() => import("./screens/AdminScreen"));
+const DashBoard = lazy(() => import("./pages/Admin/DashBoard"));
+const HomePage = lazy(() => import("./pages/User/HomePage"));
+const AuthScreen = lazy(() => import("./screens/AuthScreen"));
+const LoginForm = lazy(() => import("./components/auth/LoginForm"));
+const RegisterForm = lazy(() => import("./components/auth/RegisterForm"));
+const Category = lazy(() => import("./pages/Admin/Category"));
+const Customers = lazy(() => import("./pages/Admin/Customers"));
+const ProfilePage = lazy(() => import("./pages/User/ProfilePage"));
+const OtpForm = lazy(() => import("./components/auth/OtpForm"));
+const Brands = lazy(() => import("./pages/Admin/Brands"));
+const ProductList = lazy(() => import("./pages/Admin/ProductList"));
+const ProductEdit = lazy(() => import("./pages/Admin/productEdit"));
+const ProductAdd = lazy(() => import("./pages/Admin/ProductAdd"));
+const ShopPage = lazy(() => import("./pages/User/ShopPage"));
+const ProductDetails = lazy(() => import("./pages/User/ProductDetails"));
+const CartPage = lazy(() => import("./pages/User/CartPage"));
+const UserScreenProtected = lazy(() => import("./screens/UserScreenProtected"));
+const CheckoutPage = lazy(() => import("./pages/User/CheckoutPage"));
+const PaymentPage = lazy(() => import("./pages/User/PaymentPage"));
+const OrderConfirmation = lazy(() => import("./pages/User/OrderConfirmation"));
+const OrdersPage = lazy(() => import("./pages/User/OrdersPage"));
+const OrdersList = lazy(() => import("./pages/Admin/OrdersList"));
+const OrderView = lazy(() => import("./pages/Admin/OrderView"));
+const OrderReturnList = lazy(() => import("./pages/Admin/OrderReturnList"));
+const WalletHistoryPage = lazy(() => import("./pages/User/WalletHistoryPage"));
+const WishListPage = lazy(() => import("./pages/User/WishListPage"));
+const CouponsPage = lazy(() => import("./pages/Admin/CouponsPage"));
+const SalesReportPage = lazy(() => import("./pages/Admin/SalesReportPage"));
 
 function App() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const CustomNavigate = (url:string, ShoudLogout=false) => {
-    if(ShoudLogout){
-      dispatch(logoutAsync())
-      .then((resultAction) => {
-        if(logoutAsync.fulfilled.match(resultAction)){
-            dispatch(clearCart())
-            navigate('/login', {replace: true})
+  const CustomNavigate = (url: string, ShouldLogout = false) => {
+    if (ShouldLogout) {
+      dispatch(logoutAsync()).then((resultAction) => {
+        if (logoutAsync.fulfilled.match(resultAction)) {
+          dispatch(clearCart());
+          navigate("/login", { replace: true });
         }
-        return
-    })
-    } else if(url){
-      navigate(url, {replace: true})
+        return;
+      });
+    } else if (url) {
+      navigate(url, { replace: true });
     }
-  }
+  };
 
-  setupInterceptor(CustomNavigate)    
+  setupInterceptor(CustomNavigate);
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="techbay-theme">
-      <Routes>
-        <Route element={<AuthScreen/>}>
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/register" element={<RegisterForm />} />
-          <Route path="/otp-validate" element={<OtpForm />} />
-        </Route>
-
-        {/* Public Routes */}
-        <Route path="/" element={<UserScreen />}>
-          <Route index element={<HomePage />} />
-          <Route path="/shop" element={<ShopPage/>}/>
-          <Route path="/product/:productId" element={<ProductDetails />} />
-          <Route element={<UserScreenProtected/>}>
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/wishlist" element={<WishListPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/payment" element={<PaymentPage />} />
-            <Route path="/order-confirm" element={<OrderConfirmation />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/walllet-history" element={<WalletHistoryPage />} />
+      <Suspense fallback={<PageLoader/>}>
+        <Routes>
+          <Route element={<AuthScreen />}>
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/register" element={<RegisterForm />} />
+            <Route path="/otp-validate" element={<OtpForm />} />
           </Route>
-        </Route>
 
+          {/* Public Routes */}
+          <Route path="/" element={<UserScreen />}>
+            <Route index element={<HomePage />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/product/:productId" element={<ProductDetails />} />
+            <Route element={<UserScreenProtected />}>
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/wishlist" element={<WishListPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/order-confirm" element={<OrderConfirmation />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/wallet-history" element={<WalletHistoryPage />} />
+            </Route>
+          </Route>
 
-        {/* Admin Routes (requires admin authorization) */}
-        <Route path="/admin" element={<AdminScreen />}>
-          <Route index element={<Navigate to='dashboard' />} />
-          <Route path="/admin/dashboard" element={<DashBoard />} />
-          <Route path="/admin/orders" element={<OrdersList />} />
-          <Route path="/admin/order" element={<OrderView />} />
-          <Route path="/admin/return-orders" element={<OrderReturnList />} />
-          <Route path="/admin/customers" element={<Customers />} />
-          <Route path="/admin/categories" element={<Category />} />
-          <Route path="/admin/brands" element={<Brands />} />
-          <Route path="/admin/products" element={<ProductList />} />
-          <Route path="/admin/product/add" element={<ProductAdd />} />
-          <Route path="/admin/product/edit" element={<ProductEdit />} />
-          <Route path="/admin/coupons" element={<CouponsPage />} />
-          <Route path="/admin/sales-report" element={<SalesReportPage />} />
-        </Route>
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminScreen />}>
+            <Route index element={<Navigate to="dashboard" />} />
+            <Route path="/admin/dashboard" element={<DashBoard />} />
+            <Route path="/admin/orders" element={<OrdersList />} />
+            <Route path="/admin/order" element={<OrderView />} />
+            <Route path="/admin/return-orders" element={<OrderReturnList />} />
+            <Route path="/admin/customers" element={<Customers />} />
+            <Route path="/admin/categories" element={<Category />} />
+            <Route path="/admin/brands" element={<Brands />} />
+            <Route path="/admin/products" element={<ProductList />} />
+            <Route path="/admin/product/add" element={<ProductAdd />} />
+            <Route path="/admin/product/edit" element={<ProductEdit />} />
+            <Route path="/admin/coupons" element={<CouponsPage />} />
+            <Route path="/admin/sales-report" element={<SalesReportPage />} />
+          </Route>
 
-        {/* Catch-all invalid paths */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <Toaster/>
+          {/* Catch-all invalid paths */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+      <Toaster />
     </ThemeProvider>
   );
 }
 
-
-
-export default App
+export default App;

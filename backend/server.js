@@ -20,16 +20,18 @@ const app = express();
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
+} else {
+    app.use(morgan('combined'));
 }
 
+
 app.use(cors({
-    origin : 'http://localhost:3000',
+    origin : process.env.CLIENT_ORIGIN || 'http://localhost:3000',
     credentials : true,
 }))
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser())
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

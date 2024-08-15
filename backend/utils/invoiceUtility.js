@@ -150,7 +150,7 @@ export const generateInvoicePDF = async (order, res) => {
                       (item) => `
                     <tr>
                       <td>${item.name}</td>
-                      <td><img src="http://localhost:5000${item.thumbnail}" alt="${item.name}"></td>
+                      <td><img src="${process.env.SERVER_ORIGIN || 'http://localhost:5000'}${item.thumbnail}" alt="${item.name}"></td>
                       <td>${item.quantity}</td>
                       <td>${formatPrice(item.price)}</td>
                       <td>${formatPrice(item.price * item.quantity)}</td>
