@@ -1,3 +1,4 @@
+import { Brand } from "../types/brandTypes";
 
 export const filterBrand = (brands: Brand[], filter: string): Brand[] => {
     switch (filter) {
