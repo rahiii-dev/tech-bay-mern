@@ -11,6 +11,8 @@ export const generateAccesToken = (userID, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     maxAge: 15 * 60 * 1000,
+    sameSite: 'None',
+    // domain: process.env.CLIENT_ORIGIN, 
   });
 
   return token;
@@ -26,6 +28,8 @@ export const generateToken = (userID, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: 'None',
+    // domain: process.env.CLIENT_ORIGIN, 
   });
 };
 
