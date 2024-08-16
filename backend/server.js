@@ -24,9 +24,12 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('combined'));
 }
 
+const allowedOrigins = process.env.CLIENT_ORIGINS
+  ? process.env.CLIENT_ORIGINS.split(',')
+  : ['http://localhost:3000'];
 
 app.use(cors({
-    origin : process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+    origin : allowedOrigins,
     credentials : true,
 }))
 app.use(express.json());
