@@ -50,4 +50,4 @@ app.use(errorHandler)
 // DB
 DbConnect()
 
-app.listen(serverConfig.port, serverConfig.host, () => console.log(`Server started on port http://${serverConfig.hostname()}/`));
+app.listen(serverConfig.port, () => console.log(`Server started on port http://${serverConfig.hostname()}/`));
