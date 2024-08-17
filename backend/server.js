@@ -54,5 +54,6 @@ app.use(errorHandler)
 
 // DB
 DbConnect()
+console.log("heloooooo main");
 
 app.listen(serverConfig.port, () => console.log(`Server started on port http://${serverConfig.hostname()}/`));
