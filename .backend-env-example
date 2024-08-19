@@ -10,4 +10,4 @@ PAYPAL_ENV=paypal-mode sandbox/live
 PAYPAL_CLIENT_ID=your-paypal-client-id
 PAYPAL_SECRET=your-paypal-client-secret
 SERVER_ORIGIN=your-server-orgin
-CLIENT_ORIGIN=your-client-orign
+CLIENT_ORIGINS=your-client-orign(comma seperated)
