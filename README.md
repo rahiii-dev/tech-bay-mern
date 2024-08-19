@@ -52,8 +52,8 @@ A comprehensive e-commerce application with an admin and user side, offering fea
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/techbay.git
-   cd techbay
+   git clone https://github.com/rahiii-dev/tech-bay-mern.git
+   cd tech-bay-mern
    ```
 
 2. Install backend dependencies:
@@ -98,8 +98,8 @@ A comprehensive e-commerce application with an admin and user side, offering fea
 
 Ensure that you create the `.env` files for both the frontend and backend based on the provided examples.
 
-- [Frontend `.frontend-env-example`](./frontend/.frontend-env-example)
-- [Backend `.backend-env-example`](./backend/.backend-env-example)
+- [Frontend `.frontend-env-example`](./frontend/frontend-env-example)
+- [Backend `.backend-env-example`](./backend/backend-env-example)
 
 Copy the content from the corresponding `.env-example` files and create `.env` files in the same directory, replacing the placeholder values with your actual credentials and configuration.
 
