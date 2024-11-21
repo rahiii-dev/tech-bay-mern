@@ -97,7 +97,7 @@ const ProfilePage = () => {
     }
 
     const handleWalletHistory = () => {
-        navigate('/walllet-history')
+        navigate('/wallet-history')
     }
 
 
