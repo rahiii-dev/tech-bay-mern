@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: techbay-backend
+          image: rahi4567/techbay-backend
+          ports:
+            - containerPort: 5000
+          env:
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: NODE_ENV
+            - name: SERVER_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: SERVER_ORIGIN
+            - name: CLIENT_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: CLIENT_ORIGINS
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DB_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: JWT_SECRET
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: GOOGLE_CLIENT_SECRET
+            - name: MAIL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MAIL_ID
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MAIL_PASSWORD
+            - name: PAYPAL_ENV
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: PAYPAL_ENV
+            - name: PAYPAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: PAYPAL_CLIENT_ID
+            - name: PAYPAL_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: PAYPAL_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-srv
+spec:
+  selector:
+    app: backend
+  ports:
+    - name: backend
+      protocol: TCP
+      port: 5000
+      targetPort: 5000

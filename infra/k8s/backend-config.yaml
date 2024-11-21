@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  NODE_ENV: production
+  SERVER_ORIGIN: http://api.techbay.com
+  CLIENT_ORIGINS: http://localhost:3000,http://techbay.com 
