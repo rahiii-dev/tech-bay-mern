@@ -1,12 +1,12 @@
-name: Build Backend Docker 
+name: Build Backend Docker
 
 on:
   push:
     branches:
-      - main 
+      - main
     paths:
-        - 'backend/**'      
-        - 'Dockerfile' 
+      - 'backend/**'
+      - 'Dockerfile'
 
 jobs:
   build:
@@ -17,10 +17,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - run: docker build -t rahi4567/techbay-backend:latest ./
+    - name: Build Backend Docker Image
+      run: |
+        docker build -t rahi4567/techbay-backend:latest .
 
     - name: Log in to Docker Hub
-    - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
