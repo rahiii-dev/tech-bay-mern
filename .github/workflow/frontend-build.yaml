@@ -1,0 +1,30 @@
+name: Build Frontend Docker 
+
+on:
+  push:
+    branches:
+      - main 
+  paths:
+      - 'frontend/**'      
+
+jobs:
+  build:
+    name: Build Frontend Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - run: cd frontend
+    - run: docker build -t rahi4567/techbay-fontend:latest ./
+
+    - name: Log in to Docker Hub
+    - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Push Frontend Image
+      run: |
+        docker push rahi4567/techbay-fontend:latest
