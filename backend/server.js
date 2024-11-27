@@ -47,7 +47,7 @@ app.use('/api/auth/', authRoutes);
 app.use('/api/user/', userRoutes);
 app.use('/api/admin/', adminRoutes);
 
-app.get('/', (req, res) => res.json('TechBay server is ready'));
+app.get('/', (req, res) => res.json('TechBay server is ready for actions 🚀'));
 
 app.use(notFoundHandler);
 app.use(errorHandler)
