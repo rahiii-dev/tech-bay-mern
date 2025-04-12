@@ -118,11 +118,11 @@ const LoginForm = () => {
                         </FormItem>
                     )}
                 />
-                <div className="text-right">
+                {/* <div className="text-right">
                     <Link to="/register" className="text-sm">
                         Forgot Password?
                     </Link>
-                </div>
+                </div> */}
                 {error && <p className="text-red-500">{error.type === 'Error' ? error.message : ''}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                     Login
