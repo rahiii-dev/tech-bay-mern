@@ -161,9 +161,11 @@ const ProfilePage = () => {
                                             <div>
                                                 {address.city + ', ' + address.state + ", " + address.country}
                                             </div>
-                                            <div className="text-gray-400 font-medium text-sm">
-                                                Type: {address.addressType.toLocaleUpperCase()}
-                                            </div>
+                                            {address.addressType && (
+                                                <div className="text-gray-400 font-medium text-sm">
+                                                    Type: {address.addressType.toLocaleUpperCase()}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
